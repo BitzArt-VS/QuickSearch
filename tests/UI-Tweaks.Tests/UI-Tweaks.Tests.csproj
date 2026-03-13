@@ -21,7 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\QuickSearch\QuickSearch.csproj" />
+    <ProjectReference Include="..\..\src\UI-Tweaks\UI-Tweaks.csproj" />
   </ItemGroup>
 
   <ItemGroup>

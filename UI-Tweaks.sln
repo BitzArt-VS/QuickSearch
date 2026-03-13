@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 18
 VisualStudioVersion = 18.1.11312.151
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QuickSearch", "src\QuickSearch\QuickSearch.csproj", "{CB2100BC-F653-402A-9FBA-EA463C2BD4FC}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UI-Tweaks", "src\UI-Tweaks\UI-Tweaks.csproj", "{CB2100BC-F653-402A-9FBA-EA463C2BD4FC}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{86D89413-5D57-4798-A1E1-A4909F3C7B22}"
 EndProject
@@ -17,7 +17,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{443C801B-6E87-4E03-A3A1-7B190DF692B2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QuickSearch.Tests", "tests\QuickSearch.Tests\QuickSearch.Tests.csproj", "{BD679ADB-3DEB-4651-83EE-3F4521A9C19B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UI-Tweaks.Tests", "tests\UI-Tweaks.Tests\UI-Tweaks.Tests.csproj", "{BD679ADB-3DEB-4651-83EE-3F4521A9C19B}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "sln", "sln", "{D9C5F0C3-4E1C-4963-BE96-077988EABD5E}"
 	ProjectSection(SolutionItems) = preProject
@@ -28,19 +28,19 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "sln", "sln", "{D9C5F0C3-4E1
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "assets", "assets", "{ADC1EE8C-AAEF-42C7-80D9-25D1E8BDBA50}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "quicksearch", "quicksearch", "{CC8914DF-092D-409E-957B-B5E55660B37D}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ui-tweaks", "ui-tweaks", "{CC8914DF-092D-409E-957B-B5E55660B37D}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "lang", "lang", "{AF8A8485-FE5A-4EC6-85D8-43C5FD330A0E}"
 	ProjectSection(SolutionItems) = preProject
-		assets\quicksearch\lang\en.json = assets\quicksearch\lang\en.json
+		assets\ui-tweaks\lang\en.json = assets\ui-tweaks\lang\en.json
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "mod", "mod", "{6A3CC29A-E852-43DF-A375-8B7F66F60345}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "quicksearch", "quicksearch", "{DC7B1062-1AA0-4601-B6EB-1AD503C2A374}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ui-tweaks", "ui-tweaks", "{DC7B1062-1AA0-4601-B6EB-1AD503C2A374}"
 	ProjectSection(SolutionItems) = preProject
-		mod\quicksearch\modicon.png = mod\quicksearch\modicon.png
-		mod\quicksearch\modinfo.json = mod\quicksearch\modinfo.json
+		mod\ui-tweaks\modicon.png = mod\ui-tweaks\modicon.png
+		mod\ui-tweaks\modinfo.json = mod\ui-tweaks\modinfo.json
 	EndProjectSection
 EndProject
 Global

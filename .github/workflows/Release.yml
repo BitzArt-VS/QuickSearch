@@ -1,10 +1,10 @@
-﻿name: Release QuickSearch
+﻿name: Release UI-Tweaks
 
 on:
   repository_dispatch:
   push:
     tags:
-    - "QuickSearch-v[0-9]+.[0-9]+.[0-9]+*"
+    - "UI-Tweaks-v[0-9]+.[0-9]+.[0-9]+*"
 
 env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -12,7 +12,7 @@ env:
 jobs:
 
   release:
-    name: Release QuickSearch
+    name: Release UI-Tweaks
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -33,11 +33,11 @@ jobs:
           git branch --remote --contains | grep origin/main
 
       - name: Set version
-        run: echo "VERSION=${GITHUB_REF/refs\/tags\/QuickSearch-v/}" >> $GITHUB_ENV
+        run: echo "VERSION=${GITHUB_REF/refs\/tags\/UI-Tweaks-v/}" >> $GITHUB_ENV
 
       - name: Set version in modinfo.json
         run: |
-          jq --arg v "$VERSION" '.version = $v' mod/quicksearch/modinfo.json > tmp.json && mv tmp.json mod/quicksearch/modinfo.json
+          jq --arg v "$VERSION" '.version = $v' mod/ui-tweaks/modinfo.json > tmp.json && mv tmp.json mod/ui-tweaks/modinfo.json
 
       - name: Install Vintage Story
         run: |
@@ -50,21 +50,21 @@ jobs:
 
       - name: Build
         run: |
-          dotnet build QuickSearch.sln --configuration Release -p:Version="$VERSION" -p:VINTAGE_STORY="$VINTAGE_STORY"
+          dotnet build UI-Tweaks.sln --configuration Release -p:Version="$VERSION" -p:VINTAGE_STORY="$VINTAGE_STORY"
 
       - name: Test
         run: dotnet test --no-restore --verbosity normal
 
       - name: Publish
         run: |
-          dotnet publish ./src/QuickSearch/QuickSearch.csproj -o ./release/${VERSION}/src
-          mv ./release/${VERSION}/QuickSearch.zip ./release/${VERSION}/QuickSearch_v${VERSION}.zip
+          dotnet publish ./src/UI-Tweaks/UI-Tweaks.csproj -o ./release/${VERSION}/src
+          mv ./release/${VERSION}/UI-Tweaks.zip ./release/${VERSION}/UI-Tweaks_v${VERSION}.zip
 
       - name: Release
         uses: softprops/action-gh-release@v2
         with:
-          name: 🔍QuickSearch v${{ env.VERSION }}
+          name: 🔧 UI-Tweaks v${{ env.VERSION }}
           generate_release_notes: true
           make_latest: true
           files: |
-            release/${{ env.VERSION }}/QuickSearch_v${{ env.VERSION }}.zip
+            release/${{ env.VERSION }}/UI-Tweaks_v${{ env.VERSION }}.zip

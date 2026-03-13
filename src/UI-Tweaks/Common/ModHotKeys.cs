@@ -2,12 +2,12 @@
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
 
-namespace BitzArt.QuickSearch;
+namespace BitzArt.UI.Tweaks;
 
 public static class ModHotKeys
 {
     public static ModHotKey QuickSearch { get; }
-        = ModHotKey.FromLang(Constants.ModId, "search", HotkeyType.HelpAndOverlays, "quickSearchHotKeyName", GlKeys.N);
+        = ModHotKey.FromLang(Constants.ModId, "search", HotkeyType.HelpAndOverlays, "quicksearch-hotkey-name", GlKeys.N);
 }
 
 public record ModHotKey

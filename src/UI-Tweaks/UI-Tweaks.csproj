@@ -2,7 +2,7 @@
 
 	<PropertyGroup>
 		<TargetFramework>net10.0</TargetFramework>
-		<RootNamespace>BitzArt.QuickSearch</RootNamespace>
+		<RootNamespace>BitzArt.UI.Tweaks</RootNamespace>
 		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
 		<OutputPath>bin\$(Configuration)\Mods\mod</OutputPath>
 		<Nullable>enable</Nullable>
@@ -58,7 +58,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<None Include="..\..\README.md" Visible="false" >
+		<None Include="..\..\README.md" Visible="false">
 			<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
 		</None>
 	</ItemGroup>
@@ -72,14 +72,14 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<None Include="..\..\mod\quicksearch\modinfo.json" Visible="False">
+		<None Include="..\..\mod\ui-tweaks\modinfo.json" Visible="False">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 			<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
 		</None>
 	</ItemGroup>
 
 	<ItemGroup>
-		<None Include="..\..\mod\quicksearch\modicon.png" Condition="Exists('..\..\mod\quicksearch\modicon.png')" Visible="False">
+		<None Include="..\..\mod\ui-tweaks\modicon.png" Condition="Exists('..\..\mod\ui-tweaks\modicon.png')" Visible="False">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 			<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
 		</None>

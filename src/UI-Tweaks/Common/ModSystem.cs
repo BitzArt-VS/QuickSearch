@@ -1,9 +1,9 @@
 ﻿using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 
-namespace BitzArt.QuickSearch;
+namespace BitzArt.UI.Tweaks;
 
-public class QuickSearchModSystem : ModSystem
+public class UiTweaksModSystem : ModSystem
 {
     private QuickSearchService? _quickSearchService;
 

@@ -33,7 +33,7 @@ jobs:
 
       - name: Build
         run: |
-          dotnet build QuickSearch.sln --configuration Release -p:VINTAGE_STORY="$VINTAGE_STORY"
+          dotnet build UI-Tweaks.sln --configuration Release -p:VINTAGE_STORY="$VINTAGE_STORY"
 
       - name: Test
         run: dotnet test --no-restore --verbosity normal

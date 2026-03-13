@@ -1,0 +1,15 @@
+{
+  "$schema": "https://moddbcdn.vintagestory.at/schema/modinfo.latest.json",
+  "type": "Code",
+  "modid": "ui-tweaks",
+  "name": "UI Tweaks",
+  "authors": [
+    "BitzArt"
+  ],
+  "description": "Various UI tweaks by bitz",
+  "version": "Custom Build",
+  "website": "https://github.com/BitzArt-VS/UI-Tweaks",
+  "dependencies": {
+    "game": "*"
+  }
+}
