@@ -3,21 +3,20 @@ using Vintagestory.API.Common;
 
 namespace BitzArt.UI.Tweaks;
 
-public class UiTweaksModSystem : ModSystem
+public class QuickSearchModSystem : ModSystem
 {
-    private QuickSearchService? _quickSearchService;
+    private QuickSearchDialog? _dialog;
 
     public override bool ShouldLoad(EnumAppSide forSide) => forSide == EnumAppSide.Client;
 
     public override void StartClientSide(ICoreClientAPI api)
     {
-        _quickSearchService = new(api);
-        _quickSearchService.Initialize();
+        _dialog = new(api, new(api));
     }
 
     public override void Dispose()
     {
-        _quickSearchService?.Dispose();
-        _quickSearchService = null;
+        _dialog?.Dispose();
+        _dialog = null;
     }
 }

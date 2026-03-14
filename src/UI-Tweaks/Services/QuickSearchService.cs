@@ -1,37 +1,50 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using Vintagestory.API.Client;
+using Vintagestory.API.Common;
 
 namespace BitzArt.UI.Tweaks;
 
-internal class QuickSearchService(ICoreClientAPI clientApi) : IDisposable
+internal class QuickSearchService : IDisposable
 {
-    private bool _isDisposed = false;
-    private readonly QuickSearchDialog _dialog = new(clientApi);
+    private bool _isDisposed;
+    private ICoreClientAPI _clientApi;
 
-    public void Initialize()
+    private List<ItemStack>? _items;
+    private QuickSearchWordIndex? _index;
+
+    public QuickSearchService(ICoreClientAPI clientApi)
+    {
+        _isDisposed = false;
+        _clientApi = clientApi;
+
+        clientApi.Event.LevelFinalize += OnLevelFinalize;
+    }
+
+    private void OnLevelFinalize()
+    {
+        Task.Run(() =>
+        {
+            _items = [.. _clientApi.World.Collectibles
+                .SelectMany(x => x.GetHandBookStacks(_clientApi) ?? [])
+                .OrderBy(x => x.GetName().Length)];
+
+            _index = new(_items);
+        });
+    }
+
+    public IEnumerable<ItemStack> Search(string query)
     {
         ObjectDisposedException.ThrowIf(_isDisposed, this);
 
-        RegisterQuickSearchHotKey();
-    }
-
-    private void RegisterQuickSearchHotKey()
-    {
-        clientApi.Input.AddHotKey(ModHotKeys.QuickSearch, (keys) =>
+        if (_index is null)
         {
-            ObjectDisposedException.ThrowIf(_isDisposed, this);
+            return [];
+        }
 
-            if (_dialog.IsOpened())
-            {
-                _dialog.TryClose();
-                return true;
-            }
-
-            _dialog.ignoreNextKeyPress = true;
-            _dialog.TryOpen();
-
-            return true;
-        });
+        return _index.Search(query);
     }
 
     public void Dispose()
@@ -41,12 +54,11 @@ internal class QuickSearchService(ICoreClientAPI clientApi) : IDisposable
             return;
         }
 
-        _dialog.Dispose();
+        _items = null;
+        _index = null;
 
-        if (!clientApi.Input.HotKeys.Remove(ModHotKeys.QuickSearch.Code))
-        {
-            throw new InvalidOperationException($"Failed to unregister hotkey with code '{ModHotKeys.QuickSearch.Code}'");
-        }
+        _clientApi.Event.LevelFinalize -= OnLevelFinalize;
+        _clientApi = null!;
 
         _isDisposed = true;
     }

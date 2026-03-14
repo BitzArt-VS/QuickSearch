@@ -1,32 +1,30 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using Vintagestory.API.Client;
-using Vintagestory.API.Common;
-using Vintagestory.API.Util;
 
 namespace BitzArt.UI.Tweaks;
 
-internal class QuickSearchDialog : ModGuiDialog
+internal partial class QuickSearchDialog : ModGuiDialog
 {
     private string _input = string.Empty;
 
+    private CancellationTokenSource? _searchCancellationTokenSource;
+
     private Action<string, bool, bool>? _setSearchText;
-    List<ItemStack>? _items = [];
+    private readonly QuickSearchService _search;
 
     public override double DrawOrder => 0.3;
 
-    public QuickSearchDialog(ICoreClientAPI clientApi) : base(clientApi)
+    public QuickSearchDialog(ICoreClientAPI clientApi, QuickSearchService search) : base(clientApi)
     {
-        clientApi.Event.LevelFinalize += () =>
-        {
-            _items = [.. ClientApi.World.Collectibles
-                .SelectMany(collectible => collectible.GetHandBookStacks(ClientApi) ?? [])];
-        };
-        
+        _search = search;
 
+        RegisterQuickSearchHotKey();
         Compose();
     }
 
@@ -39,8 +37,8 @@ internal class QuickSearchDialog : ModGuiDialog
         .CreateCompo("quicksearch-dialog", ElementStdBounds.AutosizedMainDialog.WithAlignment(EnumDialogArea.CenterMiddle))
         .AddGrayBG(bgBounds)
         .BeginChildElements(bgBounds)
-        .AddTextInput(ElementBounds.Fixed(0, 16, 280, 32), OnTextInputChanged, CairoFont.TextInput(), "quick-search-input")
-        .AddDynamicText(string.Empty, CairoFont.WhiteDetailText(), ElementBounds.Fixed(0, 64, 200, 64), "resultText")
+        .AddTextInput(ElementBounds.Fixed(0, 16, 280, 32), OnTextInputChanged, key: "quick-search-input")
+        .AddDynamicText(string.Empty, CairoFont.WhiteDetailText(), ElementBounds.Fixed(0, 64, 200, 128), "resultText")
         .Compose();
 
         var textInput = SingleComposer.GetTextInput("quick-search-input");
@@ -62,11 +60,30 @@ internal class QuickSearchDialog : ModGuiDialog
         };
     }
 
+    private void RegisterQuickSearchHotKey()
+    {
+        ClientApi.Input.AddHotKey(ModHotKeys.QuickSearch, (keys) =>
+        {
+            ObjectDisposedException.ThrowIf(IsDisposed, this);
+
+            if (IsOpened())
+            {
+                TryClose();
+                return true;
+            }
+
+            TryOpenOnKeyPress();
+
+            return true;
+        });
+    }
+
     public override void OnGuiOpened()
     {
         Compose();
 
         _setSearchText!.Invoke(_input, true, true);
+        RunSearch();
 
         ClientApi.Logger.VerboseDebug($"QuickSearch is now: ON");
     }
@@ -88,39 +105,88 @@ internal class QuickSearchDialog : ModGuiDialog
 
         ClientApi.Gui.PlaySound("menubutton_press");
 
-        _ = SearchAsync();
+        RunSearch();
     }
 
-    private Task SearchAsync()
+    private void RunSearch()
     {
-        SetResultText(string.Empty);
+        _searchCancellationTokenSource?.Cancel();
+        _searchCancellationTokenSource = new();
 
-        if (string.IsNullOrEmpty(_input))
+        Task.Run(() =>
         {
-            return Task.CompletedTask;
+            if (!string.IsNullOrWhiteSpace(_input) && GetMathRegex().IsMatch(_input))
+            {
+                try
+                {
+                    // Replace percentage matches with their decimal equivalents before evaluating the expression.
+                    // (DataTable.Compute doesn't support percentages)
+                    var input = GetPercentageRegex().Replace(_input, match =>
+                    {
+                        if (double.TryParse(match.Groups[1].Value, out var number))
+                        {
+                            return (number / 100).ToString();
+                        }
+                        return match.Value; // If parsing fails, return the original match
+                    });
+
+                    // Quick and dirty way to evaluate simple math expressions without writing a custom parser.
+                    // Requires a try-catch to function though, which is unfortunate.
+                    var result = new DataTable().Compute(input, null);
+
+                    ClientApi.Event.EnqueueMainThreadTask(() =>
+                    {
+                        SetResultText(result.ToString() ?? string.Empty);
+                    }, "quicksearch-set-results");
+
+                    return;
+                }
+                catch
+                {
+                }
+            }
+
+            Search(_searchCancellationTokenSource.Token);
+        });
+    }
+
+    private void Search(CancellationToken cancellationToken)
+    {
+        ClientApi.Event.EnqueueMainThreadTask(() =>
+        {
+            SetResultText(string.Empty);
+        }, "quicksearch-set-results");
+
+        if (string.IsNullOrWhiteSpace(_input))
+        {
+            return;
         }
 
-        if (_items is null)
-        {
-            return Task.CompletedTask;
-        }
+        var resultItems = _search.Search(_input).Take(10).ToList();
 
-        // Temporary implementation, for testing purposes
-        // TODO: Extract search logic to a separate service and implement proper searching with inverse indexing
-        var resultItems = _items.Where(x => x.GetName().ToSearchFriendly().Contains(_input, StringComparison.OrdinalIgnoreCase))
-            .Take(10)
-            .ToArray();
+        cancellationToken.ThrowIfCancellationRequested();
+
+        if (resultItems.Count == 0)
+        {
+            return;
+        }
 
         ClientApi.Event.EnqueueMainThreadTask(() =>
         {
             SetResultText(string.Join(", ", resultItems.Select(x => x.GetName())));
         }, "quicksearch-set-results");
 
-        return Task.CompletedTask;
+        return;
     }
 
     private void SetResultText(string text)
     {
         SingleComposer.GetDynamicText("resultText")?.SetNewText(text);
     }
+
+    [GeneratedRegex("^(\\d+|[+\\-*\\/^()%,.]|\\s)+$")]
+    private static partial Regex GetMathRegex();
+
+    [GeneratedRegex(@"(\d+)%")]
+    private static partial Regex GetPercentageRegex();
 }

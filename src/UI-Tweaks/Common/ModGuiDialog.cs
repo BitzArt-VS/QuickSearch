@@ -28,6 +28,13 @@ internal class ModGuiDialog(ICoreClientAPI clientApi) : GuiDialog(clientApi)
         IsDisposed = true;
     }
 
+    public bool TryOpenOnKeyPress()
+    {
+        ignoreNextKeyPress = true;
+
+        return TryOpen();
+    }
+
     public override bool TryOpen()
     {
         ObjectDisposedException.ThrowIf(IsDisposed, this);
