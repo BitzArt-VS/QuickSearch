@@ -15,5 +15,6 @@
   "config-quicksearch-enable-tooltip": "Enables or disables the quick search feature.",
   "config-quicksearch-result-list-height-tooltip": "Sets the height of the search result list in pixels.",
   "config-tooltip-enable": "Enable",
-  "config-tooltip-enable-tooltip": "Enables or disables this tooltip."
+  "config-tooltip-enable-tooltip": "Enables or disables this tooltip.",
+  "config-back": "Back"
 }

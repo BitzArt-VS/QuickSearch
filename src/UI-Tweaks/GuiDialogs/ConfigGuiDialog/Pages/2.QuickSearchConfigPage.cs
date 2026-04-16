@@ -28,6 +28,8 @@ internal sealed class QuickSearchConfigPage(QuickSearchConfig config) : ConfigPa
         double y = bounds.fixedY + ContentTopPadding;
         double labelWidth = bounds.fixedWidth - ControlWidth;
 
+        AddPageTitle(composer, bounds, ref y);
+
         var enableOptionBounds = ElementBounds.Fixed(x, y, bounds.fixedWidth, RowHeight);
         var enableLabelBounds = ElementBounds.Fixed(enableOptionBounds.fixedX, enableOptionBounds.fixedY + (RowHeight - SwitchSize) / 2.0, labelWidth, SwitchSize);
         var enableSwitchBounds = ElementBounds.Fixed(enableOptionBounds.fixedX + labelWidth, enableOptionBounds.fixedY + (RowHeight - SwitchSize) / 2.0, SwitchSize, SwitchSize);

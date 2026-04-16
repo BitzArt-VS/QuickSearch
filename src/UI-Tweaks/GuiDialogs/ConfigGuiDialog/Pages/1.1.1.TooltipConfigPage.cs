@@ -21,6 +21,8 @@ internal sealed class TooltipConfigPage(TooltipOptions config, string titleLangK
         double y = bounds.fixedY + ContentTopPadding;
         double labelWidth = bounds.fixedWidth - ControlWidth;
 
+        AddPageTitle(composer, bounds, ref y);
+
         var enableOptionBounds = ElementBounds.Fixed(x, y, bounds.fixedWidth, RowHeight);
         var enableLabelBounds = ElementBounds.Fixed(enableOptionBounds.fixedX, enableOptionBounds.fixedY + (RowHeight - SwitchSize) / 2.0, labelWidth, SwitchSize);
         var enableSwitchBounds = ElementBounds.Fixed(enableOptionBounds.fixedX + labelWidth, enableOptionBounds.fixedY + (RowHeight - SwitchSize) / 2.0, SwitchSize, SwitchSize);
@@ -33,7 +35,7 @@ internal sealed class TooltipConfigPage(TooltipOptions config, string titleLangK
                 _config.NotifyPropertyChanged(nameof(TooltipOptions.Enable));
                 saveConfig.Invoke();
             }, enableSwitchBounds, EnableKey, SwitchSize)
-            .AddConfigHoverText("config-tooltip-enable-tooltip", TextFont, enableOptionBounds, requiresRestart: true);
+            .AddConfigHoverText("config-tooltip-enable-tooltip", TextFont, enableOptionBounds);
 
         return enableOptionBounds.fixedY + enableOptionBounds.fixedHeight;
     }

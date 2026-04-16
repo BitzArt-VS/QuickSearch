@@ -14,6 +14,7 @@
   "config-requires-restart": "* a játék újraindítását igényli.",
   "config-quicksearch-enable-tooltip": "Engedélyezi vagy letiltja a gyorskeresés funkciót.",
   "config-quicksearch-result-list-height-tooltip": "Beállítja a keresési találati lista magasságát pixelben.",
-  "config-tooltip-enable": "Enable",
-  "config-tooltip-enable-tooltip": "Enables or disables this tooltip."
+  "config-tooltip-enable": "Engedélyezés",
+  "config-tooltip-enable-tooltip": "Engedélyezi vagy letiltja ezt az elemleírást.",
+  "config-back": "Vissza"
 }

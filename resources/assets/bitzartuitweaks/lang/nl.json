@@ -14,6 +14,7 @@
   "config-requires-restart": "* vereist een herstart van het spel.",
   "config-quicksearch-enable-tooltip": "Schakelt de snelzoekfunctie in of uit.",
   "config-quicksearch-result-list-height-tooltip": "Stelt de hoogte van de zoekresultatenlijst in pixels in.",
-  "config-tooltip-enable": "Enable",
-  "config-tooltip-enable-tooltip": "Enables or disables this tooltip."
+  "config-tooltip-enable": "Inschakelen",
+  "config-tooltip-enable-tooltip": "Schakelt deze tooltip in of uit.",
+  "config-back": "Terug"
 }

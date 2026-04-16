@@ -14,6 +14,7 @@
   "config-requires-restart": "* ゲームの再起動が必要です。",
   "config-quicksearch-enable-tooltip": "クイック検索機能を有効または無効にします。",
   "config-quicksearch-result-list-height-tooltip": "検索結果リストの高さをピクセル単位で設定します。",
-  "config-tooltip-enable": "Enable",
-  "config-tooltip-enable-tooltip": "Enables or disables this tooltip."
+  "config-tooltip-enable": "有効にする",
+  "config-tooltip-enable-tooltip": "このツールチップを有効または無効にします。",
+  "config-back": "戻る"
 }

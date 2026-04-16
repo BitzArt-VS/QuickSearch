@@ -1,3 +1,4 @@
+using Cairo;
 using System;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
@@ -7,14 +8,24 @@ namespace BitzArt.UI.Tweaks;
 
 internal abstract class ConfigPage(string title) : IDisposable
 {
-    protected const int NavButtonWidth = 200;
-    protected const int NavButtonHeight = 28;
+    protected const int NavButtonWidth = 300;
+    protected const int NavButtonHeight = 32;
     protected const int NavButtonGap = 8;
     protected const int ContentTopPadding = 16;
+    protected const int PageTitleHeight = 14;
+    protected const int PageTitleGap = 24;
 
     public string Title { get; } = title;
 
     protected readonly CairoFont TextFont = CairoFont.WhiteSmallText();
+    protected readonly CairoFont TitleFont = new()
+    {
+        Color = (double[])GuiStyle.DialogDefaultTextColor.Clone(),
+        Fontname = GuiStyle.StandardFontName,
+        UnscaledFontsize = GuiStyle.SmallFontSize,
+        FontWeight = FontWeight.Bold,
+        Orientation = EnumTextOrientation.Center
+    };
 
     public abstract double ComposeContent(ICoreClientAPI clientApi, GuiComposer composer, ElementBounds bounds, Action saveConfig, Action<ConfigPage> pushPage);
 
@@ -23,7 +34,15 @@ internal abstract class ConfigPage(string title) : IDisposable
     public virtual void Dispose()
     {
         TextFont.Dispose();
+        TitleFont.Dispose();
         GC.SuppressFinalize(this);
+    }
+
+    protected void AddPageTitle(GuiComposer composer, ElementBounds bounds, ref double y)
+    {
+        var titleBounds = ElementBounds.Fixed(bounds.fixedX, y, bounds.fixedWidth, PageTitleHeight);
+        composer.AddStaticText(Title, TitleFont, titleBounds);
+        y += PageTitleHeight + PageTitleGap;
     }
 
     protected static void AddNavButton(GuiComposer composer, string langKey, string key, double x, ref double y, Action onClick)
@@ -48,6 +67,6 @@ internal static class GuiComposerConfigExtensions
             text += $"\n\n<i>{Lang.Get($"{Constants.ModId}:config-requires-restart")}</i>";
         }
 
-        return composer.AddHoverText(text, font, (int)bounds.fixedWidth, bounds);
+        return composer.AddAutoSizeHoverText(text, font, (int)bounds.fixedWidth, bounds);
     }
 }

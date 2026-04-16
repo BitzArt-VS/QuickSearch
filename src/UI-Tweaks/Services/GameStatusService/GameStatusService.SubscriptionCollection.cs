@@ -24,6 +24,25 @@ public partial class GameStatusService
 
                 subscribers.Add(subscription);
             }
+
+            TryNotify(subscription);
+        }
+
+        private static void TryNotify(DetailsSubscription subscription)
+        {
+            object[] values = new object[subscription.Details.Count];
+
+            for (int i = 0; i < subscription.Details.Count; i++)
+            {
+                if (subscription.Details[i].Value is null)
+                {
+                    return;
+                }
+
+                values[i] = subscription.Details[i].Value;
+            }
+
+            subscription.Callback.Invoke(values);
         }
 
         public void Unsubscribe(Action<object[]> callback)

@@ -14,6 +14,7 @@
   "config-requires-restart": "* kräver en omstart av spelet.",
   "config-quicksearch-enable-tooltip": "Aktiverar eller inaktiverar snabbsökningsfunktionen.",
   "config-quicksearch-result-list-height-tooltip": "Ställer in höjden på sökresultatlistan i pixlar.",
-  "config-tooltip-enable": "Enable",
-  "config-tooltip-enable-tooltip": "Enables or disables this tooltip."
+  "config-tooltip-enable": "Aktivera",
+  "config-tooltip-enable-tooltip": "Aktiverar eller inaktiverar detta verktygstips.",
+  "config-back": "Tillbaka"
 }

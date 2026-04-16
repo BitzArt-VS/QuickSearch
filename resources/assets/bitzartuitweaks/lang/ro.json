@@ -14,6 +14,7 @@
   "config-requires-restart": "* necesită repornirea jocului.",
   "config-quicksearch-enable-tooltip": "Activează sau dezactivează funcția de căutare rapidă.",
   "config-quicksearch-result-list-height-tooltip": "Setează înălțimea listei de rezultate ale căutării în pixeli.",
-  "config-tooltip-enable": "Enable",
-  "config-tooltip-enable-tooltip": "Enables or disables this tooltip."
+  "config-tooltip-enable": "Activare",
+  "config-tooltip-enable-tooltip": "Activează sau dezactivează acest tooltip.",
+  "config-back": "Înapoi"
 }

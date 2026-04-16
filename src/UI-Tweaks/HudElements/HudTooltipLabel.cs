@@ -2,6 +2,7 @@
 using Cairo;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Vintagestory.API.Client;
 
 namespace BitzArt.UI.Tweaks;
@@ -15,6 +16,8 @@ public class HudTooltipLabel : HudElement
 
     private CairoFont? _font;
     private List<string>? _formatStrings;
+    private string?[]? _resultStrings;
+    private bool _isSubscribedToUpdates;
 
     public HudTooltipLabel(ICoreClientAPI clientApi, GameStatusService statusService, IHudTooltipConfiguration config)
         : base(clientApi)
@@ -22,12 +25,12 @@ public class HudTooltipLabel : HudElement
         _statusService = statusService;
         _config = config;
 
+        _config.PropertyChanged += (_, _) => Compose();
+
         if (_config.Enable)
         {
             Compose();
         }
-
-        _config.PropertyChanged += (_, _) => Compose();
     }
 
     private void Compose()
@@ -53,6 +56,8 @@ public class HudTooltipLabel : HudElement
                 .AddTooltipBackground(backgroundBoundary, _config.BackgroundOpacity, _config.BackgroundCornerRadius)
             .EndIf();
 
+        _resultStrings ??= new string?[_formatStrings.Count];
+
         for (int i = 0; i < _formatStrings.Count; i++)
         {
             var contentBoundary = ElementBounds.Fixed(
@@ -61,11 +66,29 @@ public class HudTooltipLabel : HudElement
                 _config.Width - (_config.Padding.Left + _config.Padding.Right),
                 _config.Height - (_config.Padding.Top + _config.Padding.Bottom));
 
+            var resultText = _resultStrings.ElementAtOrDefault(i) ?? string.Empty;
+
             SingleComposer = SingleComposer
-                .AddRichtext(string.Empty, _font, contentBoundary, $"{RichtextElementName}-{i + 1}");
+                .AddRichtext(resultText, _font, contentBoundary, $"{RichtextElementName}-{i + 1}");
         }
 
         SingleComposer = SingleComposer.Compose();
+
+        switch (_config.Enable)
+        {
+            case true:
+                TrySubscribeToUpdates();
+                TryOpen();
+                break;
+            case false:
+                TryClose();
+                break;
+        }
+    }
+
+    private void TrySubscribeToUpdates()
+    {
+        if (_isSubscribedToUpdates || _formatStrings == null) return;
 
         for (int i = 0; i < _formatStrings.Count; i++)
         {
@@ -80,26 +103,25 @@ public class HudTooltipLabel : HudElement
             }
         }
 
-        switch(_config.Enable)
-        {
-            case true:
-                TryOpen();
-                break;
-            case false:
-                TryClose();
-                break;
-        }
+        _isSubscribedToUpdates = true;
     }
 
     private void OnStatsUpdate(string? value, int index)
     {
-        var valueElement = SingleComposer.GetRichtext($"{RichtextElementName}-{index + 1}");
-        var format = _formatStrings![index];
-
         if (_config.CenterText)
         {
             value = $"<font align=center>{value}</font>";
         }
+
+        _resultStrings![index] = value ?? string.Empty;
+
+        if (!_config.Enable)
+        {
+            return;
+        }
+
+        var valueElement = SingleComposer.GetRichtext($"{RichtextElementName}-{index + 1}");
+        var format = _formatStrings![index];
 
         ClientApi.Event.EnqueueMainThreadTask(() =>
         {

@@ -14,6 +14,8 @@ internal sealed class HudConfigPage(HudConfig config) : ConfigPage(Lang.Get($"{C
         double buttonX = bounds.fixedX + (bounds.fixedWidth - NavButtonWidth) / 2.0;
         double y = bounds.fixedY + ContentTopPadding;
 
+        AddPageTitle(composer, bounds, ref y);
+
         AddNavButton(composer, $"{Constants.ModId}:config-page-tooltips", "nav-tooltips", buttonX, ref y,
             () => pushPage(new TooltipsConfigPage(_config.Tooltips)));
 

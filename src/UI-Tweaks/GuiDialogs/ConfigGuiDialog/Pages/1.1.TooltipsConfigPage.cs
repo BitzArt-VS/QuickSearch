@@ -14,6 +14,8 @@ internal sealed class TooltipsConfigPage(TooltipsConfig config) : ConfigPage(Lan
         double buttonX = bounds.fixedX + (bounds.fixedWidth - NavButtonWidth) / 2.0;
         double y = bounds.fixedY + ContentTopPadding;
 
+        AddPageTitle(composer, bounds, ref y);
+
         AddNavButton(composer, $"{Constants.ModId}:config-page-env-widget", "nav-env-widget", buttonX, ref y,
             () => pushPage(new TooltipConfigPage(_config.EnvironmentWidget, $"{Constants.ModId}:config-page-env-widget")));
         AddNavButton(composer, $"{Constants.ModId}:config-page-healthbar", "nav-healthbar", buttonX, ref y,

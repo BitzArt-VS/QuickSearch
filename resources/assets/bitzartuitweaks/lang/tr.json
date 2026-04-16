@@ -7,13 +7,14 @@
   "config-page-healthbar": "Sağlık çubuğu",
   "config-page-satiety": "Tokluk",
   "config-page-hunger-rate": "Açlık hızı",
-  "config-page-temporal-stability": "Zamansal karar lılık",
+  "config-page-temporal-stability": "Zamansal kararlılık",
   "config-page-quicksearch": "Hızlı arama",
   "config-quicksearch-enable": "Hızlı aramayı etkinleştir",
   "config-quicksearch-result-list-height": "Sonuç listesi yüksekliği",
   "config-requires-restart": "* oyunun yeniden başlatılmasını gerektirir.",
   "config-quicksearch-enable-tooltip": "Hızlı arama özelliğini etkinleştirir veya devre dışı bırakır.",
   "config-quicksearch-result-list-height-tooltip": "Arama sonuçları listesinin yüksekliğini piksel cinsinden ayarlar.",
-  "config-tooltip-enable": "Enable",
-  "config-tooltip-enable-tooltip": "Enables or disables this tooltip."
+  "config-tooltip-enable": "Etkinleştir",
+  "config-tooltip-enable-tooltip": "Bu tooltip'i etkinleştirir veya devre dışı bırakır.",
+  "config-back": "Geri"
 }

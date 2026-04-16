@@ -44,13 +44,6 @@ internal partial class QuickSearchGuiDialog : GuiDialog
 
         _setSearchText!.Invoke(_input, true, true);
         Search();
-
-        ClientApi.Logger.VerboseDebug($"QuickSearch is now: ON");
-    }
-
-    public override void OnGuiClosed()
-    {
-        ClientApi.Logger.VerboseDebug($"QuickSearch is now: OFF");
     }
 
     public void OnItemClicked(int index)

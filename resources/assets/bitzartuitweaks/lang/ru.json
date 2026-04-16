@@ -14,6 +14,7 @@
   "config-requires-restart": "* требует перезапуска игры.",
   "config-quicksearch-enable-tooltip": "Включает или отключает функцию быстрого поиска.",
   "config-quicksearch-result-list-height-tooltip": "Задаёт высоту списка результатов поиска в пикселях.",
-  "config-tooltip-enable": "Enable",
-  "config-tooltip-enable-tooltip": "Enables or disables this tooltip."
+  "config-tooltip-enable": "Включить",
+  "config-tooltip-enable-tooltip": "Включает или отключает этот тултип.",
+  "config-back": "Назад"
 }
