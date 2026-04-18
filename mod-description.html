@@ -8,6 +8,8 @@
       target="_blank" rel="noopener">Documentation</a> &nbsp;|&nbsp;
     <a style="color: #3d6594; text-decoration: none; font-weight: 600;" href="https://github.com/BitzArt-VS/UI-Tweaks"
       target="_blank" rel="noopener">Source Code (GitHub)</a> &nbsp;|&nbsp;
+    <a style="color: #3d6594; text-decoration: none; font-weight: 600;" href="https://github.com/BitzArt-VS/UI-Tweaks/releases"
+      target="_blank" rel="noopener">Changelog</a> &nbsp;|&nbsp;
     <a style="color: #3d6594; text-decoration: none; font-weight: 600;" href="https://discord.gg/eZUFCVWWtK"
       target="_blank" rel="noopener">Discord</a>
   </p>
@@ -61,7 +63,7 @@
               style="color: #3d6594; text-decoration: none; font-weight: 600;" href="https://wiki.vintagestory.at/VTML"
               target="_blank" rel="noopener">VTML</a> and <a
               style="color: #3d6594; text-decoration: none; font-weight: 600;"
-              href="https://bitzart-vs.github.io/UI-Tweaks/05.configuration.html#variable-placeholders" target="_blank"
+              href="https://bitzart-vs.github.io/UI-Tweaks/03.configuration.html#variable-placeholders" target="_blank"
               rel="noopener">variable placeholders</a>.</p>
         </div>
       </div>
@@ -106,12 +108,11 @@
       style="padding: 8px 0; font-size: 0.97em; font-weight: 700; color: #333; letter-spacing: 0.4px; text-transform: uppercase;">
       Configuration</div>
     <div style="padding-top: 8px; font-size: 0.96em; line-height: 1.8; color: #333;">
-      <p style="margin: 0 0 8px;">Config file is generated automatically on first launch at
+      <p style="margin: 0 0 8px;">Press <strong>Shift&nbsp;+&nbsp;N</strong> (default) in-game to configure UI Tweaks.</p>
+      <p style="margin: 0 0 8px;">Mod configuration file is located at
         <code
-          style="font-family: monospace; background: hsl(40 67.7% 95%); padding: 2px 6px; border-radius: 4px;">ModConfig/ui-tweaks.json</code>.
-      </p>
-      <p style="margin: 0;">See <a style="color: #3d6594; text-decoration: none; font-weight: 600;"
-          href="https://bitzart-vs.github.io/UI-Tweaks/05.configuration.html" target="_blank"
+          style="font-family: monospace; background: hsl(40 67.7% 95%); padding: 2px 6px; border-radius: 4px;">ModConfig/ui-tweaks.json</code>, generated automatically on first launch. See <a style="color: #3d6594; text-decoration: none; font-weight: 600;"
+          href="https://bitzart-vs.github.io/UI-Tweaks/03.configuration.html" target="_blank"
           rel="noopener">Configuration</a> for full reference.</p>
     </div>
   </div>
@@ -143,6 +144,16 @@
           </tr>
           <tr style="border-bottom: 1px solid hsl(42 60% 90%);">
             <td style="padding: 10px 12px; text-align: center; vertical-align: middle; font-size: 1.2em;"
+              title="Fully compatible">🟢</td>
+            <td style="padding: 10px 12px; vertical-align: middle;"><a
+                style="color: #3d6594; text-decoration: none; font-weight: 600;"
+                href="https://mods.vintagestory.at/shirereckoning" target="_blank" rel="noopener">Calendar:
+                Shire-reckoning</a></td>
+            <td style="padding: 10px 12px; vertical-align: middle; color: #555;">Month names are replaced correctly. The
+              word &ldquo;Year&rdquo; in Environment Widget can be changed by editing it's config.</td>
+          </tr>
+          <tr style="border-bottom: 1px solid hsl(42 60% 90%);">
+            <td style="padding: 10px 12px; text-align: center; vertical-align: middle; font-size: 1.2em;"
               title="Mostly compatible">🟡</td>
             <td style="padding: 10px 12px; vertical-align: middle;"><a
                 style="color: #3d6594; text-decoration: none; font-weight: 600;"
@@ -152,18 +163,13 @@
               supported (yet 🌚). Satiety-related tooltips should be repositioned in config to accommodate the thirst
               bar.</td>
           </tr>
-          <tr style="border-bottom: 1px solid hsl(42 60% 90%);">
-            <td style="padding: 10px 12px; text-align: center; vertical-align: middle; font-size: 1.2em;"
-              title="Mostly compatible">🟡</td>
-            <td style="padding: 10px 12px; vertical-align: middle;"><a
-                style="color: #3d6594; text-decoration: none; font-weight: 600;"
-                href="https://mods.vintagestory.at/shirereckoning" target="_blank" rel="noopener">Calendar:
-                Shire-reckoning</a></td>
-            <td style="padding: 10px 12px; vertical-align: middle; color: #555;">Month names are replaced correctly. The
-              word &ldquo;year&rdquo; is not replaced with the Shire-Reckoning equivalent.</td>
-          </tr>
         </tbody>
       </table>
+      <div style="margin-top: 10px; font-size: 0.88em; color: #666; display: flex; flex-wrap: wrap; gap: 16px; justify-content: flex-end;">
+        <span>🟢 Fully compatible</span>
+        <span>🟡 Mostly compatible</span>
+        <span>🔴 Not compatible</span>
+      </div>
     </div>
   </div>
 

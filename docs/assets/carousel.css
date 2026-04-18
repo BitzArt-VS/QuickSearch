@@ -6,16 +6,12 @@
   margin: 1.5em 0;
 }
 .carousel-body {
-  display: grid;
-  grid-template-columns: 2.5em 1fr 2.5em;
-  border: 1px solid rgba(128, 128, 128, 0.3);
-  border-radius: 8px;
+  position: relative;
+  border: 1px solid var(--table-border-color);
+  border-radius: 4px;
   overflow: hidden;
-  background: rgba(128, 128, 128, 0.05);
 }
 .carousel-inner {
-  grid-column: 2;
-  grid-row: 1;
   display: grid;
 }
 .carousel-slide {
@@ -35,30 +31,37 @@
   display: block;
 }
 
-/* Arrow areas */
+/* Arrow areas – overlaid on top of the image */
 .carousel-arrow-area {
-  grid-row: 1;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 5em;
   display: flex;
   align-items: center;
   justify-content: center;
-  position: relative;
-  background: rgba(128, 128, 128, 0.08);
+  cursor: pointer;
+  background: transparent;
   transition: background 0.2s;
+  z-index: 1;
 }
 .carousel-arrow-area:hover {
-  background: rgba(128, 128, 128, 0.2);
+  background: rgba(0, 0, 0, 0.12);
 }
-.carousel-arrow-area.carousel-prev-area { grid-column: 1; }
-.carousel-arrow-area.carousel-next-area { grid-column: 3; }
+.carousel-arrow-area.carousel-prev-area { left: 0; }
+.carousel-arrow-area.carousel-next-area { right: 0; }
 .carousel-arrow-area .arrow-symbol {
-  color: rgba(128, 128, 128, 0.5);
+  color: transparent;
   font-size: 1.5em;
   line-height: 1;
+  text-shadow: none;
   user-select: none;
   pointer-events: none;
+  transition: color 0.2s, text-shadow 0.2s;
 }
 .carousel-arrow-area:hover .arrow-symbol {
-  color: rgba(128, 128, 128, 0.9);
+  color: rgba(255, 255, 255, 0.9);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
 }
 
 /* Invisible label overlays – only the correct one receives clicks */
@@ -69,16 +72,16 @@
 }
 .carousel-dot {
   display: inline-block;
-  width: 12px;
-  height: 12px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
-  background: rgba(128, 128, 128, 0.35);
+  background: var(--table-border-color);
   margin: 0 5px;
   cursor: pointer;
   transition: background 0.2s;
 }
 .carousel-dot:hover {
-  background: rgba(128, 128, 128, 0.6);
+  background: var(--icons);
 }
 
 /* ── Active state (managed by carousel.js) ── */
@@ -87,7 +90,7 @@
   visibility: visible;
 }
 .carousel-dot.active {
-  background: rgba(128, 128, 128, 0.8);
+  background: var(--links);
 }
 
 /* ── Single-image showcase container ── */
@@ -97,9 +100,8 @@
   justify-content: center;
   align-items: center;
   padding: 1em;
-  border: 1px solid rgba(128, 128, 128, 0.3);
-  border-radius: 8px;
-  background: rgba(128, 128, 128, 0.05);
+  border: 1px solid var(--table-border-color);
+  border-radius: 4px;
   margin: 1.5em 0;
 }
 .image-showcase img {

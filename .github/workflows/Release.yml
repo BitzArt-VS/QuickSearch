@@ -21,6 +21,8 @@ jobs:
 
       - name: Checkout
         uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
 
       - name: Setup dotnet
         uses: actions/setup-dotnet@v4
@@ -29,7 +31,6 @@ jobs:
 
       - name: Verify commit
         run: |
-          git fetch --no-tags --prune --depth=1 origin +refs/heads/*:refs/remotes/origin/*
           git branch --remote --contains | grep origin/main
 
       - name: Set version
@@ -50,11 +51,24 @@ jobs:
           dotnet publish ./src/UI-Tweaks/UI-Tweaks.csproj -o ./release/${VERSION}/src
           mv ./release/${VERSION}/UI-Tweaks.zip ./release/${VERSION}/UI-Tweaks_v${VERSION}.zip
 
+      - name: Generate changelog
+        id: changelog
+        run: |
+          PREV_TAG=$(git tag --sort=-version:refname | grep "^UI-Tweaks-v" | grep -v "^${GITHUB_REF_NAME}$" | head -1)
+          if [ -z "$PREV_TAG" ]; then
+            NOTES=$(git log --pretty=format:"- %s" HEAD)
+          else
+            NOTES=$(git log --pretty=format:"- %s" "${PREV_TAG}..HEAD")
+          fi
+          echo "changelog<<EOF" >> $GITHUB_OUTPUT
+          echo "$NOTES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
       - name: Release
         uses: softprops/action-gh-release@v2
         with:
           name: 📺 UI-Tweaks v${{ env.VERSION }}
-          generate_release_notes: true
+          body: ${{ steps.changelog.outputs.changelog }}
           make_latest: true
           files: |
             release/${{ env.VERSION }}/UI-Tweaks_v${{ env.VERSION }}.zip

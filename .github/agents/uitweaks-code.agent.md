@@ -1,6 +1,6 @@
 ---
 description: "Use when writing, editing, or debugging C# source code for the UI-Tweaks mod. Covers ModSystems, HUD elements, GUI dialogs, services, config records, hotkeys, and tests. Does NOT touch translation/lang files — use the `uitweaks-lang` agent for tasks that require localization changes."
-tools: [read, edit, search, execute, todo]
+tools: [read, edit, search, execute, todo, web]
 handoffs:
   - label: Update Lang Files
     agent: uitweaks-lang

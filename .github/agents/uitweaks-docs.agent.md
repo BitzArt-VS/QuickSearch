@@ -19,17 +19,17 @@ docs/
   book.toml                  # mdBook config
   src/
     SUMMARY.md               # navigation tree — must be updated when pages are added/removed
-    01.overview.md           # landing page with screenshot carousel
+    01.overview.md           # landing page with screenshot carousel + installation tabs + compatibility table
     02.features.md
-    03.compatibility.md
-    04.installation.md
-    05.configuration.md
-    06.contributing.md
+    03.configuration.md
+    04.contributing.md
     01.overview/             # image assets for overview page
     02.features/             # image assets for features page
   assets/
     carousel.css             # custom carousel styles
     carousel.js              # custom carousel JS
+    tabs.css                 # tab component styles
+    tabs.js                  # tab component JS
 mod-description.html         # mod portal description page
 README.md
 ```
@@ -89,6 +89,8 @@ When making changes to the project that affect this agent's scope, **also update
 - If `mod-description.html` conventions change (new color, new pattern), update the **mod-description.html Conventions** section
 - If mdBook or Markdown conventions change, update the **mdBook / Markdown Conventions** section
 - If the writing style guidance needs adjustment based on feedback, update the **Writing Style** section
+- If the compatibility table in `docs/src/01.overview.md` changes, apply the same change to the compatibility table in `mod-description.html` and vice versa — these two files must always be in sync
+- More broadly, `mod-description.html` mirrors the key content of the docs site (features list, compatibility, installation, links). Whenever any of that content changes in the docs, review `mod-description.html` and apply the equivalent update there too
 
 ## Constraints
 

@@ -29,9 +29,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{A2469B22-50B
 		docs\src\01.overview.md = docs\src\01.overview.md
 		docs\src\02.features.md = docs\src\02.features.md
 		docs\src\03.compatibility.md = docs\src\03.compatibility.md
-		docs\src\04.installation.md = docs\src\04.installation.md
-		docs\src\05.configuration.md = docs\src\05.configuration.md
-		docs\src\06.contributing.md = docs\src\06.contributing.md
+		docs\src\04.configuration.md = docs\src\04.configuration.md
+		docs\src\05.contributing.md = docs\src\05.contributing.md
 		docs\src\SUMMARY.md = docs\src\SUMMARY.md
 	EndProjectSection
 EndProject
