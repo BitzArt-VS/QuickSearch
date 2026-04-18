@@ -15,7 +15,7 @@ internal class ModConfigGuiDialog : GuiDialog
     private const string BackButtonKey = "back-button";
 
     private const int DialogContentWidth = 400;
-    private const int ContentAreaHeight = 400;
+    private const int ContentAreaHeight = 720;
     private const int ContentPaddingX = 8;
     private const int ScrollbarWidth = 20;
     private const int BackButtonWidth = 100;
@@ -149,27 +149,33 @@ internal class ModConfigGuiDialog : GuiDialog
         {
             return;
         }
-        
+
         _contentScrollBounds.fixedY = -value;
-        _contentScrollBounds.CalcWorldBounds();
+        SingleComposer.ReCompose();
     }
 
     private void LaunchSaveConfig()
     {
         Task.Run(async () =>
         {
-            if (_saveDebounce is not null)
+            lock (_saveDebounceLock)
             {
-                lock (_saveDebounceLock)
+                if (_saveDebounce is not null)
                 {
                     _saveDebounce.Cancel();
                     _saveDebounce.Dispose();
                 }
-            }
-            
-            _saveDebounce = new CancellationTokenSource();
 
-            await Task.Delay(SaveDebounceMs, _saveDebounce.Token);
+                _saveDebounce = new CancellationTokenSource();
+            }
+
+            var cancellationToken = _saveDebounce.Token;
+
+            await Task.Delay(SaveDebounceMs);
+            if (cancellationToken.IsCancellationRequested)
+            {
+                return;
+            }
             ClientApi.StoreModConfig(_config, Constants.ModConfigFileName);
 
             _saveDebounce = null;

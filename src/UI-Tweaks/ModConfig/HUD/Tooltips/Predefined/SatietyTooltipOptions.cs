@@ -10,13 +10,17 @@ public record SatietyTooltipOptions : TooltipOptions
     public override string Format { get; set; } = "<font align=left>{player-satiety-current} / {player-satiety-max}</font><font align=right>({player-satiety-percent}%)</font>";
 
     public override string DialogArea { get; set; } = EnumDialogArea.CenterBottom.ToString();
-    public override double Width { get; set; } = 144;
+    public override double Height { get; set; } = 20;
+    public override double Width { get; set; } = 148;
     public override ComponentOffset Offset { get; set; } = new()
     {
         X = 250.0,
         Y = -88.0
     };
 
+    public override ComponentPadding Padding { get; set; } = new(-2, 4, 0, 4);
+
     public override bool HasBackground { get; set; } = true;
+    public override double BackgroundCornerRadius { get; set; } = 0.0;
 }
 

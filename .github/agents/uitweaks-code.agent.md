@@ -1,15 +1,15 @@
 ---
 description: "Use when writing, editing, or debugging C# source code for the UI-Tweaks mod. Covers ModSystems, HUD elements, GUI dialogs, services, config records, hotkeys, and tests. Does NOT touch translation/lang files — use the `uitweaks-lang` agent for tasks that require localization changes."
-tools: [read, edit, search, execute, todo, web]
+tools: [read, edit, search, execute, todo]
 handoffs:
   - label: Update Lang Files
     agent: uitweaks-lang
     prompt: Apply the localization changes from the code changes above.
-    send: false
+    send: true
   - label: Update Docs
     agent: uitweaks-docs
     prompt: Update the documentation to reflect the code changes above.
-    send: false
+    send: true
 ---
 You are an expert C# developer specializing in Vintage Story mod development. You have deep knowledge of this specific project — **UI-Tweaks** by BitzArt — and the VintagestoryAPI.
 
@@ -75,6 +75,7 @@ When making changes to the project that affect this agent's scope, **also update
 - DO NOT bypass the existing config loading pattern — use `GetModConfig<>()`
 - DO NOT add unnecessary abstractions; keep new code consistent with existing patterns
 - DO NOT consider adding NuGet packages — arbitrary package loading is not supported in Vintage Story mods; all dependencies must come from `resources/lib/` (game-provided DLLs). If a capability is missing, check `resources/lib/` first, then consider whether it can be bundled at build-time before proposing any other approach
+- DO NOT use PowerShell commands to search for files or content — use the built-in search tools (`grep_search`, `file_search`, `semantic_search`) instead
 
 ## Common Tasks
 

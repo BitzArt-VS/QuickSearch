@@ -78,6 +78,20 @@ When making changes to the project that affect this agent's scope, **also update
 - If the translation workflow or tooling changes, update the **Translation Workflow** section
 - If translation quality standards are revised based on feedback, update the **Translation Quality Standards** section
 
+## Slavic Language Terminology
+
+For **tooltip-related strings** in Slavic languages, always use the loanword for "tooltip" rather than the native word for "hint" or "tip":
+
+| Language | Use | Avoid |
+|----------|-----|-------|
+| Russian (`ru`) | тултип, тултипа (gen.) | подсказка |
+| Ukrainian (`uk`) | тултіп, тултіпа (gen.) | підказка |
+| Belarusian (`be`) | тулціп, тулціпа (gen.) | падказка |
+| Polish (`pl`) | tooltip, tooltipa (gen.) | podpowiedź |
+| Czech (`cs`) | tooltip, tooltipu (gen.) | nápověda, popisek |
+
+This applies to all `config-tooltip-*-tooltip` description strings and any other string referencing the tooltip UI element.
+
 ## Constraints
 
 - DO NOT modify any file outside `resources/assets/bitzartuitweaks/lang/`

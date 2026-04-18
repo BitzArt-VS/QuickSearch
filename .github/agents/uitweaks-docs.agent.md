@@ -100,3 +100,4 @@ When making changes to the project that affect this agent's scope, **also update
 - DO NOT make claims about game behavior or mod behavior without confirming in source or existing docs
 - DO NOT edit `SUMMARY.md` without also creating or verifying the referenced page files exist
 - DO NOT reference C# types, namespaces, or internal architecture in player-facing docs
+- DO NOT use PowerShell commands to search for files or content — use the built-in search tools (`grep_search`, `file_search`, `semantic_search`) instead

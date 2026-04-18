@@ -10,7 +10,8 @@ public record HealthbarTooltipOptions : TooltipOptions
     public override string Format { get; set; } = "<font align=left>{player-health-current} / {player-health-max}</font><font align=right>({player-health-percent}%)</font>";
 
     public override string DialogArea { get; set; } = EnumDialogArea.CenterBottom.ToString();
-    public override double Width { get; set; } = 144;
+    public override double Height { get; set; } = 20;
+    public override double Width { get; set; } = 140;
 
     public override ComponentOffset Offset { get; set; } = new()
     {
@@ -18,6 +19,9 @@ public record HealthbarTooltipOptions : TooltipOptions
         Y = -88.0
     };
 
+    public override ComponentPadding Padding { get; set; } = new(-2, 4, 0, 4);
+
     public override bool HasBackground { get; set; } = true;
+    public override double BackgroundCornerRadius { get; set; } = 0.0;
 }
 
