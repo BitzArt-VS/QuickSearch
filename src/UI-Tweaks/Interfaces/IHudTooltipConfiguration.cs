@@ -16,6 +16,7 @@ public interface IHudTooltipConfiguration : INotifyPropertyChanged
     public double Width { get; }
     public IComponentOffset Offset { get; }
     public IComponentPadding Padding { get; }
+    public double DrawOrder { get; }
     public bool CenterText { get; }
 
     public bool HasBackground { get; }

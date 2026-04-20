@@ -32,6 +32,9 @@ public abstract record TooltipOptions : IHudTooltipConfiguration, INotifyPropert
     [JsonProperty("padding", Order = 25)]
     public virtual ComponentPadding Padding { get; set; } = new(0, 9);
 
+    [JsonProperty("drawOrder", Order = 26)]
+    public virtual double DrawOrder { get; set; } = 0.1;
+
     [JsonProperty("hasBackground", Order = 31)]
     public virtual bool HasBackground { get; set; } = false;
 

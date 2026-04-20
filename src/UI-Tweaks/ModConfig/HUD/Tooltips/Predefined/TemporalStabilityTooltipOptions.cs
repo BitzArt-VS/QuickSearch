@@ -19,6 +19,7 @@ public record TemporalStabilityTooltipOptions : TooltipOptions
     };
 
     public override ComponentPadding Padding { get; set; } = new(-2, 4, 0, 4);
+    public override double DrawOrder { get; set; } = 0.11;
 
     public override bool HasBackground { get; set; } = true;
     public override double BackgroundOpacity { get; set; } = 1.0;
