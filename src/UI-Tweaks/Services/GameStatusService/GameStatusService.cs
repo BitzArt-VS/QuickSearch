@@ -1,16 +1,15 @@
-﻿using System;
+﻿using BitzArt.UI.Tweaks.GameStatus;
+using System;
 using System.Collections.Generic;
-using System.Data;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
-using System.Reflection.Metadata.Ecma335;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
-using Vintagestory.GameContent;
 
 namespace BitzArt.UI.Tweaks.Services;
 
@@ -23,26 +22,22 @@ namespace BitzArt.UI.Tweaks.Services;
 /// This service runs on a separate thread, and will notify subscribers of changes from that thread.
 /// Dispatching to the UI thread is necessary when doing any UI updates in the callback.
 /// </remarks>
-public partial class GameStatusService : IDisposable
+public sealed partial class GameStatusService : IDisposable
 {
     private readonly ICoreClientAPI _clientApi;
-    private SystemTemporalStability? _temporalStabilitySystem;
 
-    private CultureInfo _formatCulture;
+    private readonly CultureInfo _formatCulture;
 
     private long? _tickListenerId;
     private CancellationTokenSource? _updateThreadCts;
     private Thread? _updateThread;
-    private EntityPlayer? _playerEntity;
 
-    private readonly SubscriptionCollection _subscriptions;
-    private readonly DetailRecordCollection _detailRecords;
+    private readonly GameStatusDetailCollection _details;
 
     public GameStatusService(ICoreClientAPI clientApi)
     {
         _clientApi = clientApi;
-        _subscriptions = new();
-        _detailRecords = new();
+        _details = new();
 
         string[] months = [.. Enumerable.Range(1, 12).Select(i => Lang.Get("month-" + (EnumMonth)i)), string.Empty];
 
@@ -52,13 +47,9 @@ public partial class GameStatusService : IDisposable
         _formatCulture.DateTimeFormat.MonthGenitiveNames = _formatCulture.DateTimeFormat.MonthNames;
         _formatCulture.DateTimeFormat.AbbreviatedMonthGenitiveNames = _formatCulture.DateTimeFormat.AbbreviatedMonthNames;
 
-        InitStats();
-
         _tickListenerId = _clientApi.Event.RegisterGameTickListener(_ =>
         {
-            _playerEntity = _clientApi.World?.Player?.Entity;
-
-            if (_playerEntity?.WatchedAttributes is null)
+            if (_clientApi.World?.Player?.Entity?.WatchedAttributes is null)
             {
                 return;
             }
@@ -74,28 +65,7 @@ public partial class GameStatusService : IDisposable
             _updateThreadCts = new();
             var token = _updateThreadCts.Token;
 
-            _updateThread = new Thread(async () =>
-            {
-                _clientApi.Logger.Debug("GameStatusService: Update thread started.");
-
-                while (!token.IsCancellationRequested)
-                {
-                    try
-                    {
-                        UpdateStats();
-                        await Task.Delay(50, token);
-                    }
-                    catch (OperationCanceledException) { }
-                    catch (Exception ex)
-                    {
-                        _clientApi.Logger.Error("Error updating game status details: " + ex);
-
-                        await Task.Delay(1000, CancellationToken.None);
-                    }
-                }
-
-                _clientApi.Logger.Debug("GameStatusService: Update thread exiting.");
-            })
+            _updateThread = new Thread(async () => await RunUpdateLoopAsync(token))
             {
                 IsBackground = true,
                 Name = "UI-Tweaks Status Updates Thread"
@@ -125,7 +95,7 @@ public partial class GameStatusService : IDisposable
         GC.SuppressFinalize(this);
     }
 
-    public bool Subscribe(string format, Action<string> callback)
+    public GameStatusDetailsSubscription? Subscribe(string format, Action<string> callback)
     {
         var placeholderRegex = GetFormatPlaceholderRegex();
         var matches = placeholderRegex.Matches(format);
@@ -134,13 +104,11 @@ public partial class GameStatusService : IDisposable
         // there are no variable placeholders in the format string.
         if (matches.Count == 0)
         {
-            return false;
+            return null;
         }
 
-        // Extract just the variable names for your subscription logic
         var variableNames = matches.Select(m => m.Groups["name"].Value).ToList();
 
-        // Replace placeholders with consecutive iterator numbers, preserving formatting
         int i = 0;
         var resultingFormat = placeholderRegex.Replace(format, match =>
         {
@@ -149,24 +117,108 @@ public partial class GameStatusService : IDisposable
             return $"{{{i++}{match.Groups["format"].Value}}}";
         });
 
-        Subscribe(variableNames, (values) =>
+        return Subscribe(variableNames, (values) =>
         {
             callback.Invoke(string.Format(_formatCulture, resultingFormat, [.. values]));
         });
-
-        return true;
     }
 
     // Captures the variable name in the "name" group, and any following alignment/formatting in the "format" group
     [GeneratedRegex(@"\{(?<name>[a-zA-Z0-9\-]+)(?<format>[,:][^}]+)?\}")]
     private static partial Regex GetFormatPlaceholderRegex();
 
-    public void Subscribe(List<GameStatusDetailType> details, Action<object[]> callback)
-        => _subscriptions.Subscribe([.. details.Select(_detailRecords.Get)], callback);
+    public GameStatusDetailsSubscription Subscribe(List<string> parameterNames, Action<object?[]> callback)
+    {
+        var details = parameterNames.Select(x => _details.Get(x)).ToList();
+        var subscription = new GameStatusDetailsSubscription(details, callback);
 
-    public void Subscribe(List<string> details, Action<object[]> callback)
-        => _subscriptions.Subscribe([.. details.Select(_detailRecords.Get)], callback);
+        foreach (var detail in details)
+        {
+            detail.AddSubscription(subscription);
+        }
 
-    public void Unsubscribe(Action<object[]> callback)
-        => _subscriptions.Unsubscribe(callback);
+        Notify(subscription);
+
+        return subscription;
+    }
+
+    private async Task RunUpdateLoopAsync(CancellationToken token)
+    {
+        _clientApi.Logger.Debug("GameStatusService: Update thread started.");
+
+        while (!token.IsCancellationRequested)
+        {
+            try
+            {
+                RunUpdateIteration();
+
+                await Task.Delay(50, CancellationToken.None);
+            }
+            catch (OperationCanceledException) { }
+            catch (Exception ex)
+            {
+                _clientApi.Logger.Error("Error updating game status details: " + ex);
+
+                await Task.Delay(1000, CancellationToken.None);
+            }
+        }
+
+        _clientApi.Logger.Debug("GameStatusService: Update thread exiting.");
+    }
+
+    private void RunUpdateIteration()
+    {
+        var toNotify = new HashSet<GameStatusDetailsSubscription>();
+
+        foreach (var detail in _details.Details)
+        {
+            if (!detail.ShouldUpdate)
+            {
+                continue;
+            }
+
+            try
+            {
+                foreach (var subscriptionToNotify in detail.Update(_clientApi))
+                {
+                    toNotify.Add(subscriptionToNotify);
+                }
+            }
+            catch (Exception ex)
+            {
+                _clientApi.Logger.Error($"Error updating game status detail '{detail.Name}':");
+                _clientApi.Logger.Error(ex);
+            }
+        }
+
+        foreach (var subscription in toNotify)
+        {
+            try
+            {
+                Notify(subscription);
+            }
+            catch (Exception ex)
+            {
+                _clientApi.Logger.Error("An unexpected error occurred while notifying a game status subscription:");
+                _clientApi.Logger.Error(ex);
+            }
+        }
+    }
+
+    private static void Notify(GameStatusDetailsSubscription subscription)
+    {
+        object?[] values = new object?[subscription.Details.Count];
+
+        for (int i = 0; i < subscription.Details.Count; i++)
+        {
+            if (subscription.Details[i].Value is null)
+            {
+                return;
+            }
+
+            values[i] = subscription.Details[i].Value;
+        }
+
+        subscription.Callback.Invoke(values);
+    }
 }

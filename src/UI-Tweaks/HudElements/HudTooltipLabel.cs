@@ -1,5 +1,5 @@
-﻿using BitzArt.UI.Tweaks.Services;
-using Cairo;
+﻿using BitzArt.UI.Tweaks.GameStatus;
+using BitzArt.UI.Tweaks.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,7 +21,7 @@ public class HudTooltipLabel : HudElement
     private CairoFont? _font;
     private List<string>? _formatStrings;
     private string?[]? _resultStrings;
-    private bool _isSubscribedToUpdates;
+    private Action? _disposeSubscriptions;
 
     public HudTooltipLabel(ICoreClientAPI clientApi, GameStatusService statusService, IHudTooltipConfiguration config)
         : base(clientApi)
@@ -78,10 +78,13 @@ public class HudTooltipLabel : HudElement
 
         SingleComposer = SingleComposer.Compose();
 
+        _disposeSubscriptions?.Invoke();
+        _disposeSubscriptions = null;
+
         switch (_config.Enable)
         {
             case true:
-                TrySubscribeToUpdates();
+                Subscribe();
                 TryOpen();
                 break;
             case false:
@@ -90,24 +93,33 @@ public class HudTooltipLabel : HudElement
         }
     }
 
-    private void TrySubscribeToUpdates()
+    private void Subscribe()
     {
-        if (_isSubscribedToUpdates || _formatStrings == null) return;
+        if (_formatStrings == null)
+        {
+            return;
+        }
 
         for (int i = 0; i < _formatStrings.Count; i++)
         {
             var index = i; // Capture loop variable for closure
             var format = _formatStrings[index];
 
-            if (!_statusService.Subscribe(format, (value) => OnStatsUpdate(value, index)))
+            var subscription = _statusService.Subscribe(format, (value) => OnStatsUpdate(value, index));
+
+            if (subscription is not null)
+            {
+                _disposeSubscriptions = _disposeSubscriptions is not null
+                    ? _disposeSubscriptions + subscription.Dispose
+                    : subscription.Dispose;
+            }
+            else
             {
                 // No subscription created, likely no variable placeholders found in the format string.
                 // Still need to update the text once with the static format.
                 OnStatsUpdate(format, index);
             }
         }
-
-        _isSubscribedToUpdates = true;
     }
 
     private void OnStatsUpdate(string? value, int index)
@@ -132,54 +144,13 @@ public class HudTooltipLabel : HudElement
             valueElement.SetNewText(value, _font);
         }, "ui-tweaks-tooltip-value-update");
     }
-}
 
-file static class TooltipBackgroundExtensions
-{
-    public static GuiComposer AddTooltipBackground(this GuiComposer composer, ElementBounds bounds, double backgroundOpacity, double cornerRadius)
-        => composer.AddStaticElement(new TooltipBackgroundElement(composer.Api, bounds, backgroundOpacity, cornerRadius));
-
-    private class TooltipBackgroundElement(ICoreClientAPI capi, ElementBounds bounds, double opacity, double cornerRadius)
-        : GuiElement(capi, bounds)
+    public override void Dispose()
     {
-        public override void ComposeElements(Context ctx, ImageSurface surface)
-        {
-            Bounds.CalcWorldBounds();
+        _disposeSubscriptions?.Invoke();
 
-            // 1. Cast to int (or use Math.Floor) to match how the engine allocates texture bounds
-            double x = (int)Bounds.drawX;
-            double y = (int)Bounds.drawY;
-            double w = (int)Bounds.OuterWidth;
-            double h = (int)Bounds.OuterHeight;
+        base.Dispose();
 
-            // 2. Setup border properties
-            double lineWidth = 2.0;
-            double inset = lineWidth / 2.0; // 1.0px inset for a 2.0px line
-
-            // 3. Apply the inset PLUS a 1-pixel safety buffer on the right/bottom
-            x += inset;
-            y += inset;
-            w -= (inset * 2) + 1.0;
-            h -= (inset * 2) + 1.0;
-
-            double r = cornerRadius;
-            r = Math.Min(r, Math.Min(w / 2, h / 2));
-
-            // ... (The rest of your drawing code stays exactly the same)
-            ctx.NewPath();
-            ctx.Arc(x + w - r, y + r, r, -Math.PI / 2, 0);
-            ctx.Arc(x + w - r, y + h - r, r, 0, Math.PI / 2);
-            ctx.Arc(x + r, y + h - r, r, Math.PI / 2, Math.PI);
-            ctx.Arc(x + r, y + r, r, Math.PI, 3 * Math.PI / 2);
-            ctx.ClosePath();
-
-            ctx.SetSourceRGBA(0.12, 0.11, 0.10, opacity);
-            ctx.FillPreserve();
-
-            double borderOpacity = 1.0 - ((1.0 - opacity) / 2.0);
-            ctx.SetSourceRGBA(0.35, 0.33, 0.30, borderOpacity);
-            ctx.LineWidth = lineWidth;
-            ctx.Stroke();
-        }
+        GC.SuppressFinalize(this);
     }
 }
