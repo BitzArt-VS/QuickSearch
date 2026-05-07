@@ -1,6 +1,7 @@
 {
   "ui-tweaks-config": "UI Tweaks 配置",
   "quicksearch": "快速搜索",
+  "config-page-general": "通用",
   "config-page-hud": "HUD",
   "config-page-tooltips": "提示框",
   "config-page-env-widget": "环境小部件",

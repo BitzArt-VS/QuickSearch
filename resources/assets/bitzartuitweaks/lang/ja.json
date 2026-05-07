@@ -1,6 +1,7 @@
 {
   "ui-tweaks-config": "UI Tweaks の設定",
   "quicksearch": "クイック検索",
+  "config-page-general": "一般",
   "config-page-hud": "HUD",
   "config-page-tooltips": "ツールチップ",
   "config-page-env-widget": "環境ウィジェット",

@@ -1,4 +1,5 @@
 ﻿using BitzArt.UI.Tweaks.Config;
+using BitzArt.UI.Tweaks.Gui;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -12,7 +13,7 @@ using Vintagestory.GameContent;
 
 namespace BitzArt.UI.Tweaks;
 
-internal partial class QuickSearchGuiDialog : GuiDialog
+internal partial class QuickSearchGuiDialog : Gui.VanillaGuiDialog
 {
     private const string SearchInputKey = "quick-search-input";
     private const string ResultListKey = "resultList";

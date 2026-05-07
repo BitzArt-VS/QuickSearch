@@ -21,6 +21,8 @@ Your scope is **source code only** (`src/` and `tests/`). You do not read or mod
 - **Stack:** C# 13, .NET 10, VintagestoryAPI, Harmony, Newtonsoft.Json, xUnit v3
 - **Target:** Vintage Story v1.22.0+
 - **Game libs:** `resources/lib/` — updated via `resources/update-libs.bat` (requires `VINTAGE_STORY` env var)
+- **Game internals reference:** `../Vintagestory` (sibling of workspace root); search here when investigating internal behaviors or looking for examples of how to use game APIs
+- **VS API source reference:** `../VSAPI` (sibling of workspace root); this is the VintagestoryAPI source code — use it to look up public API interfaces, types, method signatures, and documentation
 - **Build output:** `src/UI-Tweaks/bin/<Configuration>/Mods/mod/`
 - **Publish:** `dotnet publish` → auto-packages to `UI-Tweaks.zip` via `ZipDirectory` MSBuild target
 - **Tests:** `tests/UI-Tweaks.Tests/` with xUnit v3
@@ -39,8 +41,23 @@ Your scope is **source code only** (`src/` and `tests/`). You do not read or mod
 **HUD Elements** — extend the custom `HudElement` base in `HudElements/`:
 - `HudTooltipLabel` is the primary tooltip component
 
-**GUI Dialogs** — extend `GuiDialogs/Base/GuiDialog.cs`:
-- `QuickSearchGuiDialog` is the reference implementation
+**GUI Dialogs (VS-based)** — extend `Gui/Framework/GuiDialogOld.cs` (thin wrapper around `Vintagestory.API.Client.GuiDialog`):
+- `QuickSearchGuiDialog` is the reference implementation for VS-composer-based dialogs
+
+**Cairo Dialog Framework** — a custom rendering framework in `Gui/Framework/` that bypasses `GuiComposer` entirely. Use this for new dialogs:
+- `CairoDialog` — abstract base; implements `IRenderer` + `IDisposable`. Subclass overrides only `Build()` to declare the element tree. The base handles everything else: rasterizing to a GPU texture (via `cairo-sharp` → `LoadOrUpdateCairoTexture`), GUI scaling (`RuntimeEnv.GUIScale`), centered screen placement, renderer lifetime (registered on `Open`, unregistered on `Close`), mouse free-look, click-outside-to-close, and Escape handling.
+- `InputBlockerDialog` — a no-render `GuiDialog` registered with the game's system whose only purpose is to increment `DialogsOpened`, which causes `ClientMain.UpdateFreeMouse()` to release the mouse cursor. Created and owned by `CairoDialog`. Unregistered via a cached reflection delegate on `Dispose()` (`ClientMain.UnregisterDialog`, obtained through the private `game` field — reflection lookups are cached in static fields, delegate created per-instance).
+- `CairoElement` — abstract node base in `Gui/Framework/Elements/Base/`; exposes `Width`, `Height` (both `public set`), `Paint(Context ctx)`.
+- Built-in elements: `RectElement`, `StackElement`, `LabelElement`, `ButtonElement` — all in `Gui/Framework/Elements/`. All use **public properties only** — no fluent builder methods. Configure via `Add<T>(configure)`, object initializers, or direct assignment.
+- There are **no factory helper methods** on `CairoDialog` — subclasses instantiate elements directly with `new` or via `Add<T>()`.
+- **Configure-action pattern** — `StackElement.Add<T>(Action<T>? configure = null, bool center = false) where T : CairoElement, new()` creates a new instance of `T` via `new()` and runs the optional configure action on it. Any element with a parameterless constructor can be added without touching the framework. `Add(CairoElement, bool)` still exists for passing pre-built instances.
+- **`CairoBuilder`** (`Gui/Framework/CairoBuilder.cs`) — the root-level builder passed into `Build(CairoBuilder builder)`. Has `Add<T>(Action<T>?)` and `Add(CairoElement)` to set the single root element. `StackElement` acts as its own builder for children via the same `Add<T>` pattern, so the builder instance is passed down the entire tree uniformly.
+- **`RenderFragment`** (`Gui/Framework/RenderFragment.cs`) — `delegate CairoElement RenderFragment()`. Untyped factory delegate; accepted by the `StackElement.Add(RenderFragment, bool)` extension in `CairoElementBuilderExtensions`.
+- **Extension methods** in `Gui/Framework/Builder/CairoElementBuilderExtensions` — `Add(RenderFragment, bool)` convenience overload for `StackElement`.
+- `ConfigCairoDialog` is the reference implementation — `Build()` calls `builder.Add<StackElement>()` and adds children inside the stack's configure action.
+- **Naming conventions:** `Build(CairoBuilder)` declares the tree; `Rasterize()` (private) creates the builder, calls `Build`, then converts the root to a texture; `Invalidate()` (protected) triggers a re-rasterize from subclasses; `Paint(ctx)` issues Cairo draw calls on elements.
+- **Lifecycle:** renderer is only registered while open; GPU texture and element tree are disposed on `Close()`; `Dispose()` calls `Close()` then unregisters and disposes the input blocker.
+- When looking up public API contracts (interfaces, enums, event signatures, etc.), consult `../VSAPI` — it contains the full VintagestoryAPI source organised under `Client/`, `Common/`, `Server/`, etc.
 
 **Services** — pure logic, no game API dependencies where possible:
 - `QuickSearchService` and `GameStatusService/` are the current services
@@ -49,6 +66,7 @@ Your scope is **source code only** (`src/` and `tests/`). You do not read or mod
 
 ## Coding Conventions
 
+- **IMPORTANT:** Never abbreviate identifier names — use full descriptive names. E.g. `ClientApi` not `Capi`, `clientApi` not `capi`.
 - Nullable reference types are **enabled** — always annotate nullability correctly
 - Prefer **records** for data types where value equality (structural `Equals`/`GetHashCode`) is desirable — e.g. configs, hotkey definitions, small data containers
 - Use primary constructors when the constructor only passes dependencies through (simple assignment/forwarding); avoid them when the constructor body does meaningful work

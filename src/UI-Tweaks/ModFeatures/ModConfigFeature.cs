@@ -1,4 +1,5 @@
 ﻿using BitzArt.UI.Tweaks.Config;
+using BitzArt.UI.Tweaks.Gui;
 using System;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
@@ -8,7 +9,7 @@ namespace BitzArt.UI.Tweaks;
 public class ModConfigFeature(UiTweaksModSystem modSystem, UiTweaksModConfig config)
     : ModSystemFeature<UiTweaksModSystem, UiTweaksModConfig>(modSystem, config)
 {
-    private ModConfigGuiDialog? _dialog;
+    private ModConfigDialog? _dialog;
 
     public override bool ShouldLoad(EnumAppSide forSide) => forSide == EnumAppSide.Client;
 
@@ -31,16 +32,16 @@ public class ModConfigFeature(UiTweaksModSystem modSystem, UiTweaksModConfig con
     {
         if (_dialog is null)
         {
-            throw new NullReferenceException("ModConfig dialog is not initialized.");
+            throw new NullReferenceException("Cairo test dialog is not initialized.");
         }
 
-        if (_dialog.IsOpened())
+        if (_dialog.IsOpen)
         {
-            _dialog.TryClose();
+            _dialog.Close();
             return true;
         }
 
-        _dialog.TryOpenOnKeyPress();
+        _dialog.Open();
 
         return true;
     }

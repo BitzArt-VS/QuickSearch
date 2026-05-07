@@ -1,9 +1,9 @@
 ﻿using System;
 using Vintagestory.API.Client;
 
-namespace BitzArt.UI.Tweaks;
+namespace BitzArt.UI.Tweaks.Gui;
 
-internal class GuiDialog(ICoreClientAPI clientApi) : Vintagestory.API.Client.GuiDialog(clientApi)
+internal class VanillaGuiDialog(ICoreClientAPI clientApi) : Vintagestory.API.Client.GuiDialog(clientApi)
 {
     protected bool IsDisposed = false;
     protected ICoreClientAPI ClientApi = clientApi;

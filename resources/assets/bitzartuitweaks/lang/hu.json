@@ -1,6 +1,7 @@
 {
   "ui-tweaks-config": "UI Tweaks konfiguráció",
   "quicksearch": "Gyorskeresés",
+  "config-page-general": "Általános",
   "config-page-hud": "HUD",
   "config-page-tooltips": "Elemleírások",
   "config-page-env-widget": "Környezeti widget",

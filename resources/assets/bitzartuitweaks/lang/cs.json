@@ -1,6 +1,7 @@
 {
   "ui-tweaks-config": "Konfigurace UI Tweaks",
   "quicksearch": "Rychlé vyhledávání",
+  "config-page-general": "Obecné",
   "config-page-hud": "HUD",
   "config-page-tooltips": "Popisky",
   "config-page-env-widget": "Widget prostředí",

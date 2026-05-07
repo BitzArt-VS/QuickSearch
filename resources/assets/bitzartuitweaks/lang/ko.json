@@ -1,6 +1,7 @@
 {
   "ui-tweaks-config": "UI Tweaks 설정",
   "quicksearch": "빠른 검색",
+  "config-page-general": "일반",
   "config-page-hud": "HUD",
   "config-page-tooltips": "툴팁",
   "config-page-env-widget": "환경 위젯",

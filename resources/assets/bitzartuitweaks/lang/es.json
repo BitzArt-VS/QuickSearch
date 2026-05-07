@@ -1,6 +1,7 @@
 {
   "ui-tweaks-config": "Configuración de UI Tweaks",
   "quicksearch": "Búsqueda rápida",
+  "config-page-general": "General",
   "config-page-hud": "HUD",
   "config-page-tooltips": "Tooltips",
   "config-page-env-widget": "Widget de entorno",

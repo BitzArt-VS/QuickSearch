@@ -1,6 +1,7 @@
 {
   "ui-tweaks-config": "UI Tweaks yapılandırması",
   "quicksearch": "Hızlı arama",
+  "config-page-general": "Genel",
   "config-page-hud": "HUD",
   "config-page-tooltips": "Tooltips",
   "config-page-env-widget": "Çevre widget’ı",

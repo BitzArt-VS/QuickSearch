@@ -1,6 +1,7 @@
 {
   "ui-tweaks-config": "Конфігурація UI Tweaks",
   "quicksearch": "Швидкий пошук",
+  "config-page-general": "Загальні",
   "config-page-hud": "HUD",
   "config-page-tooltips": "Тултіпи",
   "config-page-env-widget": "Віджет оточення",

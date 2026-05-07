@@ -1,4 +1,5 @@
 using BitzArt.UI.Tweaks.Config;
+using BitzArt.UI.Tweaks.Gui;
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -8,7 +9,7 @@ using Vintagestory.API.Config;
 
 namespace BitzArt.UI.Tweaks;
 
-internal class ModConfigGuiDialog : GuiDialog
+internal class ModConfigGuiDialog : Gui.VanillaGuiDialog
 {
     private const string DialogComposerKey = "mod-config-dialog";
     private const string ScrollbarKey = "content-scrollbar";

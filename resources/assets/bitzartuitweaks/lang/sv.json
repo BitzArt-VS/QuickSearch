@@ -1,6 +1,7 @@
 {
   "ui-tweaks-config": "UI Tweaks-konfiguration",
   "quicksearch": "Snabbsökning",
+  "config-page-general": "Allmänt",
   "config-page-hud": "HUD",
   "config-page-tooltips": "Verktygstips",
   "config-page-env-widget": "Miljöwidget",
