@@ -1,6 +1,6 @@
+using Cairo;
 using System;
 using System.Reflection;
-using Cairo;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
@@ -37,10 +37,10 @@ public static class CairoContextExtensions
 
         const double degrees = Math.PI / 180.0;
         ctx.NewSubPath();
-        ctx.Arc(x + w - radius, y + radius,         radius, -90 * degrees,   0 * degrees);
-        ctx.Arc(x + w - radius, y + h - radius,     radius,   0 * degrees,  90 * degrees);
-        ctx.Arc(x + radius,     y + h - radius,     radius,  90 * degrees, 180 * degrees);
-        ctx.Arc(x + radius,     y + radius,         radius, 180 * degrees, 270 * degrees);
+        ctx.Arc(x + w - radius, y + radius, radius, -90 * degrees, 0 * degrees);
+        ctx.Arc(x + w - radius, y + h - radius, radius, 0 * degrees, 90 * degrees);
+        ctx.Arc(x + radius, y + h - radius, radius, 90 * degrees, 180 * degrees);
+        ctx.Arc(x + radius, y + radius, radius, 180 * degrees, 270 * degrees);
         ctx.ClosePath();
     }
 
@@ -62,28 +62,28 @@ public static class CairoContextExtensions
         switch (open)
         {
             case GuiSide.Bottom:
-                ctx.MoveTo(x,     y + h);
-                ctx.LineTo(x,     y);
+                ctx.MoveTo(x, y + h);
+                ctx.LineTo(x, y);
                 ctx.LineTo(x + w, y);
                 ctx.LineTo(x + w, y + h);
                 break;
             case GuiSide.Top:
-                ctx.MoveTo(x,     y);
-                ctx.LineTo(x,     y + h);
+                ctx.MoveTo(x, y);
+                ctx.LineTo(x, y + h);
                 ctx.LineTo(x + w, y + h);
                 ctx.LineTo(x + w, y);
                 break;
             case GuiSide.Right:
                 ctx.MoveTo(x + w, y);
-                ctx.LineTo(x,     y);
-                ctx.LineTo(x,     y + h);
+                ctx.LineTo(x, y);
+                ctx.LineTo(x, y + h);
                 ctx.LineTo(x + w, y + h);
                 break;
             case GuiSide.Left:
-                ctx.MoveTo(x,     y);
+                ctx.MoveTo(x, y);
                 ctx.LineTo(x + w, y);
                 ctx.LineTo(x + w, y + h);
-                ctx.LineTo(x,     y + h);
+                ctx.LineTo(x, y + h);
                 break;
         }
     }
@@ -98,10 +98,10 @@ public static class CairoContextExtensions
         ctx.NewPath();
         switch (side)
         {
-            case GuiSide.Top:    ctx.MoveTo(x,     y);     ctx.LineTo(x + w, y);     break;
-            case GuiSide.Bottom: ctx.MoveTo(x,     y + h); ctx.LineTo(x + w, y + h); break;
-            case GuiSide.Left:   ctx.MoveTo(x,     y);     ctx.LineTo(x,     y + h); break;
-            case GuiSide.Right:  ctx.MoveTo(x + w, y);     ctx.LineTo(x + w, y + h); break;
+            case GuiSide.Top: ctx.MoveTo(x, y); ctx.LineTo(x + w, y); break;
+            case GuiSide.Bottom: ctx.MoveTo(x, y + h); ctx.LineTo(x + w, y + h); break;
+            case GuiSide.Left: ctx.MoveTo(x, y); ctx.LineTo(x, y + h); break;
+            case GuiSide.Right: ctx.MoveTo(x + w, y); ctx.LineTo(x + w, y + h); break;
         }
     }
 
@@ -135,7 +135,7 @@ public static class CairoContextExtensions
     public static void FillVerticalGradient(this Context ctx, double y0, double y1, GuiColor topColor, GuiColor bottomColor, bool preserve = false)
     {
         using var grad = new LinearGradient(0, y0, 0, y1);
-        grad.AddColorStop(0, new Color(topColor.R,    topColor.G,    topColor.B,    topColor.A));
+        grad.AddColorStop(0, new Color(topColor.R, topColor.G, topColor.B, topColor.A));
         grad.AddColorStop(1, new Color(bottomColor.R, bottomColor.G, bottomColor.B, bottomColor.A));
         ctx.SetSource(grad);
         if (preserve) ctx.FillPreserve();

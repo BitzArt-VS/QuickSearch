@@ -1,7 +1,6 @@
-using System;
 using Cairo;
+using System;
 using Vintagestory.API.Client;
-using Vintagestory.API.Common;
 using Vintagestory.API.Config;
 
 namespace BitzArt.UI.Tweaks.Gui;

@@ -1,6 +1,6 @@
-﻿using System;
+﻿using Cairo;
+using System;
 using System.Collections.Generic;
-using Cairo;
 
 namespace BitzArt.UI.Tweaks.Gui;
 
@@ -292,8 +292,8 @@ internal sealed class GuiRenderTreeBuilder : IGuiRenderTreeBuilder, IDisposable
                 ? cursorY - contentBounds.Y
                 : cursorX - contentBounds.X;
             double availW = direction == GuiDirection.Horizontal
-                ? Math.Max(0, contentBounds.Width  - consumedFlow - lp.Margin.Horizontal)
-                : Math.Max(0, contentBounds.Width  - lp.Margin.Horizontal);
+                ? Math.Max(0, contentBounds.Width - consumedFlow - lp.Margin.Horizontal)
+                : Math.Max(0, contentBounds.Width - lp.Margin.Horizontal);
             double availH = direction == GuiDirection.Vertical
                 ? Math.Max(0, contentBounds.Height - consumedFlow - lp.Margin.Vertical)
                 : Math.Max(0, contentBounds.Height - lp.Margin.Vertical);
@@ -310,7 +310,7 @@ internal sealed class GuiRenderTreeBuilder : IGuiRenderTreeBuilder, IDisposable
                 // Absolute components honour both alignment axes — they sit anywhere inside
                 // the parent's content area.
                 slotX += AlignOffsetH(lp.HorizontalAlignment, availW - slotW);
-                slotY += AlignOffsetV(lp.VerticalAlignment,   availH - slotH);
+                slotY += AlignOffsetV(lp.VerticalAlignment, availH - slotH);
                 // Absolute components do not participate in flow — cursor unchanged.
             }
             else
@@ -414,7 +414,7 @@ internal sealed class GuiRenderTreeBuilder : IGuiRenderTreeBuilder, IDisposable
         // (per spec — fit-to-content has no overflow). Recomputed each frame so toggling
         // size mode at runtime takes effect immediately.
         GuiScroll eff = container.Scroll;
-        if (lp.WidthMode  == GuiSizeMode.FitContent) eff &= ~GuiScroll.Horizontal;
+        if (lp.WidthMode == GuiSizeMode.FitContent) eff &= ~GuiScroll.Horizontal;
         if (lp.HeightMode == GuiSizeMode.FitContent) eff &= ~GuiScroll.Vertical;
         container.EffectiveScroll = eff;
         if (eff == GuiScroll.None) return false;
@@ -425,20 +425,20 @@ internal sealed class GuiRenderTreeBuilder : IGuiRenderTreeBuilder, IDisposable
         // propagates through AccumulateMeasure and triggers a FitContent fallback in
         // ResolveSize for any Fill-mode component on an unbounded axis.
         double measureAvailW = (eff & GuiScroll.Horizontal) != 0 ? double.PositiveInfinity : childContent.Width;
-        double measureAvailH = (eff & GuiScroll.Vertical)   != 0 ? double.PositiveInfinity : childContent.Height;
+        double measureAvailH = (eff & GuiScroll.Vertical) != 0 ? double.PositiveInfinity : childContent.Height;
         var measured = slot.ChildBuilder.MeasureChildren(measureAvailW, measureAvailH, lp.Direction);
 
         // Determine scrollbar visibility. An axis-scrollbar shows when:
         //   (axis ∈ Scrollbar) AND (axis ∈ effective Scroll) AND
         //   (content overflows  OR  axis ∈ AlwaysShowScrollbar).
         const double sbThickness = GuiContainer.ScrollbarThickness;
-        const double sbGap       = GuiContainer.ScrollbarGap;
-        bool wantV = (eff & GuiScroll.Vertical)   != 0 && (container.Scrollbar & GuiScroll.Vertical)   != 0;
+        const double sbGap = GuiContainer.ScrollbarGap;
+        bool wantV = (eff & GuiScroll.Vertical) != 0 && (container.Scrollbar & GuiScroll.Vertical) != 0;
         bool wantH = (eff & GuiScroll.Horizontal) != 0 && (container.Scrollbar & GuiScroll.Horizontal) != 0;
 
         bool overflowV = measured.Height > childContent.Height + 0.5;
-        bool overflowH = measured.Width  > childContent.Width  + 0.5;
-        bool forceV = (container.AlwaysShowScrollbar & GuiScroll.Vertical)   != 0;
+        bool overflowH = measured.Width > childContent.Width + 0.5;
+        bool forceV = (container.AlwaysShowScrollbar & GuiScroll.Vertical) != 0;
         bool forceH = (container.AlwaysShowScrollbar & GuiScroll.Horizontal) != 0;
 
         bool showV = wantV && (overflowV || forceV);
@@ -449,15 +449,15 @@ internal sealed class GuiRenderTreeBuilder : IGuiRenderTreeBuilder, IDisposable
         // overflow — handle that by re-evaluating each axis's overflow once.
         double vReserve = sbThickness + sbGap;
         double hReserve = sbThickness + sbGap;
-        double vpW = childContent.Width  - (showV ? vReserve : 0);
+        double vpW = childContent.Width - (showV ? vReserve : 0);
         double vpH = childContent.Height - (showH ? hReserve : 0);
         if (vpW < 0) vpW = 0;
         if (vpH < 0) vpH = 0;
 
         if (wantV && !showV && measured.Height > vpH + 0.5) showV = true;
-        if (wantH && !showH && measured.Width  > vpW + 0.5) showH = true;
+        if (wantH && !showH && measured.Width > vpW + 0.5) showH = true;
         // Recompute viewport dimensions if visibility flipped.
-        vpW = childContent.Width  - (showV ? vReserve : 0);
+        vpW = childContent.Width - (showV ? vReserve : 0);
         vpH = childContent.Height - (showH ? hReserve : 0);
         if (vpW < 0) vpW = 0;
         if (vpH < 0) vpH = 0;
@@ -479,8 +479,8 @@ internal sealed class GuiRenderTreeBuilder : IGuiRenderTreeBuilder, IDisposable
         // Translate child content area by (-scrollX, -scrollY); expand size along the
         // active scroll axes to the measured content extent so children flow naturally
         // and Fill children along the cross axis still see the viewport size.
-        double childW = (eff & GuiScroll.Horizontal) != 0 ? Math.Max(vpW, measured.Width)  : vpW;
-        double childH = (eff & GuiScroll.Vertical)   != 0 ? Math.Max(vpH, measured.Height) : vpH;
+        double childW = (eff & GuiScroll.Horizontal) != 0 ? Math.Max(vpW, measured.Width) : vpW;
+        double childH = (eff & GuiScroll.Vertical) != 0 ? Math.Max(vpH, measured.Height) : vpH;
         var scrolledChildBounds = new GuiComponentBounds(
             childContent.X - container.ScrollX,
             childContent.Y - container.ScrollY,
@@ -716,10 +716,10 @@ internal sealed class GuiRenderTreeBuilder : IGuiRenderTreeBuilder, IDisposable
         {
             switch (kind)
             {
-                case GuiMouseEventKind.Down:  OnMouseDown  = callback; break;
-                case GuiMouseEventKind.Up:    OnMouseUp    = callback; break;
+                case GuiMouseEventKind.Down: OnMouseDown = callback; break;
+                case GuiMouseEventKind.Up: OnMouseUp = callback; break;
                 case GuiMouseEventKind.Click: OnMouseClick = callback; break;
-                case GuiMouseEventKind.Move:  OnMouseMove  = callback; break;
+                case GuiMouseEventKind.Move: OnMouseMove = callback; break;
                 case GuiMouseEventKind.Enter: OnMouseEnter = callback; break;
                 case GuiMouseEventKind.Leave: OnMouseLeave = callback; break;
             }
@@ -730,8 +730,8 @@ internal sealed class GuiRenderTreeBuilder : IGuiRenderTreeBuilder, IDisposable
         {
             switch (kind)
             {
-                case GuiKeyEventKind.Down:  OnKeyDown  = callback; break;
-                case GuiKeyEventKind.Up:    OnKeyUp    = callback; break;
+                case GuiKeyEventKind.Down: OnKeyDown = callback; break;
+                case GuiKeyEventKind.Up: OnKeyUp = callback; break;
                 case GuiKeyEventKind.Press: OnKeyPress = callback; break;
             }
             return this;
@@ -742,15 +742,15 @@ internal sealed class GuiRenderTreeBuilder : IGuiRenderTreeBuilder, IDisposable
             _configure = null;
             // Mouse + keyboard handlers are also per-pass: each blueprint pass re-registers
             // them via the On* extensions, mirroring how Configure actions are re-registered.
-            OnMouseDown  = default;
-            OnMouseUp    = default;
+            OnMouseDown = default;
+            OnMouseUp = default;
             OnMouseClick = default;
-            OnMouseMove  = default;
+            OnMouseMove = default;
             OnMouseEnter = default;
             OnMouseLeave = default;
-            OnKeyDown    = default;
-            OnKeyUp      = default;
-            OnKeyPress   = default;
+            OnKeyDown = default;
+            OnKeyUp = default;
+            OnKeyPress = default;
         }
 
         public override IGuiNode CreateInstance() => new T();

@@ -29,9 +29,9 @@ public readonly struct GuiKeyEventArgs
     /// <c>KeyDown</c> / <c>KeyUp</c>.</summary>
     public char KeyChar => Event.KeyChar;
 
-    public bool ShiftPressed   => Event.ShiftPressed;
-    public bool CtrlPressed    => Event.CtrlPressed;
-    public bool AltPressed     => Event.AltPressed;
+    public bool ShiftPressed => Event.ShiftPressed;
+    public bool CtrlPressed => Event.CtrlPressed;
+    public bool AltPressed => Event.AltPressed;
     public bool CommandPressed => Event.CommandPressed;
 
     /// <summary>Marks the event as handled — suppresses subsequent framework defaults

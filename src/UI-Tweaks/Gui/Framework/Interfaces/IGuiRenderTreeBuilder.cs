@@ -22,4 +22,5 @@ public interface IGuiRenderTreeBuilder
     /// This is a purely logical operation — no component is created, no slot is allocated,
     /// and the layout tree is unaffected.
     /// </summary>
-    internal void PushCascadeScope<T>(T value, string? name, GuiRenderFragment content);}
+    internal void PushCascadeScope<T>(T value, string? name, GuiRenderFragment content);
+}

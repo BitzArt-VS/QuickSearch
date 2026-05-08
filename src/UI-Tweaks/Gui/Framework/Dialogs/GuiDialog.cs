@@ -1,6 +1,5 @@
 using System;
 using Vintagestory.API.Client;
-using Vintagestory.API.Common;
 
 namespace BitzArt.UI.Tweaks.Gui;
 
@@ -409,20 +408,20 @@ public abstract class GuiDialog : GuiComponent, IGuiDialog, IDisposable
     /// </summary>
     private static string? CursorForEdge(GuiResizeEdge edge) => edge switch
     {
-        GuiResizeEdge.East                        => GuiResizeCursors.Horizontal,
-        GuiResizeEdge.South                       => GuiResizeCursors.Vertical,
-        GuiResizeEdge.East | GuiResizeEdge.South  => GuiResizeCursors.DiagonalNwSe,
-        _                                         => null,
+        GuiResizeEdge.East => GuiResizeCursors.Horizontal,
+        GuiResizeEdge.South => GuiResizeCursors.Vertical,
+        GuiResizeEdge.East | GuiResizeEdge.South => GuiResizeCursors.DiagonalNwSe,
+        _ => null,
     };
 
     private void BeginResize(GuiResizeEdge edge, int physX, int physY)
     {
         float scale = Vintagestory.API.Config.RuntimeEnv.GUIScale;
         _resizeEdge = edge;
-        _resizeStartMouseX  = physX;
-        _resizeStartMouseY  = physY;
-        _resizeStartW       = LayoutParameters.Width!.Value;
-        _resizeStartH       = LayoutParameters.Height!.Value;
+        _resizeStartMouseX = physX;
+        _resizeStartMouseY = physY;
+        _resizeStartW = LayoutParameters.Width!.Value;
+        _resizeStartH = LayoutParameters.Height!.Value;
         _resizeStartOffsetX = OffsetX;
         _resizeStartOffsetY = OffsetY;
         // Snapshot the physical left/top edge so UpdateResize can anchor against an exact
@@ -430,8 +429,8 @@ public abstract class GuiDialog : GuiComponent, IGuiDialog, IDisposable
         // causes posX to oscillate ±1 px every time the texture width rounds differently.
         int physW = (int)Math.Round(_resizeStartW * scale);
         int physH = (int)Math.Round(_resizeStartH * scale);
-        _resizeAnchorLeft = (int)((ClientApi.Render.FrameWidth  - physW) / 2.0 + OffsetX * scale);
-        _resizeAnchorTop  = (int)((ClientApi.Render.FrameHeight - physH) / 2.0 + OffsetY * scale);
+        _resizeAnchorLeft = (int)((ClientApi.Render.FrameWidth - physW) / 2.0 + OffsetX * scale);
+        _resizeAnchorTop = (int)((ClientApi.Render.FrameHeight - physH) / 2.0 + OffsetY * scale);
         // Pin the cursor for the gesture's duration so it stays correct even when the
         // pointer wanders outside the dialog mid-drag (vanilla GuiManager reads
         // MouseOverCursor unconditionally per frame, no hover gate).
@@ -475,20 +474,20 @@ public abstract class GuiDialog : GuiComponent, IGuiDialog, IDisposable
             // never oscillates: posX = (FrameWidth - physNewW) / 2 + OffsetX * scale
             // = _resizeAnchorLeft when OffsetX = (_resizeAnchorLeft + physNewW/2 - FrameWidth/2) / scale.
             double physNewW = Math.Round(newW * scale);
-            newOffX = (_resizeAnchorLeft + physNewW / 2.0 - ClientApi.Render.FrameWidth  / 2.0) / scale;
+            newOffX = (_resizeAnchorLeft + physNewW / 2.0 - ClientApi.Render.FrameWidth / 2.0) / scale;
         }
         if ((_resizeEdge & GuiResizeEdge.South) != 0)
         {
             newH = Math.Clamp(_resizeStartH + dyLogical, MinHeight, MaxHeight);
             double physNewH = Math.Round(newH * scale);
-            newOffY = (_resizeAnchorTop  + physNewH / 2.0 - ClientApi.Render.FrameHeight / 2.0) / scale;
+            newOffY = (_resizeAnchorTop + physNewH / 2.0 - ClientApi.Render.FrameHeight / 2.0) / scale;
         }
 
         // Mutating LayoutParameters.Width/Height is observed by DialogRenderer's per-frame
         // size-change check, which recreates the Cairo surface and forces a full layout
         // pass + redraw. Cheap enough to do every move event (200+ Hz) for the size range
         // we expect.
-        LayoutParameters.Width  = newW;
+        LayoutParameters.Width = newW;
         LayoutParameters.Height = newH;
         OffsetX = newOffX;
         OffsetY = newOffY;

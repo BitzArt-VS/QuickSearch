@@ -18,13 +18,13 @@ public static class GuiVanillaStyle
     // ── Backgrounds ─────────────────────────────────────────────────────────
 
     /// <summary>The default ("light") background colour for dialogs (#403529, alpha 0.75).</summary>
-    public static readonly GuiColor DialogLightBgColor    = FromVanilla(GuiStyle.DialogLightBgColor);
+    public static readonly GuiColor DialogLightBgColor = FromVanilla(GuiStyle.DialogLightBgColor);
     /// <summary>The default background colour for dialogs (#403529, alpha 0.8).</summary>
-    public static readonly GuiColor DialogDefaultBgColor  = FromVanilla(GuiStyle.DialogDefaultBgColor);
+    public static readonly GuiColor DialogDefaultBgColor = FromVanilla(GuiStyle.DialogDefaultBgColor);
     /// <summary>The fully opaque ("strong") background colour for dialogs (#403529).</summary>
-    public static readonly GuiColor DialogStrongBgColor   = FromVanilla(GuiStyle.DialogStrongBgColor);
+    public static readonly GuiColor DialogStrongBgColor = FromVanilla(GuiStyle.DialogStrongBgColor);
     /// <summary>The default dialog border colour — black at 30% alpha.</summary>
-    public static readonly GuiColor DialogBorderColor     = FromVanilla(GuiStyle.DialogBorderColor);
+    public static readonly GuiColor DialogBorderColor = FromVanilla(GuiStyle.DialogBorderColor);
     /// <summary>The dark inner stroke colour used by vanilla shaded dialog backgrounds (~#2D2321).</summary>
     public static readonly GuiColor DialogShadedStrokeColor = GuiColor.FromRgba(45, 35, 33, 255);
 
@@ -45,27 +45,27 @@ public static class GuiVanillaStyle
     /// <summary>The default text colour used by dialog labels (#e9ddce).</summary>
     public static readonly GuiColor DialogDefaultTextColor = FromVanilla(GuiStyle.DialogDefaultTextColor);
     /// <summary>A darker brown text colour (#5a4530).</summary>
-    public static readonly GuiColor DarkBrownColor         = FromVanilla(GuiStyle.DarkBrownColor);
+    public static readonly GuiColor DarkBrownColor = FromVanilla(GuiStyle.DarkBrownColor);
     /// <summary>Highlight (hover) colour used on dialog elements (#a88b6c, alpha 0.9).</summary>
-    public static readonly GuiColor DialogHighlightColor   = FromVanilla(GuiStyle.DialogHighlightColor);
+    public static readonly GuiColor DialogHighlightColor = FromVanilla(GuiStyle.DialogHighlightColor);
     /// <summary>An alternate, lighter background colour (#b5aea6, alpha 0.93).</summary>
     public static readonly GuiColor DialogAlternateBgColor = FromVanilla(GuiStyle.DialogAlternateBgColor);
 
     // ── Buttons ─────────────────────────────────────────────────────────────
 
     /// <summary>The dark-brown button background fill (#453524, alpha 0.8) — vanilla <c>GuiStyle.ButtonBackColor</c>.</summary>
-    public static readonly GuiColor ButtonBackColor       = FromVanilla(GuiStyle.ButtonBackColor);
+    public static readonly GuiColor ButtonBackColor = FromVanilla(GuiStyle.ButtonBackColor);
     /// <summary>The default button text colour (#e0cfbb) — vanilla <c>GuiStyle.ButtonTextColor</c>.</summary>
-    public static readonly GuiColor ButtonTextColor       = FromVanilla(GuiStyle.ButtonTextColor);
+    public static readonly GuiColor ButtonTextColor = FromVanilla(GuiStyle.ButtonTextColor);
     /// <summary>The active/hover button text colour (#c58948) — vanilla <c>GuiStyle.ActiveButtonTextColor</c>.</summary>
     public static readonly GuiColor ActiveButtonTextColor = FromVanilla(GuiStyle.ActiveButtonTextColor);
 
     // ── Status / accent ────────────────────────────────────────────────────
 
     public static readonly GuiColor SuccessTextColor = FromVanilla(GuiStyle.SuccessTextColor);
-    public static readonly GuiColor ErrorTextColor   = FromVanilla(GuiStyle.ErrorTextColor);
+    public static readonly GuiColor ErrorTextColor = FromVanilla(GuiStyle.ErrorTextColor);
     public static readonly GuiColor WarningTextColor = FromVanilla(GuiStyle.WarningTextColor);
-    public static readonly GuiColor LinkTextColor    = FromVanilla(GuiStyle.LinkTextColor);
+    public static readonly GuiColor LinkTextColor = FromVanilla(GuiStyle.LinkTextColor);
 
     /// <summary>
     /// The orange/copper colour vanilla rich-text hyperlinks are drawn in. Backed by
@@ -74,7 +74,7 @@ public static class GuiVanillaStyle
     /// <see cref="GuiStyle.LinkTextColor"/> field holds an unrelated blue that
     /// nothing in the shipped UI actually uses for links.
     /// </summary>
-    public static readonly GuiColor HyperlinkColor      = FromVanilla(GuiStyle.ActiveButtonTextColor);
+    public static readonly GuiColor HyperlinkColor = FromVanilla(GuiStyle.ActiveButtonTextColor);
 
     /// <summary>
     /// The brighter hover variant of <see cref="HyperlinkColor"/>. Mirrors vanilla
@@ -86,32 +86,32 @@ public static class GuiVanillaStyle
     // ── Texture asset locations ────────────────────────────────────────────
 
     /// <summary>The dirt/soil tile vanilla shaded dialog backgrounds use.</summary>
-    public static readonly AssetLocation DirtTexture       = GuiElement.dirtTextureName;
+    public static readonly AssetLocation DirtTexture = GuiElement.dirtTextureName;
     /// <summary>The noisy metal tile used for various accents.</summary>
     public static readonly AssetLocation NoisyMetalTexture = GuiElement.noisyMetalTextureName;
     /// <summary>The oak wood tile used for slot frames.</summary>
-    public static readonly AssetLocation WoodTexture       = GuiElement.woodTextureName;
+    public static readonly AssetLocation WoodTexture = GuiElement.woodTextureName;
     /// <summary>The stone tile used for engraved-style elements.</summary>
-    public static readonly AssetLocation StoneTexture      = GuiElement.stoneTextureName;
+    public static readonly AssetLocation StoneTexture = GuiElement.stoneTextureName;
     /// <summary>The water tile used for liquid containers and similar.</summary>
-    public static readonly AssetLocation WaterTexture      = GuiElement.waterTextureName;
+    public static readonly AssetLocation WaterTexture = GuiElement.waterTextureName;
     /// <summary>The sign-paper tile used for text overlays.</summary>
-    public static readonly AssetLocation PaperTexture      = GuiElement.paperTextureName;
+    public static readonly AssetLocation PaperTexture = GuiElement.paperTextureName;
 
     // ── Dimensions ──────────────────────────────────────────────────────────
 
     /// <summary>The vanilla title bar height in logical pixels (31).</summary>
-    public const double TitleBarHeight        = 31;
+    public const double TitleBarHeight = 31;
     /// <summary>The vanilla dialog background corner radius in logical pixels (1).</summary>
-    public const double DialogBgRadius        = 1;
+    public const double DialogBgRadius = 1;
     /// <summary>The vanilla element background corner radius in logical pixels (1).</summary>
-    public const double ElementBgRadius       = 1;
+    public const double ElementBgRadius = 1;
     /// <summary>The vanilla padding between an element and its enclosing dialog (20).</summary>
     public const double ElementToDialogPadding = 20;
     /// <summary>The vanilla padding between a dialog and the screen edge (10).</summary>
     public const double DialogToScreenPadding = 10;
     /// <summary>Half of the vanilla element padding (5).</summary>
-    public const double HalfPadding           = 5;
+    public const double HalfPadding = 5;
 
     // ── Input mark / fill ────────────────────────────────────────────────────
 

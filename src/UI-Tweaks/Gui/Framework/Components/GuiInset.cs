@@ -1,5 +1,5 @@
-using System;
 using Cairo;
+using System;
 using Vintagestory.API.Config;
 
 namespace BitzArt.UI.Tweaks.Gui;
@@ -95,9 +95,9 @@ public sealed class GuiInset : GuiComponent
         int depth,
         bool raised)
     {
-        const double intensity        = 0.7;
-        const double alphaOffset      = 0.25;
-        const double degrees          = Math.PI / 180.0;
+        const double intensity = 0.7;
+        const double alphaOffset = 0.25;
+        const double degrees = Math.PI / 180.0;
 
         // Recessed: top-left = shadow (black), bottom-right = highlight (white).
         // Raised:   top-left = highlight (white), bottom-right = shadow (black).
@@ -115,9 +115,9 @@ public sealed class GuiInset : GuiComponent
 
             // Top-left arcs.
             ctx.NewPath();
-            ctx.Arc(x + radius,     y + h - radius, radius, 135 * degrees, 180 * degrees);
-            ctx.Arc(x + radius,     y + radius,     radius, 180 * degrees, 270 * degrees);
-            ctx.Arc(x + w - radius, y + radius,     radius, -90 * degrees, -45 * degrees);
+            ctx.Arc(x + radius, y + h - radius, radius, 135 * degrees, 180 * degrees);
+            ctx.Arc(x + radius, y + radius, radius, 180 * degrees, 270 * degrees);
+            ctx.Arc(x + w - radius, y + radius, radius, -90 * degrees, -45 * degrees);
             double tlAlpha = Math.Max(0.0, Math.Min(1.0, lightDarkBalance * fac) - alphaOffset);
             ctx.SetSourceRGBA(tlR, tlG, tlB, tlAlpha);
             ctx.LineWidth = px;
@@ -125,9 +125,9 @@ public sealed class GuiInset : GuiComponent
 
             // Bottom-right arcs.
             ctx.NewPath();
-            ctx.Arc(x + w - radius, y + radius,     radius, -45 * degrees,   0 * degrees);
-            ctx.Arc(x + w - radius, y + h - radius, radius,   0 * degrees,  90 * degrees);
-            ctx.Arc(x + radius,     y + h - radius, radius,  90 * degrees, 135 * degrees);
+            ctx.Arc(x + w - radius, y + radius, radius, -45 * degrees, 0 * degrees);
+            ctx.Arc(x + w - radius, y + h - radius, radius, 0 * degrees, 90 * degrees);
+            ctx.Arc(x + radius, y + h - radius, radius, 90 * degrees, 135 * degrees);
             double brAlpha = Math.Max(0.0, Math.Min(1.0, (2.0 - lightDarkBalance) * fac) - alphaOffset);
             ctx.SetSourceRGBA(brR, brG, brB, brAlpha);
             ctx.LineWidth = px;

@@ -1,7 +1,6 @@
-using System;
 using Cairo;
+using System;
 using Vintagestory.API.Client;
-using Vintagestory.API.Common;
 using Vintagestory.API.Config;
 
 namespace BitzArt.UI.Tweaks.Gui;
@@ -117,8 +116,8 @@ public sealed class GuiSlider : GuiInputBase
 
         int dir = args.KeyCode switch
         {
-            (int)GlKeys.Left  => -1,
-            (int)GlKeys.Right =>  1,
+            (int)GlKeys.Left => -1,
+            (int)GlKeys.Right => 1,
             _ => 0,
         };
         if (dir != 0)

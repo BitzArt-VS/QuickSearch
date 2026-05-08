@@ -1,6 +1,6 @@
+using Cairo;
 using System;
 using System.Collections.Generic;
-using Cairo;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 
@@ -511,15 +511,15 @@ public class GuiDropdown<T> : GuiInputBase
         if (IsOpen)
         {
             // Up-pointing triangle.
-            ctx.MoveTo(cx,                cy + chevronH);
-            ctx.LineTo(cx + chevronW,     cy + chevronH);
+            ctx.MoveTo(cx, cy + chevronH);
+            ctx.LineTo(cx + chevronW, cy + chevronH);
             ctx.LineTo(cx + chevronW / 2, cy);
         }
         else
         {
             // Down-pointing triangle.
-            ctx.MoveTo(cx,                cy);
-            ctx.LineTo(cx + chevronW,     cy);
+            ctx.MoveTo(cx, cy);
+            ctx.LineTo(cx + chevronW, cy);
             ctx.LineTo(cx + chevronW / 2, cy + chevronH);
         }
         ctx.ClosePath();

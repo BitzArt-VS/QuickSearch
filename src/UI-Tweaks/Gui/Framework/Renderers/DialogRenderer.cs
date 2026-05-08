@@ -1,6 +1,6 @@
+using Cairo;
 using System;
 using System.Collections.Generic;
-using Cairo;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
@@ -770,7 +770,7 @@ internal sealed class DialogRenderer : IGuiComponentTreeRenderer, IDisposable
     /// whether either site marks the event handled.
     /// </summary>
     public bool DispatchKeyDown(KeyEvent args) => DispatchKey(GuiKeyEventKind.Down, args);
-    public bool DispatchKeyUp(KeyEvent args)   => DispatchKey(GuiKeyEventKind.Up,   args);
+    public bool DispatchKeyUp(KeyEvent args) => DispatchKey(GuiKeyEventKind.Up, args);
     public bool DispatchKeyPress(KeyEvent args) => DispatchKey(GuiKeyEventKind.Press, args);
 
     private bool DispatchKey(GuiKeyEventKind kind, KeyEvent args)
@@ -788,8 +788,8 @@ internal sealed class DialogRenderer : IGuiComponentTreeRenderer, IDisposable
             if (!ReferenceEquals(r.Token, FocusedNode)) continue;
             switch (kind)
             {
-                case GuiKeyEventKind.Down:  r.OnKeyDown.Invoke(local);  break;
-                case GuiKeyEventKind.Up:    r.OnKeyUp.Invoke(local);    break;
+                case GuiKeyEventKind.Down: r.OnKeyDown.Invoke(local); break;
+                case GuiKeyEventKind.Up: r.OnKeyUp.Invoke(local); break;
                 case GuiKeyEventKind.Press: r.OnKeyPress.Invoke(local); break;
             }
             break;
@@ -800,8 +800,8 @@ internal sealed class DialogRenderer : IGuiComponentTreeRenderer, IDisposable
         // to re-register the same callbacks at every declaration site.
         switch (kind)
         {
-            case GuiKeyEventKind.Down:  FocusedNode.OnKeyDown(local);  break;
-            case GuiKeyEventKind.Up:    FocusedNode.OnKeyUp(local);    break;
+            case GuiKeyEventKind.Down: FocusedNode.OnKeyDown(local); break;
+            case GuiKeyEventKind.Up: FocusedNode.OnKeyUp(local); break;
             case GuiKeyEventKind.Press: FocusedNode.OnKeyPress(local); break;
         }
 

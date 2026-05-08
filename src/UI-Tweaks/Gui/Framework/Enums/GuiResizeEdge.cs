@@ -10,9 +10,9 @@ namespace BitzArt.UI.Tweaks.Gui;
 [Flags]
 internal enum GuiResizeEdge
 {
-    None  = 0,
+    None = 0,
     North = 1 << 0,
     South = 1 << 1,
-    West  = 1 << 2,
-    East  = 1 << 3,
+    West = 1 << 2,
+    East = 1 << 3,
 }

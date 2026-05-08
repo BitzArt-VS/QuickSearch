@@ -71,7 +71,7 @@ public sealed class GuiShadow : GuiComponent
         for (int i = steps; i >= 1; i--)
         {
             double off = i * offset;
-            double sp  = i * spread;
+            double sp = i * spread;
             // Innermost layer (i==1) is the sharpest and gets the full alpha; outer
             // layers fade linearly. Using (steps - i + 1) / steps keeps the sum bounded
             // while letting the silhouette stay soft.

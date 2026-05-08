@@ -69,7 +69,7 @@ public abstract partial class ModSystem : Vintagestory.API.Common.ModSystem
                 {
                     clientApi.Logger.Error(ex);
                     clientApi.Logger.Error($"An error occurred while starting the feature '{feature.Name}' for mod system '{Name}' (client-side). The feature will remain disabled.");
-                    
+
                     feature.Dispose();
                 }
             }

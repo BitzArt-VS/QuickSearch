@@ -68,15 +68,15 @@ public sealed class GuiComponentLayoutParameters
     /// </summary>
     internal void Reset()
     {
-        Positioning        = GuiComponentPositioning.Relative;
-        Margin             = GuiThickness.Zero;
-        Padding            = GuiThickness.Zero;
-        Width              = null;
-        Height             = null;
-        WidthMode          = GuiSizeMode.FitContent;
-        HeightMode         = GuiSizeMode.FitContent;
-        Direction          = GuiDirection.Vertical;
+        Positioning = GuiComponentPositioning.Relative;
+        Margin = GuiThickness.Zero;
+        Padding = GuiThickness.Zero;
+        Width = null;
+        Height = null;
+        WidthMode = GuiSizeMode.FitContent;
+        HeightMode = GuiSizeMode.FitContent;
+        Direction = GuiDirection.Vertical;
         HorizontalAlignment = GuiHorizontalAlignment.Left;
-        VerticalAlignment  = GuiVerticalAlignment.Top;
+        VerticalAlignment = GuiVerticalAlignment.Top;
     }
 }

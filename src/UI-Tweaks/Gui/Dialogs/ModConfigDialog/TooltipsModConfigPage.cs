@@ -1,7 +1,7 @@
-using System;
-using System.Globalization;
 using BitzArt.UI.Tweaks.Config;
 using BitzArt.UI.Tweaks.Gui;
+using System;
+using System.Globalization;
 using Vintagestory.API.Client;
 using Vintagestory.API.Config;
 
@@ -67,7 +67,7 @@ internal sealed class TooltipsModConfigPage : GuiComponent, IModConfigPage
     // Hyperlink colours match vanilla rich-text links: the orange/copper
     // ActiveButtonTextColor at idle, RGB × 1.2 (clamped) on hover. Re-resolved into the
     // chosen-size font on every BuildRenderTree pass — cheap.
-    private static readonly GuiColor LinkIdleColor  = GuiVanillaStyle.HyperlinkColor;
+    private static readonly GuiColor LinkIdleColor = GuiVanillaStyle.HyperlinkColor;
     private static readonly GuiColor LinkHoverColor = GuiVanillaStyle.HyperlinkHoverColor;
 
     // Invariant culture used for all double ↔ string conversions in text inputs so the

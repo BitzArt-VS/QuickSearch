@@ -28,7 +28,7 @@ internal static class GuiResizeCursors
     /// <summary>Cursor code for the East/West edge — horizontal double-arrow.</summary>
     internal const string Horizontal = "bitzart-uitw-resize-h";
     /// <summary>Cursor code for the North/South edge — vertical double-arrow.</summary>
-    internal const string Vertical   = "bitzart-uitw-resize-v";
+    internal const string Vertical = "bitzart-uitw-resize-v";
     /// <summary>Cursor code for the NW↔SE diagonal corner — diagonal double-arrow.</summary>
     internal const string DiagonalNwSe = "bitzart-uitw-resize-nwse";
 
@@ -74,8 +74,8 @@ internal static class GuiResizeCursors
         }
         if (coords is null) return;
 
-        TryLoad(api, coords, "resize-h",    Horizontal);
-        TryLoad(api, coords, "resize-v",    Vertical);
+        TryLoad(api, coords, "resize-h", Horizontal);
+        TryLoad(api, coords, "resize-v", Vertical);
         TryLoad(api, coords, "resize-nwse", DiagonalNwSe);
     }
 

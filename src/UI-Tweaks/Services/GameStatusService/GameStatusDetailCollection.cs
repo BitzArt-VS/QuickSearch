@@ -46,7 +46,7 @@ internal sealed class GameStatusDetailCollection
             var healthAttribute = playerEntity?.WatchedAttributes?.GetTreeAttribute("health");
             var value = healthAttribute?.TryGetFloat("maxhealth");
             float? truncated = value is null ? null : (float)Math.Floor(value.Value * (float)Math.Pow(10, decimalPlaces)) / (float)Math.Pow(10, decimalPlaces);
-            
+
             if (truncated is null || oldValue is null)
             {
                 return new(oldValue != truncated, truncated);
@@ -139,7 +139,7 @@ internal sealed class GameStatusDetailCollection
             var playerEntity = clientApi.World?.Player?.Entity;
             var hungerRate = playerEntity is null ? (float?)null : (float)playerEntity.Stats.GetBlended("hungerrate");
             float? percent = hungerRate is null ? null : (float)Math.Floor(hungerRate.Value * 100.0f * (float)Math.Pow(10, decimalPlaces)) / (float)Math.Pow(10, decimalPlaces);
-            
+
             if (percent is null || oldValue is null)
             {
                 return new(oldValue != percent, percent);
@@ -156,7 +156,7 @@ internal sealed class GameStatusDetailCollection
             var playerEntity = clientApi.World?.Player?.Entity;
             var temporalStability = playerEntity is null ? (float?)null : (float)playerEntity.WatchedAttributes.GetDouble("temporalStability");
             float? percent = temporalStability is null ? null : (float)Math.Floor(temporalStability.Value * 100.0f * (float)Math.Pow(10, decimalPlaces)) / (float)Math.Pow(10, decimalPlaces);
-            
+
             if (percent is null || oldValue is null)
             {
                 return new(oldValue != percent, percent);

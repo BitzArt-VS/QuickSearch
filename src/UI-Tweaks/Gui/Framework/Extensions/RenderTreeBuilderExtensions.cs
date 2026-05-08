@@ -314,9 +314,9 @@ public static class RenderTreeBuilderExtensions
         var b = ApplyLayout(builder.AddComponent<GuiInset>(key),
             width, height, widthMode, heightMode, fill, margin, padding, direction, positioning,
             horizontalAlignment, verticalAlignment);
-        if (depth      is not null) b = b.Configure(c => c.Depth      = depth.Value);
+        if (depth is not null) b = b.Configure(c => c.Depth = depth.Value);
         if (brightness is not null) b = b.Configure(c => c.Brightness = brightness.Value);
-        if (radius     is not null) b = b.Configure(c => c.Radius     = radius.Value);
+        if (radius is not null) b = b.Configure(c => c.Radius = radius.Value);
         return content is null ? b : b.Configure(c => c.Content = content);
     }
 
@@ -634,13 +634,13 @@ public static class RenderTreeBuilderExtensions
             builder.AddComponent<GuiSlider>(key),
             width, height, widthMode, heightMode, fill, margin, padding, direction: null, positioning,
             horizontalAlignment, verticalAlignment);
-        if (minValue is not null)         b = b.Configure(c => c.MinValue = minValue.Value);
-        if (maxValue is not null)         b = b.Configure(c => c.MaxValue = maxValue.Value);
-        if (step is not null)             b = b.Configure(c => c.Step = step.Value);
-        if (unit is not null)             b = b.Configure(c => c.Unit = unit);
-        if (value is not null)            b = b.Configure(c => c.Value = value.Value);
-        if (onValueChanged is not null)   b = b.Configure(c => c.OnValueChanged = onValueChanged);
-        if (onTooltipText is not null)    b = b.Configure(c => c.OnTooltipText = onTooltipText);
+        if (minValue is not null) b = b.Configure(c => c.MinValue = minValue.Value);
+        if (maxValue is not null) b = b.Configure(c => c.MaxValue = maxValue.Value);
+        if (step is not null) b = b.Configure(c => c.Step = step.Value);
+        if (unit is not null) b = b.Configure(c => c.Unit = unit);
+        if (value is not null) b = b.Configure(c => c.Value = value.Value);
+        if (onValueChanged is not null) b = b.Configure(c => c.OnValueChanged = onValueChanged);
+        if (onTooltipText is not null) b = b.Configure(c => c.OnTooltipText = onTooltipText);
         if (triggerOnMouseUp is not null) b = b.Configure(c => c.TriggerOnMouseUp = triggerOnMouseUp.Value);
         return b;
     }
@@ -683,16 +683,16 @@ public static class RenderTreeBuilderExtensions
             builder.AddComponent<GuiDropdown<T>>(key),
             width, height, widthMode, heightMode, fill, margin, padding, direction: null, positioning,
             horizontalAlignment, verticalAlignment);
-        if (items is not null)              b = b.Configure(c => c.Items = items);
-        if (selectedIndex is not null)      b = b.Configure(c => c.SelectedIndex = selectedIndex.Value);
+        if (items is not null) b = b.Configure(c => c.Items = items);
+        if (selectedIndex is not null) b = b.Configure(c => c.SelectedIndex = selectedIndex.Value);
         if (onSelectionChanged is not null) b = b.Configure(c => c.OnSelectionChanged = onSelectionChanged);
-        if (onItemSelected is not null)     b = b.Configure(c => c.OnItemSelected = onItemSelected);
-        if (itemTemplate is not null)       b = b.Configure(c => c.ItemTemplate = itemTemplate);
-        if (selectedTemplate is not null)   b = b.Configure(c => c.SelectedTemplate = selectedTemplate);
-        if (placeholder is not null)        b = b.Configure(c => c.Placeholder = placeholder);
-        if (font is not null)               b = b.Configure(c => c.Font = font.Value);
-        if (itemHeight is not null)         b = b.Configure(c => c.ItemHeight = itemHeight.Value);
-        if (maxPopupHeight is not null)     b = b.Configure(c => c.MaxPopupHeight = maxPopupHeight.Value);
+        if (onItemSelected is not null) b = b.Configure(c => c.OnItemSelected = onItemSelected);
+        if (itemTemplate is not null) b = b.Configure(c => c.ItemTemplate = itemTemplate);
+        if (selectedTemplate is not null) b = b.Configure(c => c.SelectedTemplate = selectedTemplate);
+        if (placeholder is not null) b = b.Configure(c => c.Placeholder = placeholder);
+        if (font is not null) b = b.Configure(c => c.Font = font.Value);
+        if (itemHeight is not null) b = b.Configure(c => c.ItemHeight = itemHeight.Value);
+        if (maxPopupHeight is not null) b = b.Configure(c => c.MaxPopupHeight = maxPopupHeight.Value);
         return b;
     }
 

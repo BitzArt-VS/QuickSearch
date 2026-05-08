@@ -49,8 +49,8 @@ public class ModConfigDialog : Gui.GuiDialog
         _config = config;
         _context = new ModConfigContext(_config, LaunchSaveConfig);
 
-        LayoutParameters.Width   = 600;
-        LayoutParameters.Height  = 600;
+        LayoutParameters.Width = 600;
+        LayoutParameters.Height = 600;
         LayoutParameters.Padding = new GuiThickness(0);
 
         IsResizable = true;

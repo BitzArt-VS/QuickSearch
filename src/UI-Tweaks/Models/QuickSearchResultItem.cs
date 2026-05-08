@@ -83,7 +83,7 @@ internal class QuickSearchResultItem : IFlatListItem
         clientApi.Event.EnqueueMainThreadTask(() =>
         {
             clientApi.LinkProtocols["handbook"]!.Invoke(_pageLink);
-        },"quicksearch-open-handbook-entry");
+        }, "quicksearch-open-handbook-entry");
 
         return true;
     }

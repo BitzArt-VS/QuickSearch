@@ -1,5 +1,5 @@
-using System;
 using Cairo;
+using System;
 using Vintagestory.API.Config;
 
 namespace BitzArt.UI.Tweaks.Gui;
@@ -118,10 +118,10 @@ public class GuiDialogTitleBar : GuiContainer
         {
             double iconBox = _closeIcon.CrossLineWidth * 2 + _closeIcon.CrossSize;
             _closeIcon.LayoutParameters.Margin = new GuiThickness(
-                Top:    CloseIconTopPadding,
-                Right:  0,
+                Top: CloseIconTopPadding,
+                Right: 0,
                 Bottom: 0,
-                Left:   bounds.Width - iconBox - CloseIconRightPadding);
+                Left: bounds.Width - iconBox - CloseIconRightPadding);
         }
     }
 

@@ -1,5 +1,5 @@
-using System;
 using Cairo;
+using System;
 
 namespace BitzArt.UI.Tweaks.Gui;
 
@@ -252,10 +252,10 @@ public class GuiContainer : GuiComponent
     public GuiContainer()
     {
         OnVScrollbarDown = (Action<GuiMouseEventArgs>)HandleVScrollbarDown;
-        OnVScrollbarUp   = (Action<GuiMouseEventArgs>)HandleVScrollbarUp;
+        OnVScrollbarUp = (Action<GuiMouseEventArgs>)HandleVScrollbarUp;
         OnVScrollbarMove = (Action<GuiMouseEventArgs>)HandleVScrollbarMove;
         OnHScrollbarDown = (Action<GuiMouseEventArgs>)HandleHScrollbarDown;
-        OnHScrollbarUp   = (Action<GuiMouseEventArgs>)HandleHScrollbarUp;
+        OnHScrollbarUp = (Action<GuiMouseEventArgs>)HandleHScrollbarUp;
         OnHScrollbarMove = (Action<GuiMouseEventArgs>)HandleHScrollbarMove;
     }
 

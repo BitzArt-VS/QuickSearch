@@ -70,9 +70,9 @@ public readonly record struct GuiColor
     public static GuiColor FromHsl(double h, double s, double l, double a = 1.0)
     {
         if (h < 0.0 || h > 360.0) throw new ArgumentOutOfRangeException(nameof(h), h, "Must be in [0, 360].");
-        if (s < 0.0 || s > 1.0)   throw new ArgumentOutOfRangeException(nameof(s), s, "Must be in [0, 1].");
-        if (l < 0.0 || l > 1.0)   throw new ArgumentOutOfRangeException(nameof(l), l, "Must be in [0, 1].");
-        if (a < 0.0 || a > 1.0)   throw new ArgumentOutOfRangeException(nameof(a), a, "Must be in [0, 1].");
+        if (s < 0.0 || s > 1.0) throw new ArgumentOutOfRangeException(nameof(s), s, "Must be in [0, 1].");
+        if (l < 0.0 || l > 1.0) throw new ArgumentOutOfRangeException(nameof(l), l, "Must be in [0, 1].");
+        if (a < 0.0 || a > 1.0) throw new ArgumentOutOfRangeException(nameof(a), a, "Must be in [0, 1].");
 
         if (s == 0.0) return new(l, l, l, a);
 
@@ -102,15 +102,15 @@ public readonly record struct GuiColor
     // ── Named colors ───────────────────────────────────────────────────────
 
     public static GuiColor Transparent => new(0.0, 0.0, 0.0, 0.0);
-    public static GuiColor Black       => new(0.0, 0.0, 0.0);
-    public static GuiColor White       => new(1.0, 1.0, 1.0);
-    public static GuiColor Red         => new(1.0, 0.0, 0.0);
-    public static GuiColor Lime        => new(0.0, 1.0, 0.0);
-    public static GuiColor Blue        => new(0.0, 0.0, 1.0);
-    public static GuiColor Yellow      => new(1.0, 1.0, 0.0);
-    public static GuiColor Cyan        => new(0.0, 1.0, 1.0);
-    public static GuiColor Magenta     => new(1.0, 0.0, 1.0);
-    public static GuiColor Gray        => new(0.5, 0.5, 0.5);
-    public static GuiColor DarkGray    => new(0.25, 0.25, 0.25);
-    public static GuiColor LightGray   => new(0.75, 0.75, 0.75);
+    public static GuiColor Black => new(0.0, 0.0, 0.0);
+    public static GuiColor White => new(1.0, 1.0, 1.0);
+    public static GuiColor Red => new(1.0, 0.0, 0.0);
+    public static GuiColor Lime => new(0.0, 1.0, 0.0);
+    public static GuiColor Blue => new(0.0, 0.0, 1.0);
+    public static GuiColor Yellow => new(1.0, 1.0, 0.0);
+    public static GuiColor Cyan => new(0.0, 1.0, 1.0);
+    public static GuiColor Magenta => new(1.0, 0.0, 1.0);
+    public static GuiColor Gray => new(0.5, 0.5, 0.5);
+    public static GuiColor DarkGray => new(0.25, 0.25, 0.25);
+    public static GuiColor LightGray => new(0.75, 0.75, 0.75);
 }

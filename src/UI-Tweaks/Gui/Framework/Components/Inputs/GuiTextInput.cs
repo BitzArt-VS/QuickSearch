@@ -1,6 +1,6 @@
+using Cairo;
 using System;
 using System.Globalization;
-using Cairo;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
@@ -508,7 +508,7 @@ public sealed class GuiTextInput : GuiInputBase
         if (arrowUp)
         {
             // Apex up.
-            ctx.MoveTo(cx,        cy - rise);
+            ctx.MoveTo(cx, cy - rise);
             ctx.LineTo(cx - half, cy + rise);
             ctx.LineTo(cx + half, cy + rise);
         }
@@ -517,7 +517,7 @@ public sealed class GuiTextInput : GuiInputBase
             // Apex down.
             ctx.MoveTo(cx - half, cy - rise);
             ctx.LineTo(cx + half, cy - rise);
-            ctx.LineTo(cx,        cy + rise);
+            ctx.LineTo(cx, cy + rise);
         }
         ctx.ClosePath();
         ctx.SetSourceRGBA(1, 1, 1, Enabled ? 0.6 : 0.18);
