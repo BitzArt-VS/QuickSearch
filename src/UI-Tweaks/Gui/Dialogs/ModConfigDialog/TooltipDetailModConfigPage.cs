@@ -349,6 +349,7 @@ internal sealed class TooltipDetailModConfigPage : GuiComponent
                 builder.AddTooltip(0,
                     tooltip: tooltip,
                     content: builder => builder.AddLabel(0, label,
+                        width: LabelColumnWidth,
                         verticalAlignment: GuiVerticalAlignment.Center));
 
                 builder.AddContainer(1, fill: true, content: control);
