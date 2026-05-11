@@ -14,6 +14,14 @@ internal readonly struct InteractiveRegion
 {
     public readonly GuiComponentBounds Bounds;
     public readonly object Token;
+
+    /// <summary>
+    /// The <see cref="IGuiNode"/> instance that receives virtual mouse-hook dispatch when
+    /// this region wins a hit-test. <c>null</c> for regions whose identity token is an
+    /// opaque non-component object (e.g. scrollbar drag tokens).
+    /// </summary>
+    public readonly IGuiNode? VirtualTarget;
+
     public readonly GuiCallback<GuiMouseEventArgs> OnMouseDown;
     public readonly GuiCallback<GuiMouseEventArgs> OnMouseUp;
     public readonly GuiCallback<GuiMouseEventArgs> OnMouseClick;
@@ -29,10 +37,12 @@ internal readonly struct InteractiveRegion
         GuiCallback<GuiMouseEventArgs> onMouseClick,
         GuiCallback<GuiMouseEventArgs> onMouseMove,
         GuiCallback<GuiMouseEventArgs> onMouseEnter,
-        GuiCallback<GuiMouseEventArgs> onMouseLeave)
+        GuiCallback<GuiMouseEventArgs> onMouseLeave,
+        IGuiNode? virtualTarget = null)
     {
         Bounds = bounds;
         Token = token;
+        VirtualTarget = virtualTarget;
         OnMouseDown = onMouseDown;
         OnMouseUp = onMouseUp;
         OnMouseClick = onMouseClick;
@@ -44,4 +54,9 @@ internal readonly struct InteractiveRegion
     public bool Contains(double x, double y) =>
         x >= Bounds.X && x < Bounds.X + Bounds.Width &&
         y >= Bounds.Y && y < Bounds.Y + Bounds.Height;
+
+    public InteractiveRegion Translated(double dx, double dy) => new(
+        new GuiComponentBounds(Bounds.X + dx, Bounds.Y + dy, Bounds.Width, Bounds.Height),
+        Token, OnMouseDown, OnMouseUp, OnMouseClick, OnMouseMove, OnMouseEnter, OnMouseLeave,
+        VirtualTarget);
 }

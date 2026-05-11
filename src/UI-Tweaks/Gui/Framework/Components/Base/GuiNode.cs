@@ -139,4 +139,22 @@ public abstract class GuiNode : IGuiNode
 
     /// <inheritdoc/>
     public virtual void OnKeyPress(GuiKeyEventArgs args) { }
+
+    /// <inheritdoc/>
+    public virtual void OnMouseDown(GuiMouseEventArgs args) { }
+
+    /// <inheritdoc/>
+    public virtual void OnMouseUp(GuiMouseEventArgs args) { }
+
+    /// <inheritdoc/>
+    public virtual void OnMouseClick(GuiMouseEventArgs args) { }
+
+    /// <inheritdoc/>
+    public virtual void OnMouseMove(GuiMouseEventArgs args) { }
+
+    /// <inheritdoc/>
+    public virtual void OnMouseEnter(GuiMouseEventArgs args) { }
+
+    /// <inheritdoc/>
+    public virtual void OnMouseLeave(GuiMouseEventArgs args) { }
 }

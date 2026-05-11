@@ -90,17 +90,8 @@ public sealed class GuiTextInput : GuiInputBase
     /// width is stable across enable/disable transitions, but mouse-down handlers bail.</summary>
     private bool SpinnerButtonsVisible => ShowSpinnerButtons && Mode != GuiTextInputMode.Text;
 
-    public GuiTextInput()
+    protected override void SetDefaultLayoutParameters()
     {
-        // Default to a fixed height matching vanilla's standard text-input rows; width
-        // grows to fill available space unless the caller overrides.
-        LayoutParameters.Height = 30;
-        LayoutParameters.WidthMode = GuiSizeMode.Fill;
-    }
-
-    internal override void ResetLayoutParameters()
-    {
-        base.ResetLayoutParameters();
         LayoutParameters.Height = 30;
         LayoutParameters.WidthMode = GuiSizeMode.Fill;
     }

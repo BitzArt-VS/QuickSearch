@@ -28,8 +28,10 @@
   "config-tooltip-offset-y": "Offset Y",
   "config-tooltip-offset-y-tooltip": "Sets the vertical offset of the tooltip element in pixels.",
   "config-back": "Back",
-  "config-tooltip-dialog-area": "Dialog Area",
-  "config-tooltip-dialog-area-tooltip": "Sets the anchor area of the tooltip element on the screen.",
+  "config-tooltip-dialog-area-horizontal": "Horizontal Position",
+  "config-tooltip-dialog-area-horizontal-tooltip": "Sets the horizontal anchor of the tooltip element on the screen.",
+  "config-tooltip-dialog-area-vertical": "Vertical Position",
+  "config-tooltip-dialog-area-vertical-tooltip": "Sets the vertical anchor of the tooltip element on the screen.",
   "config-tooltip-padding-top": "Padding Top",
   "config-tooltip-padding-top-tooltip": "Sets the inner top padding of the tooltip element in pixels.",
   "config-tooltip-padding-right": "Padding Right",
@@ -43,5 +45,11 @@
   "config-tooltip-background-opacity": "Background Opacity",
   "config-tooltip-background-opacity-tooltip": "Sets the opacity of the tooltip background (0 = transparent, 1 = opaque).",
   "config-tooltip-background-corner-radius": "Background Corner Radius",
-  "config-tooltip-background-corner-radius-tooltip": "Sets the corner radius of the tooltip background in pixels."
+  "config-tooltip-background-corner-radius-tooltip": "Sets the corner radius of the tooltip background in pixels.",
+  "config-tooltip-section-general": "General",
+  "config-tooltip-section-layout": "Layout",
+  "config-tooltip-section-content": "Content",
+  "config-tooltip-section-background": "Background",
+  "config-tooltip-font-size": "Font Size",
+  "config-tooltip-font-size-tooltip": "Sets the font size of the tooltip text in pixels."
 }

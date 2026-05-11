@@ -16,7 +16,6 @@ internal sealed class QuickSearchModConfigPage : GuiComponent, IModConfigPage
     private const double LabelColumnWidth = 220;
     private const double RowHeight = 28;
     private const double RowSpacing = 8;
-    private const double SectionSpacing = 24;
 
     // Quick-search slider range — matches the legacy QuickSearchConfigPage so existing
     // user values stay valid after the migration.
@@ -34,14 +33,8 @@ internal sealed class QuickSearchModConfigPage : GuiComponent, IModConfigPage
 
     private ModConfigContext? _context;
 
-    public QuickSearchModConfigPage()
+    protected override void SetDefaultLayoutParameters()
     {
-        LayoutParameters.Padding = new(8);
-    }
-
-    internal override void ResetLayoutParameters()
-    {
-        base.ResetLayoutParameters();
         LayoutParameters.Padding = new(8);
     }
 
@@ -52,10 +45,6 @@ internal sealed class QuickSearchModConfigPage : GuiComponent, IModConfigPage
 
     protected override void BuildRenderTree(IGuiRenderTreeBuilder builder)
     {
-        builder.AddLabel(0, Lang.Get($"{Constants.ModId}:config-page-quicksearch"),
-            font: GuiFontStyle.LargeBold,
-            margin: new(0, 0, SectionSpacing, 0));
-
         var quickSearch = _context?.Config.QuickSearch;
         if (quickSearch is null) return;
 

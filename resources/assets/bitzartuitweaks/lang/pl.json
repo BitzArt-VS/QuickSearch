@@ -28,8 +28,10 @@
   "config-tooltip-offset-y": "Przesunięcie Y",
   "config-tooltip-offset-y-tooltip": "Ustawia pionowe przesunięcie tooltipa w pikselach.",
   "config-back": "Wstecz",
-  "config-tooltip-dialog-area": "Obszar ekranu",
-  "config-tooltip-dialog-area-tooltip": "Ustawia obszar zakotwiczenia tooltipa na ekranie.",
+  "config-tooltip-dialog-area-horizontal": "Pozycja pozioma",
+  "config-tooltip-dialog-area-horizontal-tooltip": "Ustawia poziome zakotwiczenie tooltipa na ekranie.",
+  "config-tooltip-dialog-area-vertical": "Pozycja pionowa",
+  "config-tooltip-dialog-area-vertical-tooltip": "Ustawia pionowe zakotwiczenie tooltipa na ekranie.",
   "config-tooltip-padding-top": "Odstęp wewnętrzny górny",
   "config-tooltip-padding-top-tooltip": "Ustawia górny wewnętrzny odstęp tooltipa w pikselach.",
   "config-tooltip-padding-right": "Odstęp wewnętrzny prawy",
@@ -43,5 +45,11 @@
   "config-tooltip-background-opacity": "Nieprzezroczystość tła",
   "config-tooltip-background-opacity-tooltip": "Ustawia nieprzezroczystość tła tooltipa (0 = przezroczyste, 1 = nieprzezroczyste).",
   "config-tooltip-background-corner-radius": "Promień narożników tła",
-  "config-tooltip-background-corner-radius-tooltip": "Ustawia promień narożników tła tooltipa w pikselach."
+  "config-tooltip-background-corner-radius-tooltip": "Ustawia promień narożników tła tooltipa w pikselach.",
+  "config-tooltip-section-general": "Ogólne",
+  "config-tooltip-section-layout": "Układ",
+  "config-tooltip-section-content": "Zawartość",
+  "config-tooltip-section-background": "Tło",
+  "config-tooltip-font-size": "Rozmiar czcionki",
+  "config-tooltip-font-size-tooltip": "Ustawia rozmiar czcionki tekstu tooltipa w pikselach."
 }

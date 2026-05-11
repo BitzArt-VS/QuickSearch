@@ -18,7 +18,6 @@ public abstract class GuiDialog : GuiComponent, IGuiDialog, IDisposable
     public bool IsFocused { get; private set; }
 
     private readonly DialogRenderer _renderer;
-    private CairoDialogInputInterceptor? _inputInterceptor;
 
     public virtual double RenderOrder => 0.2;
 
@@ -117,8 +116,6 @@ public abstract class GuiDialog : GuiComponent, IGuiDialog, IDisposable
         LayoutParameters.Height = 300;
         _renderer = new DialogRenderer(clientApi, this, GetType().Name);
         Attach(_renderer.Handle, clientApi);
-        _inputInterceptor = new CairoDialogInputInterceptor(clientApi, this);
-        clientApi.Gui.RegisterDialog(_inputInterceptor);
     }
 
     public void Open()
@@ -133,10 +130,10 @@ public abstract class GuiDialog : GuiComponent, IGuiDialog, IDisposable
         IsOpen = true;
         // TryOpen drives vanilla focus management, which calls Focus() on the interceptor
         // and propagates here via OnFocus(). It also adds the interceptor to game.OpenedGuis,
-        // which is what GuiManager.OnRenderFrameGUI iterates — our OnRenderGui is then driven
+        // which is what GuiManager.OnRenderFrameGUI iterates — our render is then driven
         // from the interceptor's OnRenderGUI override, so this dialog shares the vanilla
         // dialog z-stack instead of painting from a separate Ortho renderer slot.
-        _inputInterceptor!.TryOpen();
+        _renderer.TryOpen();
         StateHasChanged();
         OnOpened();
     }
@@ -155,7 +152,7 @@ public abstract class GuiDialog : GuiComponent, IGuiDialog, IDisposable
         // Clear focus on close so a re-opened dialog starts in a fresh state and the
         // caret blink loop stops accumulating ticks against a node that may be pruned.
         _renderer.SetFocusedNode(null);
-        _inputInterceptor!.TryClose();
+        _renderer.TryClose();
         OnClosed();
     }
 
@@ -165,8 +162,8 @@ public abstract class GuiDialog : GuiComponent, IGuiDialog, IDisposable
     /// </summary>
     public void RequestFocus()
     {
-        if (!IsOpen || IsDisposed || _inputInterceptor is null) return;
-        ClientApi.Gui.RequestFocus(_inputInterceptor);
+        if (!IsOpen || IsDisposed) return;
+        _renderer.RequestFocus();
     }
 
     protected virtual void OnOpened() { }
@@ -178,10 +175,6 @@ public abstract class GuiDialog : GuiComponent, IGuiDialog, IDisposable
     /// so the renderer needs no extra work to draw on top of same-rank vanilla dialogs.
     /// </summary>
     protected virtual void OnFocusChanged(bool focused) { }
-
-    bool IGuiDialog.ContainsScreenPoint(int x, int y) => _renderer.ContainsScreenPoint(x, y);
-
-    void IGuiDialog.OnRenderGui(float deltaTime) => _renderer.OnRenderFrame(deltaTime, EnumRenderStage.Ortho);
 
     void IGuiDialog.OnFocus()
     {
@@ -197,196 +190,61 @@ public abstract class GuiDialog : GuiComponent, IGuiDialog, IDisposable
         OnFocusChanged(false);
     }
 
-    void IGuiDialog.OnMouseDown(MouseEvent args)
-    {
-        if (args.Handled) return;
-
-        OnMouseDown(args);
-        if (args.Handled) return;
-
-        // Resize-edge interception: when IsResizable and the press lands inside a grab zone,
-        // start a resize gesture and consume the event before any slot-level dispatch. This
-        // overrides the normal interactive-region path so a button placed near the dialog
-        // edge does not steal an edge press.
-        if (IsResizable && _resizeEdge == GuiResizeEdge.None)
-        {
-            var edge = HitTestResizeEdge(args.X, args.Y);
-            if (edge != GuiResizeEdge.None)
-            {
-                BeginResize(edge, args.X, args.Y);
-                RequestFocus();
-                args.Handled = true;
-                return;
-            }
-        }
-
-        // Match vanilla: only consume the event if the click landed inside the dialog,
-        // so clicks outside still propagate to other dialogs / HUD elements / the world.
-        // Overlays (e.g. dropdown popups) extend the click-target area beyond the dialog's
-        // own rect — treat a click inside an active overlay's screen rect identically to
-        // a click inside the dialog rect for the purposes of dispatch + focus claim.
-        if (_renderer.ContainsScreenPoint(args.X, args.Y) || _renderer.ContainsOverlayScreenPoint(args.X, args.Y))
-        {
-            // Clicking inside also requests focus, mirroring how vanilla composers
-            // raise focus through OnFocusChanged on interactive elements.
-            RequestFocus();
-
-            // Route to per-component mouse handlers via the renderer's region table. The
-            // dispatcher captures the press for subsequent mouse-up/click correlation; we
-            // ignore its return value here because the dialog itself still wants to mark
-            // the event as handled (vanilla parity for inside-rectangle clicks).
-            _renderer.DispatchMouseDown(args);
-            args.Handled = true;
-        }
-    }
-    protected virtual void OnMouseDown(MouseEvent args) { }
-
-    void IGuiDialog.OnMouseUp(MouseEvent args)
-    {
-        if (args.Handled) return;
-
-        OnMouseUp(args);
-        if (args.Handled) return;
-
-        // End any in-progress resize before normal dispatch — release outside the dialog
-        // still terminates the gesture (mirrors title-bar drag semantics).
-        if (_resizeEdge != GuiResizeEdge.None)
-        {
-            EndResize();
-            StateHasChanged();
-            args.Handled = true;
-            return;
-        }
-
-        // Always run the framework's mouse-up dispatch, even when the cursor is outside the
-        // dialog: a captured component (one that received MouseDown earlier) needs to fire
-        // its OnMouseUp so it can release any "pressed" visual state. The dispatcher itself
-        // is a no-op when there is no captured component.
-        _renderer.DispatchMouseUp(args);
-
-        if (_renderer.ContainsScreenPoint(args.X, args.Y) || _renderer.ContainsOverlayScreenPoint(args.X, args.Y))
-        {
-            args.Handled = true;
-        }
-    }
-    protected virtual void OnMouseUp(MouseEvent args) { }
-
-    void IGuiDialog.OnMouseMove(MouseEvent args)
-    {
-        if (args.Handled) return;
-
-        OnMouseMove(args);
-        if (args.Handled) return;
-
-        // Resize gesture: while engaged, every move event recomputes the new size from
-        // the snapshot baseline. The cursor may be outside the dialog (fast drags can
-        // overshoot), and we still consume the event so other dialogs do not act on it.
-        if (_resizeEdge != GuiResizeEdge.None)
-        {
-            UpdateResize(args.X, args.Y);
-            args.Handled = true;
-            return;
-        }
-
-        // Hover-cursor update for resize edges. Set the interceptor's MouseOverCursor so
-        // vanilla GuiManager applies it next frame; null lets other dialogs / "normal"
-        // win. Done before slot dispatch so a button in the corner doesn't suppress the
-        // resize cursor — and the slot dispatch itself is suppressed when on a grab zone
-        // so hover visuals don't engage on a region the user can't actually click.
-        if (IsResizable && _inputInterceptor is not null)
-        {
-            var edge = HitTestResizeEdge(args.X, args.Y);
-            string? cursor = CursorForEdge(edge);
-            if (cursor is not null)
-            {
-                _inputInterceptor.MouseOverCursor = cursor;
-                args.Handled = true;
-                return;
-            }
-            _inputInterceptor.MouseOverCursor = null;
-        }
-
-        // Drag dispatch: a captured component (e.g. title bar) receives OnMouseMove regardless
-        // of cursor position. Its return value also tells us to claim the event so other
-        // dialogs do not see it while a drag is in progress and the cursor wanders outside.
-        bool dispatched = _renderer.DispatchMouseMove(args);
-
-        // Apply per-slot hover cursor. Slot OnMouseEnter/OnMouseLeave handlers update the
-        // GuiCursorHost (a cascading-value service published by DialogRenderer); we read
-        // its current preference and forward it to the platform cursor. Done after the
-        // resize-edge branch above so the resize cursor still wins on a grab zone, and
-        // after DispatchMouseMove so a transition into a slot whose Enter handler set a
-        // cursor takes effect on the same frame as the hover transition itself.
-        if (_inputInterceptor is not null)
-        {
-            _inputInterceptor.MouseOverCursor = _renderer.CursorHost.HoverCursor;
-        }
-
-        if (dispatched
-            || _renderer.ContainsScreenPoint(args.X, args.Y)
-            || _renderer.ContainsOverlayScreenPoint(args.X, args.Y))
-        {
-            args.Handled = true;
-        }
-    }
-    protected virtual void OnMouseMove(MouseEvent args) { }
-
-    void IGuiDialog.OnMouseWheel(MouseWheelEventArgs args)
-    {
-        if (args.IsHandled) return;
-
-        OnMouseWheel(args);
-        if (args.IsHandled) return;
-
-        // Vanilla: only the focused dialog consumes the wheel, and only when hovered.
-        // Overlays (e.g. a scrollable dropdown popup hanging below the dialog) extend the
-        // hover-eligible area beyond the dialog's rect.
-        if (IsFocused
-            && (_renderer.ContainsScreenPoint(ClientApi.Input.MouseX, ClientApi.Input.MouseY)
-                || _renderer.ContainsOverlayScreenPoint(ClientApi.Input.MouseX, ClientApi.Input.MouseY)))
-        {
-            // Forward to scroll regions before claiming the event, so a scrollable container
-            // under the cursor can mutate its scroll offset. Either way, a focused-and-hovered
-            // dialog claims the wheel for vanilla parity.
-            _renderer.DispatchMouseWheel(args);
-            args.SetHandled(true);
-        }
-    }
-    protected virtual void OnMouseWheel(MouseWheelEventArgs args) { }
-
-    void IGuiDialog.OnKeyDown(KeyEvent args)
-    {
-        if (args.Handled) return;
-        OnKeyDown(args);
-        if (args.Handled) return;
-        _renderer.DispatchKeyDown(args);
-    }
+    void IGuiDialog.OnKeyDown(KeyEvent args) => OnKeyDown(args);
     protected virtual void OnKeyDown(KeyEvent args) { }
 
-    void IGuiDialog.OnKeyPress(KeyEvent args)
-    {
-        if (args.Handled) return;
-        OnKeyPress(args);
-        if (args.Handled) return;
-        _renderer.DispatchKeyPress(args);
-    }
+    void IGuiDialog.OnKeyPress(KeyEvent args) => OnKeyPress(args);
     protected virtual void OnKeyPress(KeyEvent args) { }
 
-    void IGuiDialog.OnKeyUp(KeyEvent args)
-    {
-        if (args.Handled) return;
-        OnKeyUp(args);
-        if (args.Handled) return;
-        _renderer.DispatchKeyUp(args);
-    }
+    void IGuiDialog.OnKeyUp(KeyEvent args) => OnKeyUp(args);
     protected virtual void OnKeyUp(KeyEvent args) { }
 
-    /// <summary>
-    /// Hit-tests a physical-pixel screen point against the resize grab zones along the
-    /// dialog's bottom and right edges (and the SE corner). Returns
-    /// <see cref="GuiResizeEdge.None"/> when the point is outside all zones. Top and left
-    /// edges are deliberately excluded — see <see cref="IsResizable"/>'s remarks.
-    /// </summary>
+    /// <inheritdoc/>
+    public override void OnMouseDown(GuiMouseEventArgs args)
+    {
+        if (!IsResizable) return;
+        if (_resizeEdge != GuiResizeEdge.None) return;
+
+        var edge = HitTestResizeEdge(args.ScreenX, args.ScreenY);
+        if (edge == GuiResizeEdge.None) return;
+
+        BeginResize(edge, args.ScreenX, args.ScreenY);
+        // Preserve any focused component through the gesture: re-claiming the currently
+        // focused node sets _focusClaimedThisDispatch = true before the dispatcher's
+        // automatic blur check runs.
+        var currentFocused = _renderer.FocusedNode;
+        if (currentFocused is not null) _renderer.SetFocusedNode(currentFocused);
+    }
+
+    /// <inheritdoc/>
+    public override void OnMouseUp(GuiMouseEventArgs args)
+    {
+        if (_resizeEdge == GuiResizeEdge.None) return;
+        EndResize();
+        StateHasChanged();
+    }
+
+    /// <inheritdoc/>
+    public override void OnMouseMove(GuiMouseEventArgs args)
+    {
+        if (_resizeEdge != GuiResizeEdge.None)
+        {
+            UpdateResize(args.ScreenX, args.ScreenY);
+            return;
+        }
+
+        if (!IsResizable) return;
+        var edge = HitTestResizeEdge(args.ScreenX, args.ScreenY);
+        _renderer.SetMouseOverCursor(CursorForEdge(edge));
+    }
+
+    /// <inheritdoc/>
+    public override void OnMouseLeave(GuiMouseEventArgs args)
+    {
+        if (_resizeEdge != GuiResizeEdge.None) return;
+        _renderer.SetMouseOverCursor(null);
+    }
+
     private GuiResizeEdge HitTestResizeEdge(int physX, int physY)
     {
         if (!_renderer.TryToLogical(physX, physY, out double lx, out double ly))
@@ -434,16 +292,14 @@ public abstract class GuiDialog : GuiComponent, IGuiDialog, IDisposable
         // Pin the cursor for the gesture's duration so it stays correct even when the
         // pointer wanders outside the dialog mid-drag (vanilla GuiManager reads
         // MouseOverCursor unconditionally per frame, no hover gate).
-        if (_inputInterceptor is not null)
-            _inputInterceptor.MouseOverCursor = CursorForEdge(edge);
+        _renderer.SetMouseOverCursor(CursorForEdge(edge));
     }
 
     private void EndResize()
     {
         _resizeEdge = GuiResizeEdge.None;
         // Reset the cursor so other dialogs / world cursor take over once we release.
-        if (_inputInterceptor is not null)
-            _inputInterceptor.MouseOverCursor = null;
+        _renderer.SetMouseOverCursor(null);
     }
 
     /// <summary>
@@ -516,13 +372,6 @@ public abstract class GuiDialog : GuiComponent, IGuiDialog, IDisposable
         }
 
         Close();
-
-        if (_inputInterceptor is not null)
-        {
-            ClientApi.UnregisterDialog(_inputInterceptor);
-            _inputInterceptor.Dispose();
-            _inputInterceptor = null;
-        }
 
         _renderer.Dispose();
 

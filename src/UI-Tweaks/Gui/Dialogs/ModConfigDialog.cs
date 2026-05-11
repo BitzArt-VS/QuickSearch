@@ -1,8 +1,6 @@
 ﻿using BitzArt.UI.Tweaks.Config;
 using BitzArt.UI.Tweaks.Gui;
 using System;
-using System.Threading;
-using System.Threading.Tasks;
 using Vintagestory.API.Client;
 using Vintagestory.API.Config;
 
@@ -10,18 +8,11 @@ namespace BitzArt.UI.Tweaks;
 
 public class ModConfigDialog : Gui.GuiDialog
 {
-    // Same debounce window as the legacy VanillaGuiDialog implementation — successive
-    // edits collapse into a single write so we don't hammer the disk while a user drags
-    // a slider.
     private const int SaveDebounceMs = 10000;
 
-    // Sidebar nav model — entries are either a clickable page button or a non-clickable
-    // section header that visually groups the buttons below it. Page entries are built
-    // from the page type itself: the label comes from IModConfigPage.PageName so there
-    // is no separate string to keep in sync.
     private abstract record NavItem;
     private sealed record NavSection(string Label) : NavItem;
-    private sealed record NavPage(string Label, Type PageType) : NavItem;
+    private sealed record NavPage(string Label, GuiRenderFragment Content) : NavItem;
 
     private static readonly NavItem[] NavItems =
     [
@@ -31,23 +22,26 @@ public class ModConfigDialog : Gui.GuiDialog
         CreateNavPage<TooltipsModConfigPage>(),
     ];
 
-    private static NavPage CreateNavPage<T>() where T : IModConfigPage
-        => new(T.PageName, typeof(T));
+    private static NavPage CreateNavPage<T>() where T : IModConfigPage, new()
+        => new(T.PageName, b => b.Add<T>(0, widthMode: GuiSizeMode.Fill));
 
     private readonly ICoreClientAPI _clientApi;
     private readonly UiTweaksModConfig _config;
     private readonly ModConfigContext _context;
-
-    private readonly Lock _saveDebounceLock = new();
-    private CancellationTokenSource? _saveDebounce;
-
-    private Type _selectedPageType = typeof(QuickSearchModConfigPage);
+    private readonly Debouncer _saveDebouncer;
+    private readonly ModConfigPageNavigator _navigator;
 
     public ModConfigDialog(ICoreClientAPI clientApi, UiTweaksModConfig config) : base(clientApi)
     {
         _clientApi = clientApi;
         _config = config;
-        _context = new ModConfigContext(_config, LaunchSaveConfig);
+        _saveDebouncer = new Debouncer(
+            TimeSpan.FromMilliseconds(SaveDebounceMs),
+            () => _clientApi.StoreModConfig(_config, Constants.ModConfigFileName));
+        _context = new ModConfigContext(_config, _saveDebouncer.Trigger);
+
+        var initialPage = CreateNavPage<QuickSearchModConfigPage>();
+        _navigator = new ModConfigPageNavigator(() => StateHasChanged(), initialPage.Label, initialPage.Content);
 
         LayoutParameters.Width = 600;
         LayoutParameters.Height = 600;
@@ -60,34 +54,14 @@ public class ModConfigDialog : Gui.GuiDialog
 
     public override void Dispose()
     {
-        // Flush a pending debounced save synchronously before tearing the dialog down,
-        // mirroring the legacy ModConfigGuiDialog.Dispose contract: "if there's an
-        // outstanding save scheduled, write it out now so the user doesn't lose edits
-        // when the mod unloads."
-        bool hadPendingSave;
-        lock (_saveDebounceLock)
-        {
-            hadPendingSave = _saveDebounce is not null;
-            _saveDebounce?.Cancel();
-            _saveDebounce?.Dispose();
-            _saveDebounce = null;
-        }
-
-        if (hadPendingSave)
-        {
-            _clientApi.StoreModConfig(_config, Constants.ModConfigFileName);
-        }
-
+        _saveDebouncer.Flush();
         base.Dispose();
     }
 
     protected override void BuildRenderTree(IGuiRenderTreeBuilder builder)
     {
-        // Publish the shared (config + saveConfig) tuple to every page below — pages are
-        // instantiated by the framework with a parameterless ctor, so they pull state via
-        // GetCascadingValue<ModConfigContext>() in OnParametersSet rather than via
-        // constructor injection.
         builder.AddCascadingValue(_context, builder =>
+        builder.AddCascadingValue(_navigator, builder =>
         {
             builder
                 .AddDialogTitleBar(0, Lang.Get($"{Constants.ModId}:ui-tweaks-config"),
@@ -95,12 +69,11 @@ public class ModConfigDialog : Gui.GuiDialog
                 .AddDialogBackground(1, fill: true,
                     padding: new(GuiVanillaStyle.ElementToDialogPadding),
                     content: BuildBody);
-        });
+        }));
     }
 
     private void BuildBody(IGuiRenderTreeBuilder builder)
     {
-        // Two-column body: nav list | page area.
         builder.AddContainer(0, fill: true, direction: GuiDirection.Horizontal,
             content: builder =>
             {
@@ -116,9 +89,6 @@ public class ModConfigDialog : Gui.GuiDialog
                             switch (NavItems[idx])
                             {
                                 case NavSection section:
-                                    // Section headers are non-interactive — they just visually
-                                    // group the buttons below them. Slight extra top margin
-                                    // when not the first entry to separate from prior group.
                                     builder.AddLabel(idx, section.Label,
                                         font: GuiFontStyle.MediumBold,
                                         horizontalAlignment: GuiHorizontalAlignment.Center,
@@ -131,7 +101,7 @@ public class ModConfigDialog : Gui.GuiDialog
 
                                 case NavPage page:
                                     builder.AddButton(idx, page.Label,
-                                        onClick: () => SelectPage(page.PageType),
+                                        onClick: () => SelectPage(page),
                                         widthMode: GuiSizeMode.Fill,
                                         margin: new(0, 0, GuiVanillaStyle.HalfPadding, 0));
                                     break;
@@ -139,84 +109,30 @@ public class ModConfigDialog : Gui.GuiDialog
                         }
                     });
 
-                // Page column — scrollable, with the recessed inset frame drawn as
-                // built-in chrome (the scrollbar sits beside the inset; when no overflow
-                // occurs the inset fills the column).
+                // Page column — breadcrumbs above the scrollable inset content area.
                 builder.AddContainer(1, fill: true, margin: new(0, 0, 0, 16),
-                    scroll: GuiScroll.Vertical,
-                    withInset: true,
                     content: builder =>
                     {
-                        switch (_selectedPageType)
-                        {
-                            case var t when t == typeof(QuickSearchModConfigPage):
-                                builder.Add<QuickSearchModConfigPage>(0, widthMode: GuiSizeMode.Fill);
-                                break;
+                        builder.Add<GuiBreadcrumbs>(0, widthMode: GuiSizeMode.Fill)
+                            .Configure(c =>
+                            {
+                                c.CurrentItem = _navigator.CurrentPageName;
+                                c.PreviousItems = _navigator.BreadcrumbPreviousItems;
+                                c.OnItemClicked = name => _navigator.PopToName(name);
+                            });
 
-                            case var t when t == typeof(TooltipsModConfigPage):
-                                builder.Add<TooltipsModConfigPage>(0, widthMode: GuiSizeMode.Fill);
-                                break;
-                        }
+                        builder.AddContainer(1, fill: true, scroll: GuiScroll.Vertical,
+                            withInset: true,
+                            content: _navigator.CurrentContent);
                     });
             });
     }
 
-    private void SelectPage(Type pageType)
+    private void SelectPage(NavPage page)
     {
-        if (_selectedPageType == pageType)
-        {
-            return;
-        }
-
-        _selectedPageType = pageType;
-        StateHasChanged();
+        if (_navigator.IsAtRoot(page.Label)) return;
+        _navigator.NavigateToRoot(page.Label, page.Content);
     }
 
-    /// <summary>
-    /// Schedules a debounced save of the live config DTO. Each call cancels and replaces
-    /// the previous pending write — the actual mod-config store happens once
-    /// <see cref="SaveDebounceMs"/> ms elapse without further edits. Mirrors the legacy
-    /// ModConfigGuiDialog.LaunchSaveConfig logic.
-    /// </summary>
-    private void LaunchSaveConfig()
-    {
-        CancellationToken token;
-        lock (_saveDebounceLock)
-        {
-            _saveDebounce?.Cancel();
-            _saveDebounce?.Dispose();
-            _saveDebounce = new CancellationTokenSource();
-            token = _saveDebounce.Token;
-        }
-
-        Task.Run(async () =>
-        {
-            try
-            {
-                await Task.Delay(SaveDebounceMs, token);
-            }
-            catch (TaskCanceledException)
-            {
-                return;
-            }
-
-            if (token.IsCancellationRequested)
-            {
-                return;
-            }
-
-            _clientApi.StoreModConfig(_config, Constants.ModConfigFileName);
-
-            lock (_saveDebounceLock)
-            {
-                // Only clear if the slot still references *our* CTS — a newer save may
-                // have replaced it while we were awaiting the delay.
-                if (_saveDebounce is not null && _saveDebounce.Token == token)
-                {
-                    _saveDebounce.Dispose();
-                    _saveDebounce = null;
-                }
-            }
-        });
-    }
 }
+

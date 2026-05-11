@@ -28,8 +28,10 @@
   "config-tooltip-offset-y": "Decalaj Y",
   "config-tooltip-offset-y-tooltip": "Setează decalajul vertical al elementului de sfat în pixeli.",
   "config-back": "Înapoi",
-  "config-tooltip-dialog-area": "Zona ecranului",
-  "config-tooltip-dialog-area-tooltip": "Setează zona de ancorare a tooltipului pe ecran.",
+  "config-tooltip-dialog-area-horizontal": "Poziție orizontală",
+  "config-tooltip-dialog-area-horizontal-tooltip": "Setează ancora orizontală a tooltipului pe ecran.",
+  "config-tooltip-dialog-area-vertical": "Poziție verticală",
+  "config-tooltip-dialog-area-vertical-tooltip": "Setează ancora verticală a tooltipului pe ecran.",
   "config-tooltip-padding-top": "Umplutură sus",
   "config-tooltip-padding-top-tooltip": "Setează umplutură interioară superioară a elementului tooltip în pixeli.",
   "config-tooltip-padding-right": "Umplutură dreapta",
@@ -43,5 +45,11 @@
   "config-tooltip-background-opacity": "Opacitatea fundalului",
   "config-tooltip-background-opacity-tooltip": "Setează opacitatea fundalului tooltipului (0 = transparent, 1 = opac).",
   "config-tooltip-background-corner-radius": "Raza colţurilor fundalului",
-  "config-tooltip-background-corner-radius-tooltip": "Setează raza colţurilor fundalului tooltipului în pixeli."
+  "config-tooltip-background-corner-radius-tooltip": "Setează raza colțurilor fundalului tooltip-ului în pixeli.",
+  "config-tooltip-section-general": "General",
+  "config-tooltip-section-layout": "Aspect",
+  "config-tooltip-section-content": "Conținut",
+  "config-tooltip-section-background": "Fundal",
+  "config-tooltip-font-size": "Dimensiunea fontului",
+  "config-tooltip-font-size-tooltip": "Setează dimensiunea fontului textului tooltipului în pixeli."
 }

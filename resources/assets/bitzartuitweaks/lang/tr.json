@@ -28,8 +28,10 @@
   "config-tooltip-offset-y": "Kaydırma Y",
   "config-tooltip-offset-y-tooltip": "İpucu öğesinin piksel cinsinden dikey kaydırmasını ayarlar.",
   "config-back": "Geri",
-  "config-tooltip-dialog-area": "Ekran alanı",
-  "config-tooltip-dialog-area-tooltip": "Ekrandaki tooltip öğesinin çapa alanını belirler.",
+  "config-tooltip-dialog-area-horizontal": "Yatay konum",
+  "config-tooltip-dialog-area-horizontal-tooltip": "Ekrandaki tooltip öğesinin yatay çapa konumunu belirler.",
+  "config-tooltip-dialog-area-vertical": "Dikey konum",
+  "config-tooltip-dialog-area-vertical-tooltip": "Ekrandaki tooltip öğesinin dikey çapa konumunu belirler.",
   "config-tooltip-padding-top": "Üst dolgu",
   "config-tooltip-padding-top-tooltip": "İpucu öğesinin piksel cinsinden üst iç dolgusunu ayarlar.",
   "config-tooltip-padding-right": "Sağ dolgu",
@@ -43,5 +45,11 @@
   "config-tooltip-background-opacity": "Arka plan opaklığı",
   "config-tooltip-background-opacity-tooltip": "İpucu arka planının opaklığını ayarlar (0 = şeffaf, 1 = opak).",
   "config-tooltip-background-corner-radius": "Arka plan köşe yarıçapı",
-  "config-tooltip-background-corner-radius-tooltip": "İpucu arka planının köşe yarıçapını piksel cinsinden ayarlar."
+  "config-tooltip-background-corner-radius-tooltip": "Tooltip arka planının köşe yarıçapını piksel cinsinden ayarlar.",
+  "config-tooltip-section-general": "Genel",
+  "config-tooltip-section-layout": "Düzen",
+  "config-tooltip-section-content": "İçerik",
+  "config-tooltip-section-background": "Arka Plan",
+  "config-tooltip-font-size": "Yazı tipi boyutu",
+  "config-tooltip-font-size-tooltip": "Tooltip metninin piksel cinsinden yazı tipi boyutunu ayarlar."
 }

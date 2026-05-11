@@ -10,4 +10,6 @@ public readonly record struct GuiComponentBounds(double X, double Y, double Widt
 
     public double Right => X + Width;
     public double Bottom => Y + Height;
+
+    public GuiComponentBounds Translated(double dx, double dy) => this with { X = X + dx, Y = Y + dy };
 }

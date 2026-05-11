@@ -279,6 +279,48 @@ public static class RenderTreeBuilderExtensions
     }
 
     /// <summary>
+    /// Declares a <see cref="GuiRectangle"/> slot at <paramref name="key"/> and
+    /// optionally sets its <see cref="GuiRectangle.Color"/>. All layout parameters may
+    /// be set inline as named arguments.
+    /// </summary>
+    public static IGuiComponentBuilder<GuiRectangle> AddRectangle(
+        this IGuiRenderTreeBuilder builder,
+        int key,
+        GuiColor? color = null,
+        double? width = null,
+        double? height = null,
+        GuiSizeMode? widthMode = null,
+        GuiSizeMode? heightMode = null,
+        bool fill = false,
+        GuiThickness? margin = null,
+        GuiThickness? padding = null,
+        GuiComponentPositioning? positioning = null,
+        GuiHorizontalAlignment? horizontalAlignment = null,
+        GuiVerticalAlignment? verticalAlignment = null)
+    {
+        var b = ApplyLayout(
+            builder.AddComponent<GuiRectangle>(key),
+            width, height, widthMode, heightMode, fill, margin, padding, direction: null, positioning,
+            horizontalAlignment, verticalAlignment);
+        return color is null ? b : b.Configure(r => r.Color = color.Value);
+    }
+
+    /// <summary>
+    /// Declares a <see cref="GuiSeparator"/> slot at <paramref name="key"/>. The
+    /// separator defaults to 1 px tall, full-width, and
+    /// <see cref="GuiVanillaStyle.DialogTitleBarBgColor"/>. Override any property or
+    /// layout parameter via fluent <c>.Configure(...)</c> / <c>.ConfigureLayout(...)</c>.
+    /// </summary>
+    public static IGuiComponentBuilder<GuiSeparator> AddSeparator(
+        this IGuiRenderTreeBuilder builder,
+        int key,
+        GuiThickness? margin = null)
+    {
+        var b = builder.AddComponent<GuiSeparator>(key);
+        return margin is null ? b : b.Configure(s => s.LayoutParameters.Margin = margin.Value);
+    }
+
+    /// <summary>
     /// Declares a <see cref="GuiInset"/> slot at <paramref name="key"/>.
     /// Behaves as a normal layout component: both axes default to
     /// <see cref="GuiSizeMode.FitContent"/> and positioning defaults to

@@ -132,7 +132,7 @@ public class GuiDropdown<T> : GuiInputBase
 
     /// <summary>Background fill applied to the currently-selected row. Set to
     /// <see cref="GuiColor.Transparent"/> to disable the selected-row highlight.</summary>
-    public GuiColor SelectedItemBackground { get; set; } = GuiColor.FromRgba(1, 1, 1, 0.04);
+    public GuiColor SelectedItemBackground { get; set; } = GuiColor.Transparent;
 
     // ── Internal state ───────────────────────────────────────────────────────
 
@@ -149,17 +149,9 @@ public class GuiDropdown<T> : GuiInputBase
     /// over <see cref="BuildPopup"/>).</summary>
     private GuiRenderFragment? _popupFragment;
 
-    public GuiDropdown()
+    protected override void SetDefaultLayoutParameters()
     {
-        // Default to a fixed 30 logical px row height (matches GuiTextInput) — the
-        // header height is read back from LayoutParameters when positioning the popup.
-        LayoutParameters.Height = 30;
-        LayoutParameters.WidthMode = GuiSizeMode.Fill;
-    }
-
-    internal override void ResetLayoutParameters()
-    {
-        base.ResetLayoutParameters();
+        // The header height is read back from LayoutParameters when positioning the popup.
         LayoutParameters.Height = 30;
         LayoutParameters.WidthMode = GuiSizeMode.Fill;
     }

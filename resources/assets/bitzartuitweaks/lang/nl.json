@@ -28,8 +28,10 @@
   "config-tooltip-offset-y": "Verschuiving Y",
   "config-tooltip-offset-y-tooltip": "Stelt de verticale verschuiving van het tooltip-element in pixels in.",
   "config-back": "Terug",
-  "config-tooltip-dialog-area": "Schermgebied",
-  "config-tooltip-dialog-area-tooltip": "Stelt het ankergebied van het tooltip-element op het scherm in.",
+  "config-tooltip-dialog-area-horizontal": "Horizontale positie",
+  "config-tooltip-dialog-area-horizontal-tooltip": "Stelt het horizontale anker van het tooltip-element op het scherm in.",
+  "config-tooltip-dialog-area-vertical": "Verticale positie",
+  "config-tooltip-dialog-area-vertical-tooltip": "Stelt het verticale anker van het tooltip-element op het scherm in.",
   "config-tooltip-padding-top": "Opvulling boven",
   "config-tooltip-padding-top-tooltip": "Stelt de binnenste opvulling aan de bovenkant van het tooltip-element in pixels in.",
   "config-tooltip-padding-right": "Opvulling rechts",
@@ -43,5 +45,11 @@
   "config-tooltip-background-opacity": "Achtergrondopaciteit",
   "config-tooltip-background-opacity-tooltip": "Stelt de opaciteit van de tooltip-achtergrond in (0 = transparant, 1 = ondoorzichtig).",
   "config-tooltip-background-corner-radius": "Hoekradius achtergrond",
-  "config-tooltip-background-corner-radius-tooltip": "Stelt de hoekradius van de tooltip-achtergrond in pixels in."
+  "config-tooltip-background-corner-radius-tooltip": "Stelt de hoekradius van de tooltip-achtergrond in pixels in.",
+  "config-tooltip-section-general": "Algemeen",
+  "config-tooltip-section-layout": "Indeling",
+  "config-tooltip-section-content": "Inhoud",
+  "config-tooltip-section-background": "Achtergrond",
+  "config-tooltip-font-size": "Lettergrootte",
+  "config-tooltip-font-size-tooltip": "Stelt de lettergrootte van de tooltip-tekst in pixels in."
 }

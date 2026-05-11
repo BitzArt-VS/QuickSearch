@@ -28,8 +28,10 @@
   "config-tooltip-offset-y": "Смещение Y",
   "config-tooltip-offset-y-tooltip": "Задаёт вертикальное смещение тултипа в пикселях.",
   "config-back": "Назад",
-  "config-tooltip-dialog-area": "Область экрана",
-  "config-tooltip-dialog-area-tooltip": "Задаёт область привязки тултипа на экране.",
+  "config-tooltip-dialog-area-horizontal": "Горизонтальная позиция",
+  "config-tooltip-dialog-area-horizontal-tooltip": "Задаёт горизонтальную привязку тултипа на экране.",
+  "config-tooltip-dialog-area-vertical": "Вертикальная позиция",
+  "config-tooltip-dialog-area-vertical-tooltip": "Задаёт вертикальную привязку тултипа на экране.",
   "config-tooltip-padding-top": "Отступ сверху",
   "config-tooltip-padding-top-tooltip": "Задаёт верхний внутренний отступ тултипа в пикселях.",
   "config-tooltip-padding-right": "Отступ справа",
@@ -43,5 +45,11 @@
   "config-tooltip-background-opacity": "Прозрачность фона",
   "config-tooltip-background-opacity-tooltip": "Задаёт прозрачность фона тултипа (0 = прозрачный, 1 = непрозрачный).",
   "config-tooltip-background-corner-radius": "Радиус углов фона",
-  "config-tooltip-background-corner-radius-tooltip": "Задаёт радиус углов фона тултипа в пикселях."
+  "config-tooltip-background-corner-radius-tooltip": "Задаёт радиус углов фона тултипа в пикселях.",
+  "config-tooltip-section-general": "Общее",
+  "config-tooltip-section-layout": "Расположение",
+  "config-tooltip-section-content": "Содержимое",
+  "config-tooltip-section-background": "Фон",
+  "config-tooltip-font-size": "Размер шрифта",
+  "config-tooltip-font-size-tooltip": "Задаёт размер шрифта текста тултипа в пикселях."
 }

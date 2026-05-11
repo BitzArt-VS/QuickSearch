@@ -1,6 +1,8 @@
 ﻿using Cairo;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Reflection;
 
 namespace BitzArt.UI.Tweaks.Gui;
 
@@ -254,7 +256,7 @@ internal sealed class GuiRenderTreeBuilder : IGuiRenderTreeBuilder, IDisposable
 
                 slot.Instance.Render(context, wrapperBounds);
 
-                if (slot.Frame.HasMouseHandlers)
+                if (slot.Frame.HasMouseHandlers || VirtualMouseInteractivityCache.IsInteractive(slot.Instance))
                 {
                     _renderer.AddInteractiveRegion(new InteractiveRegion(
                         wrapperBounds,
@@ -264,7 +266,8 @@ internal sealed class GuiRenderTreeBuilder : IGuiRenderTreeBuilder, IDisposable
                         slot.Frame.OnMouseClick,
                         slot.Frame.OnMouseMove,
                         slot.Frame.OnMouseEnter,
-                        slot.Frame.OnMouseLeave));
+                        slot.Frame.OnMouseLeave,
+                        VirtualMouseInteractivityCache.IsInteractive(slot.Instance) ? slot.Instance : null));
                 }
 
                 if (slot.Frame.HasKeyHandlers)
@@ -342,7 +345,7 @@ internal sealed class GuiRenderTreeBuilder : IGuiRenderTreeBuilder, IDisposable
             // Record interactive region after bounds are known. We hand this to the renderer
             // (rather than maintaining a per-builder list) so all regions across the dialog's
             // entire tree end up in a single ordered list — hit-testing walks it in reverse.
-            if (slot.Frame.HasMouseHandlers)
+            if (slot.Frame.HasMouseHandlers || VirtualMouseInteractivityCache.IsInteractive(slot.Instance))
             {
                 _renderer.AddInteractiveRegion(new InteractiveRegion(
                     allocated,
@@ -352,7 +355,8 @@ internal sealed class GuiRenderTreeBuilder : IGuiRenderTreeBuilder, IDisposable
                     slot.Frame.OnMouseClick,
                     slot.Frame.OnMouseMove,
                     slot.Frame.OnMouseEnter,
-                    slot.Frame.OnMouseLeave));
+                    slot.Frame.OnMouseLeave,
+                    VirtualMouseInteractivityCache.IsInteractive(slot.Instance) ? slot.Instance : null));
             }
 
             if (slot.Frame.HasKeyHandlers)
@@ -490,8 +494,15 @@ internal sealed class GuiRenderTreeBuilder : IGuiRenderTreeBuilder, IDisposable
         // siblings or scrollbar gutters. Cairo Save/Restore brackets the entire child walk
         // (including any nested clips children may set up). Interactive regions are still
         // registered at their translated positions — clipping affects pixels, not hit testing.
+        // When the container has an inset, shrink the clip inward by the emboss depth so
+        // scrolled content cannot paint over the emboss ring at the viewport edges.
         context.Save();
-        context.Rectangle(childContent.X, childContent.Y, vpW, vpH);
+        double clipInset = container.ScrollViewportClipInset;
+        context.Rectangle(
+            childContent.X + clipInset,
+            childContent.Y + clipInset,
+            Math.Max(0, vpW - 2 * clipInset),
+            Math.Max(0, vpH - 2 * clipInset));
         context.Clip();
 
         slot.ChildBuilder.Render(context, scrolledChildBounds, lp.Direction);
@@ -811,5 +822,44 @@ internal sealed class GuiRenderTreeBuilder : IGuiRenderTreeBuilder, IDisposable
     }
 
     private readonly record struct ComponentSlotKey(Type ComponentType, int Key);
+
+    /// <summary>
+    /// Per-type cache that reports whether a concrete <see cref="IGuiNode"/> subclass
+    /// overrides any of the six virtual mouse hooks declared on <see cref="GuiNode"/>.
+    /// The result is computed once per type via reflection and cached indefinitely;
+    /// subsequent calls are a dictionary lookup with no allocation.
+    /// </summary>
+    private static class VirtualMouseInteractivityCache
+    {
+        private static readonly ConcurrentDictionary<Type, bool> Cache = new();
+
+        private static readonly string[] MouseMethodNames =
+        [
+            nameof(GuiNode.OnMouseDown),
+            nameof(GuiNode.OnMouseUp),
+            nameof(GuiNode.OnMouseClick),
+            nameof(GuiNode.OnMouseMove),
+            nameof(GuiNode.OnMouseEnter),
+            nameof(GuiNode.OnMouseLeave),
+        ];
+
+        internal static bool IsInteractive(IGuiNode instance) =>
+            Cache.GetOrAdd(instance.GetType(), HasAnyMouseOverride);
+
+        private static bool HasAnyMouseOverride(Type type)
+        {
+            var baseType = typeof(GuiNode);
+            var argTypes = new[] { typeof(GuiMouseEventArgs) };
+
+            foreach (var name in MouseMethodNames)
+            {
+                var method = type.GetMethod(name, BindingFlags.Instance | BindingFlags.Public, argTypes);
+                if (method is not null && method.DeclaringType != baseType)
+                    return true;
+            }
+
+            return false;
+        }
+    }
 }
 

@@ -28,8 +28,10 @@
   "config-tooltip-offset-y": "Offset Y",
   "config-tooltip-offset-y-tooltip": "Imposta l'offset verticale dell'elemento del suggerimento in pixel.",
   "config-back": "Indietro",
-  "config-tooltip-dialog-area": "Area di ancoraggio",
-  "config-tooltip-dialog-area-tooltip": "Imposta l'area di ancoraggio del tooltip sullo schermo.",
+  "config-tooltip-dialog-area-horizontal": "Posizione orizzontale",
+  "config-tooltip-dialog-area-horizontal-tooltip": "Imposta l'ancoraggio orizzontale del tooltip sullo schermo.",
+  "config-tooltip-dialog-area-vertical": "Posizione verticale",
+  "config-tooltip-dialog-area-vertical-tooltip": "Imposta l'ancoraggio verticale del tooltip sullo schermo.",
   "config-tooltip-padding-top": "Spaziatura superiore",
   "config-tooltip-padding-top-tooltip": "Imposta la spaziatura interna superiore dell'elemento del suggerimento in pixel.",
   "config-tooltip-padding-right": "Spaziatura destra",
@@ -43,5 +45,11 @@
   "config-tooltip-background-opacity": "Opacità dello sfondo",
   "config-tooltip-background-opacity-tooltip": "Imposta l'opacità dello sfondo del tooltip (0 = trasparente, 1 = opaco).",
   "config-tooltip-background-corner-radius": "Raggio degli angoli dello sfondo",
-  "config-tooltip-background-corner-radius-tooltip": "Imposta il raggio degli angoli dello sfondo del tooltip in pixel."
+  "config-tooltip-background-corner-radius-tooltip": "Imposta il raggio degli angoli dello sfondo del tooltip in pixel.",
+  "config-tooltip-section-general": "Generale",
+  "config-tooltip-section-layout": "Layout",
+  "config-tooltip-section-content": "Contenuto",
+  "config-tooltip-section-background": "Sfondo",
+  "config-tooltip-font-size": "Dimensione del testo",
+  "config-tooltip-font-size-tooltip": "Imposta la dimensione del carattere del testo del tooltip in pixel."
 }

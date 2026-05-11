@@ -28,8 +28,10 @@
   "config-tooltip-offset-y": "偏移 Y",
   "config-tooltip-offset-y-tooltip": "设置提示元素的垂直偏移（像素）。",
   "config-back": "返回",
-  "config-tooltip-dialog-area": "显示区域",
-  "config-tooltip-dialog-area-tooltip": "设置工具提示元素在屏幕上的锚定区域。",
+  "config-tooltip-dialog-area-horizontal": "水平位置",
+  "config-tooltip-dialog-area-horizontal-tooltip": "设置工具提示元素在屏幕上的水平锚定位置。",
+  "config-tooltip-dialog-area-vertical": "垂直位置",
+  "config-tooltip-dialog-area-vertical-tooltip": "设置工具提示元素在屏幕上的垂直锚定位置。",
   "config-tooltip-padding-top": "上内边距",
   "config-tooltip-padding-top-tooltip": "设置提示元素的上内边距（像素）。",
   "config-tooltip-padding-right": "右内边距",
@@ -43,5 +45,11 @@
   "config-tooltip-background-opacity": "背景不透明度",
   "config-tooltip-background-opacity-tooltip": "设置提示背景的不透明度（0 = 透明，1 = 不透明）。",
   "config-tooltip-background-corner-radius": "背景圆角半径",
-  "config-tooltip-background-corner-radius-tooltip": "设置提示背景的圆角半径（像素）。"
+  "config-tooltip-background-corner-radius-tooltip": "设置工具提示背景的圆角半径（像素）。",
+  "config-tooltip-section-general": "常规",
+  "config-tooltip-section-layout": "布局",
+  "config-tooltip-section-content": "内容",
+  "config-tooltip-section-background": "背景",
+  "config-tooltip-font-size": "字体大小",
+  "config-tooltip-font-size-tooltip": "设置提示文字的字体大小（像素）。"
 }

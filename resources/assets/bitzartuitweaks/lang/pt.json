@@ -28,8 +28,10 @@
   "config-tooltip-offset-y": "Deslocamento Y",
   "config-tooltip-offset-y-tooltip": "Define o deslocamento vertical do elemento de dica em pixels.",
   "config-back": "Voltar",
-  "config-tooltip-dialog-area": "Área da tela",
-  "config-tooltip-dialog-area-tooltip": "Define a área de ancoragem do tooltip na tela.",
+  "config-tooltip-dialog-area-horizontal": "Posição horizontal",
+  "config-tooltip-dialog-area-horizontal-tooltip": "Define o ancoramento horizontal do tooltip na tela.",
+  "config-tooltip-dialog-area-vertical": "Posição vertical",
+  "config-tooltip-dialog-area-vertical-tooltip": "Define o ancoramento vertical do tooltip na tela.",
   "config-tooltip-padding-top": "Preenchimento superior",
   "config-tooltip-padding-top-tooltip": "Define o preenchimento interno superior do elemento de dica em pixels.",
   "config-tooltip-padding-right": "Preenchimento direito",
@@ -43,5 +45,11 @@
   "config-tooltip-background-opacity": "Opacidade do fundo",
   "config-tooltip-background-opacity-tooltip": "Define a opacidade do fundo do tooltip (0 = transparente, 1 = opaco).",
   "config-tooltip-background-corner-radius": "Raio dos cantos do fundo",
-  "config-tooltip-background-corner-radius-tooltip": "Define o raio dos cantos do fundo do tooltip em pixels."
+  "config-tooltip-background-corner-radius-tooltip": "Define o raio dos cantos do fundo do tooltip em pixels.",
+  "config-tooltip-section-general": "Geral",
+  "config-tooltip-section-layout": "Layout",
+  "config-tooltip-section-content": "Conteúdo",
+  "config-tooltip-section-background": "Fundo",
+  "config-tooltip-font-size": "Tamanho da fonte",
+  "config-tooltip-font-size-tooltip": "Define o tamanho da fonte do texto do tooltip em pixels."
 }

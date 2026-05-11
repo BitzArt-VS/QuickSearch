@@ -71,18 +71,10 @@ public sealed class GuiSlider : GuiInputBase
     /// hovering/dragging the slider.</summary>
     public GuiFontStyle TooltipFont { get; set; } = GuiFontStyle.Default;
 
-    public GuiSlider()
+    protected override void SetDefaultLayoutParameters()
     {
-        // Vanilla sliders are typically full-row width with a fixed pixel height. 24 is a
-        // touch taller than vanilla's 20 so the bevelled handle has more presence without
-        // the wood-pattern fill we deliberately drop here.
-        LayoutParameters.Height = 24;
-        LayoutParameters.WidthMode = GuiSizeMode.Fill;
-    }
-
-    internal override void ResetLayoutParameters()
-    {
-        base.ResetLayoutParameters();
+        // 24 is a touch taller than vanilla's 20 so the bevelled handle has more presence
+        // without the wood-pattern fill we deliberately drop here.
         LayoutParameters.Height = 24;
         LayoutParameters.WidthMode = GuiSizeMode.Fill;
     }

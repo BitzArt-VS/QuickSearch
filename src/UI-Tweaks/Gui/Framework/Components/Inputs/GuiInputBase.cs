@@ -61,57 +61,54 @@ public abstract class GuiInputBase : GuiComponent
     }
 
     /// <inheritdoc/>
-    protected override void BuildRenderTree(IGuiRenderTreeBuilder builder)
-    {
-        // Inner click target: a transparent absolutely-positioned container that fills the
-        // input's content area. Same pattern as GuiButton — the inner container wins the
-        // hit test for any pixel inside the input, and our own slot is layout-only.
-        builder.Add<GuiContainer>(0, fill: true, positioning: GuiComponentPositioning.Absolute)
-            .OnMouseDown(HandleMouseDown)
-            .OnMouseUp(HandleMouseUp)
-            .OnMouseClick(HandleMouseClick)
-            .OnMouseMove(HandleMouseMove)
-            .OnMouseEnter(HandleMouseEnter)
-            .OnMouseLeave(HandleMouseLeave);
-    }
-
-    private void HandleMouseDown(GuiMouseEventArgs e)
+    public override void OnMouseDown(GuiMouseEventArgs args)
     {
         if (!Enabled) return;
-        if (e.Button != Vintagestory.API.Common.EnumMouseButton.Left) return;
+        if (args.Button != Vintagestory.API.Common.EnumMouseButton.Left) return;
         IsPressed = true;
-        // Claim focus during this dispatch so the renderer's "blur on miss" path does not
-        // immediately clear what we just set — RequestFocus flips the dispatch flag.
         FocusManager?.RequestFocus(this);
-        OnInputMouseDown(e);
+        OnInputMouseDown(args);
     }
 
-    private void HandleMouseUp(GuiMouseEventArgs e)
+    /// <inheritdoc/>
+    public override void OnMouseUp(GuiMouseEventArgs args)
     {
         bool wasPressed = IsPressed;
         IsPressed = false;
-        // Hover may be stale after a press-drag-off-release sequence — the renderer
-        // suppresses Enter/Leave while captured, so update from the actual cursor position.
-        IsHovered = e.X >= LastBounds.X && e.X < LastBounds.Right
-                 && e.Y >= LastBounds.Y && e.Y < LastBounds.Bottom;
-        if (wasPressed) OnInputMouseUp(e);
+        IsHovered = args.X >= LastBounds.X && args.X < LastBounds.Right
+                 && args.Y >= LastBounds.Y && args.Y < LastBounds.Bottom;
+        if (wasPressed) OnInputMouseUp(args);
     }
 
-    private void HandleMouseClick(GuiMouseEventArgs e)
+    /// <inheritdoc/>
+    public override void OnMouseClick(GuiMouseEventArgs args)
     {
         if (!Enabled) return;
-        if (e.Button != Vintagestory.API.Common.EnumMouseButton.Left) return;
-        OnInputClick(e);
+        if (args.Button != Vintagestory.API.Common.EnumMouseButton.Left) return;
+        OnInputClick(args);
     }
 
-    private void HandleMouseMove(GuiMouseEventArgs e)
+    /// <inheritdoc/>
+    public override void OnMouseMove(GuiMouseEventArgs args)
     {
         if (!Enabled) return;
-        OnInputMouseMove(e);
+        if (!IsPressed) return;
+        OnInputMouseMove(args);
     }
 
-    private void HandleMouseEnter(GuiMouseEventArgs e) => IsHovered = true;
-    private void HandleMouseLeave(GuiMouseEventArgs e) => IsHovered = false;
+    /// <inheritdoc/>
+    public override void OnMouseEnter(GuiMouseEventArgs args)
+    {
+        IsHovered = true;
+        StateHasChanged();
+    }
+
+    /// <inheritdoc/>
+    public override void OnMouseLeave(GuiMouseEventArgs args)
+    {
+        IsHovered = false;
+        StateHasChanged();
+    }
 
     /// <summary>Hook invoked on left-button mouse-down inside the input. Default: no-op.</summary>
     protected virtual void OnInputMouseDown(GuiMouseEventArgs e) { }

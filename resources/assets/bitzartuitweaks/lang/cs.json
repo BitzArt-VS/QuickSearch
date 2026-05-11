@@ -28,8 +28,10 @@
   "config-tooltip-offset-y": "Posun Y",
   "config-tooltip-offset-y-tooltip": "Nastavuje vertikální posun tooltipu v pixelech.",
   "config-back": "Zpět",
-  "config-tooltip-dialog-area": "Oblast obrazovky",
-  "config-tooltip-dialog-area-tooltip": "Nastavuje oblast ukotvení tooltipu na obrazovce.",
+  "config-tooltip-dialog-area-horizontal": "Vodorovná poloha",
+  "config-tooltip-dialog-area-horizontal-tooltip": "Nastavuje vodorovné ukotvení tooltipu na obrazovce.",
+  "config-tooltip-dialog-area-vertical": "Svislá poloha",
+  "config-tooltip-dialog-area-vertical-tooltip": "Nastavuje svislé ukotvení tooltipu na obrazovce.",
   "config-tooltip-padding-top": "Odsazení nahoře",
   "config-tooltip-padding-top-tooltip": "Nastavuje horní vnitřní odsazení tooltipu v pixelech.",
   "config-tooltip-padding-right": "Odsazení vpravo",
@@ -43,5 +45,11 @@
   "config-tooltip-background-opacity": "Průhlednost pozadí",
   "config-tooltip-background-opacity-tooltip": "Nastavuje průhlednost pozadí tooltipu (0 = průhledné, 1 = neprůhledné).",
   "config-tooltip-background-corner-radius": "Poloměr rohů pozadí",
-  "config-tooltip-background-corner-radius-tooltip": "Nastavuje poloměr rohů pozadí tooltipu v pixelech."
+  "config-tooltip-background-corner-radius-tooltip": "Nastavuje poloměr rohů pozadí tooltipu v pixelech.",
+  "config-tooltip-section-general": "Obecné",
+  "config-tooltip-section-layout": "Rozložení",
+  "config-tooltip-section-content": "Obsah",
+  "config-tooltip-section-background": "Pozadí",
+  "config-tooltip-font-size": "Velikost písma",
+  "config-tooltip-font-size-tooltip": "Nastavuje velikost písma textu tooltipu v pixelech."
 }

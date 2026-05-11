@@ -28,8 +28,10 @@
   "config-tooltip-offset-y": "オフセット Y",
   "config-tooltip-offset-y-tooltip": "ツールチップ要素の垂直オフセットをピクセル単位で設定します。",
   "config-back": "戻る",
-  "config-tooltip-dialog-area": "表示エリア",
-  "config-tooltip-dialog-area-tooltip": "画面上のツールチップ要素のアンカー領域を設定します。",
+  "config-tooltip-dialog-area-horizontal": "水平位置",
+  "config-tooltip-dialog-area-horizontal-tooltip": "画面上のツールチップ要素の水平アンカーを設定します。",
+  "config-tooltip-dialog-area-vertical": "垂直位置",
+  "config-tooltip-dialog-area-vertical-tooltip": "画面上のツールチップ要素の垂直アンカーを設定します。",
   "config-tooltip-padding-top": "上内側余白",
   "config-tooltip-padding-top-tooltip": "ツールチップ要素の上側の内側余白をピクセル単位で設定します。",
   "config-tooltip-padding-right": "右内側余白",
@@ -43,5 +45,11 @@
   "config-tooltip-background-opacity": "背景の不透明度",
   "config-tooltip-background-opacity-tooltip": "ツールチップ背景の不透明度を設定します（0 = 透明、 1 = 不透明）。",
   "config-tooltip-background-corner-radius": "背景の圆角半径",
-  "config-tooltip-background-corner-radius-tooltip": "ツールチップ背景の圆角半径をピクセル単位で設定します。"
+  "config-tooltip-background-corner-radius-tooltip": "ツールチップ背景の角の半径をピクセル単位で設定します。",
+  "config-tooltip-section-general": "一般",
+  "config-tooltip-section-layout": "レイアウト",
+  "config-tooltip-section-content": "コンテンツ",
+  "config-tooltip-section-background": "背景",
+  "config-tooltip-font-size": "フォントサイズ",
+  "config-tooltip-font-size-tooltip": "ツールチップのテキストのフォントサイズをピクセル単位で設定します。"
 }

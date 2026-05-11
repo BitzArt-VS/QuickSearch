@@ -1,4 +1,5 @@
 using Vintagestory.API.Client;
+using Vintagestory.API.Common;
 
 namespace BitzArt.UI.Tweaks.Gui;
 
@@ -10,30 +11,27 @@ namespace BitzArt.UI.Tweaks.Gui;
 ///    requests, escape handling — so the Cairo dialog behaves like a normal vanilla dialog
 ///    relative to other dialogs and HUD elements.
 ///
-/// Mouse routing follows vanilla semantics: events are only marked <c>Handled</c> when the
-/// cursor lies inside the Cairo dialog's screen rectangle, so clicks outside still propagate
-/// to other dialogs (hotbar, etc.) instead of being swallowed. Keyboard routing relies on
-/// vanilla's default <see cref="ShouldReceiveKeyboardEvents"/> (<c>focused</c>).
-/// This dialog itself renders nothing.
+/// All event methods forward directly to <see cref="DialogRenderer"/>, which owns both the
+/// dispatcher infrastructure and the full event-routing logic. This dialog itself renders nothing.
 /// </summary>
-internal sealed class CairoDialogInputInterceptor(ICoreClientAPI clientApi, IGuiDialog dialog)
+internal sealed class CairoDialogInputInterceptor(ICoreClientAPI clientApi, DialogRenderer renderer)
     : VanillaGuiDialog(clientApi)
 {
-    private readonly IGuiDialog _dialog = dialog;
+    private readonly DialogRenderer _renderer = renderer;
 
-    // Forward the Cairo dialog's render order as the vanilla DrawOrder so this dialog
+    // Forward the Cairo renderer's render order as the vanilla DrawOrder so this dialog
     // stacks correctly within game.OpenedGuis. GuiManager.OnRenderFrameGUI iterates that
     // list in reverse, calling OnRenderGUI on each, and RequestFocus() shuffles the
     // focused dialog to the front of its DrawOrder rank — which means it is rendered last
     // (on top) within the rank without us having to re-register a renderer.
-    public override double DrawOrder => _dialog.RenderOrder;
+    public override double DrawOrder => _renderer.RenderOrder;
 
     public override void OnGuiOpened() { }
 
     // Drive the Cairo render from inside vanilla's per-dialog Ortho pass so this dialog
     // shares the z-stack with vanilla dialogs (instead of all of them painting on top of
     // us via GuiManager's single Ortho-1.0 renderer slot).
-    public override void OnRenderGUI(float deltaTime) => _dialog.OnRenderGui(deltaTime);
+    public override void OnRenderGUI(float deltaTime) => _renderer.OnRenderFrame(deltaTime, EnumRenderStage.Ortho);
 
     // Use vanilla defaults: mouse events while opened, keyboard events while focused.
     // Do not override ShouldReceiveMouseEvents / ShouldReceiveKeyboardEvents.
@@ -41,24 +39,24 @@ internal sealed class CairoDialogInputInterceptor(ICoreClientAPI clientApi, IGui
     public override void Focus()
     {
         base.Focus();
-        _dialog.OnFocus();
+        _renderer.OnFocus();
     }
 
     public override void UnFocus()
     {
         base.UnFocus();
-        _dialog.OnUnFocus();
+        _renderer.OnUnFocus();
     }
 
-    // Mouse / keyboard pass-through. The Cairo GuiDialog applies hit-testing and the
-    // "only handle inside" rule to mirror vanilla GuiDialog.OnMouse* behaviour.
-    public override void OnMouseDown(MouseEvent args) => _dialog.OnMouseDown(args);
-    public override void OnMouseUp(MouseEvent args) => _dialog.OnMouseUp(args);
-    public override void OnMouseMove(MouseEvent args) => _dialog.OnMouseMove(args);
-    public override void OnMouseWheel(MouseWheelEventArgs args) => _dialog.OnMouseWheel(args);
+    // Route all mouse and keyboard events directly into the renderer, which owns the
+    // dispatcher infrastructure and applies hit-testing, focus management, and dispatch.
+    public override void OnMouseDown(MouseEvent args) => _renderer.OnMouseDown(args);
+    public override void OnMouseUp(MouseEvent args) => _renderer.OnMouseUp(args);
+    public override void OnMouseMove(MouseEvent args) => _renderer.OnMouseMove(args);
+    public override void OnMouseWheel(MouseWheelEventArgs args) => _renderer.OnMouseWheel(args);
 
-    public override void OnKeyDown(KeyEvent args) => _dialog.OnKeyDown(args);
-    public override void OnKeyPress(KeyEvent args) => _dialog.OnKeyPress(args);
-    public override void OnKeyUp(KeyEvent args) => _dialog.OnKeyUp(args);
-    public override bool OnEscapePressed() => _dialog.OnEscapePressed();
+    public override void OnKeyDown(KeyEvent args) => _renderer.OnKeyDown(args);
+    public override void OnKeyPress(KeyEvent args) => _renderer.OnKeyPress(args);
+    public override void OnKeyUp(KeyEvent args) => _renderer.OnKeyUp(args);
+    public override bool OnEscapePressed() => _renderer.OnEscapePressed();
 }

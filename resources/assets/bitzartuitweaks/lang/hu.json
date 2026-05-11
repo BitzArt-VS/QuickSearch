@@ -28,8 +28,10 @@
   "config-tooltip-offset-y": "Eltolás Y",
   "config-tooltip-offset-y-tooltip": "Beállítja az eszköztipp elem függőleges eltolását pixelben.",
   "config-back": "Vissza",
-  "config-tooltip-dialog-area": "Képernyőterület",
-  "config-tooltip-dialog-area-tooltip": "Beállítja az elemleírás horgonyzási területét a képernyőn.",
+  "config-tooltip-dialog-area-horizontal": "Vízszintes pozíció",
+  "config-tooltip-dialog-area-horizontal-tooltip": "Beállítja az elemleírás vízszintes horgonyzási területét a képernyőn.",
+  "config-tooltip-dialog-area-vertical": "Függőleges pozíció",
+  "config-tooltip-dialog-area-vertical-tooltip": "Beállítja az elemleírás függőleges horgonyzási területét a képernyőn.",
   "config-tooltip-padding-top": "Belső margó felül",
   "config-tooltip-padding-top-tooltip": "Beállítja az eszköztipp felső belső margóját pixelben.",
   "config-tooltip-padding-right": "Belső margó jobbra",
@@ -43,5 +45,11 @@
   "config-tooltip-background-opacity": "Háttér átlátszósága",
   "config-tooltip-background-opacity-tooltip": "Beállítja az eszköztipp hátterének átlátszóságát (0 = átlátszó, 1 = teljesén fedő).",
   "config-tooltip-background-corner-radius": "Háttér sarokrádiusza",
-  "config-tooltip-background-corner-radius-tooltip": "Beállítja az eszköztipp hátterének sarokrádiuszát pixelben."
+  "config-tooltip-background-corner-radius-tooltip": "Beállítja az eszköztipp hátterének sarokrádiuszát pixelben.",
+  "config-tooltip-section-general": "Általános",
+  "config-tooltip-section-layout": "Elrendezés",
+  "config-tooltip-section-content": "Tartalom",
+  "config-tooltip-section-background": "Háttér",
+  "config-tooltip-font-size": "Betűméret",
+  "config-tooltip-font-size-tooltip": "Beállítja az eszköztipp szövegének betűméretét pixelben."
 }

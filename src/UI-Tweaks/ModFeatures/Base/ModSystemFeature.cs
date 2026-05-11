@@ -5,12 +5,12 @@ using Vintagestory.API.Server;
 
 namespace BitzArt.UI.Tweaks;
 
-public abstract class ModSystemFeature<TModeSystem, TConfig> : ModSystemFeature<TModeSystem>
-    where TModeSystem : ModSystem
+public abstract class ModSystemFeature<TModSystem, TConfig> : ModSystemFeature<TModSystem>
+    where TModSystem : ModSystem
 {
     protected TConfig Config { get; private init; }
 
-    public ModSystemFeature(TModeSystem modSystem, TConfig config) : base(modSystem)
+    public ModSystemFeature(TModSystem modSystem, TConfig config) : base(modSystem)
     {
         Config = config;
     }

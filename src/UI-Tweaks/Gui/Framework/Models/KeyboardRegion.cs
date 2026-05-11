@@ -24,4 +24,14 @@ internal readonly struct KeyboardRegion
         OnKeyUp = onKeyUp;
         OnKeyPress = onKeyPress;
     }
+
+    public void Dispatch(GuiKeyEventKind kind, GuiKeyEventArgs args)
+    {
+        switch (kind)
+        {
+            case GuiKeyEventKind.Down: OnKeyDown.Invoke(args); break;
+            case GuiKeyEventKind.Up: OnKeyUp.Invoke(args); break;
+            case GuiKeyEventKind.Press: OnKeyPress.Invoke(args); break;
+        }
+    }
 }

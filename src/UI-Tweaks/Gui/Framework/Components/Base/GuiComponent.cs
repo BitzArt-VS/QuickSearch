@@ -13,6 +13,7 @@ public abstract class GuiComponent : GuiNode, IGuiComponent
     protected GuiComponent()
     {
         LayoutParameters = new GuiComponentLayoutParameters();
+        SetDefaultLayoutParameters();
     }
 
     /// <inheritdoc/>
@@ -24,9 +25,21 @@ public abstract class GuiComponent : GuiNode, IGuiComponent
     /// Called by the reconciler on every reuse before the new pass's configuration
     /// actions are applied, so that declarative blueprints express full state rather
     /// than deltas. The base implementation resets to <see cref="GuiComponentLayoutParameters"/>
-    /// global defaults. Subclasses that set component-specific defaults in their
-    /// constructor (e.g. a fixed height or <see cref="GuiSizeMode.Fill"/> width) must
-    /// override and restore those defaults after calling <c>base</c>.
+    /// global defaults, then calls <see cref="SetDefaultLayoutParameters"/> to let
+    /// subclasses restore component-specific defaults.
     /// </summary>
-    internal virtual void ResetLayoutParameters() => LayoutParameters.Reset();
+    internal void ResetLayoutParameters()
+    {
+        LayoutParameters.Reset();
+        SetDefaultLayoutParameters();
+    }
+
+    /// <summary>
+    /// Override to set component-specific <see cref="LayoutParameters"/> defaults.
+    /// Called once during construction and again at the end of every
+    /// <see cref="ResetLayoutParameters"/> cycle (i.e. on every reconciler reuse), so
+    /// declared defaults are always in effect before configuration actions are applied.
+    /// The base implementation is a no-op.
+    /// </summary>
+    protected virtual void SetDefaultLayoutParameters() { }
 }

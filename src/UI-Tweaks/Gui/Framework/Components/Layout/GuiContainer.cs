@@ -1,5 +1,6 @@
 using Cairo;
 using System;
+using Vintagestory.API.Config;
 
 namespace BitzArt.UI.Tweaks.Gui;
 
@@ -363,6 +364,13 @@ public class GuiContainer : GuiComponent
             _allocatedX, _allocatedY,
             _allocatedW - (_showVScrollbar ? _sbThickness + ScrollbarGap : 0),
             _allocatedH - (_showHScrollbar ? _sbThickness + ScrollbarGap : 0));
+
+    /// <summary>
+    /// Per-side logical-pixel inset to apply to the scroll viewport clip region when
+    /// <see cref="HasInset"/> is set, so scrollable content is clipped before it reaches
+    /// the emboss ring and cannot paint over it.
+    /// </summary>
+    internal double ScrollViewportClipInset => HasInset ? _inset.Depth / RuntimeEnv.GUIScale : 0;
 
     private static void DrawScrollbarTrack(Context ctx, GuiComponentBounds b)
     {

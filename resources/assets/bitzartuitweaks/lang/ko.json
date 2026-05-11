@@ -28,8 +28,10 @@
   "config-tooltip-offset-y": "오프셋 Y",
   "config-tooltip-offset-y-tooltip": "툴팁 요소의 수직 오프셋을 픽셀 단위로 설정합니다.",
   "config-back": "뒤로",
-  "config-tooltip-dialog-area": "표시 영역",
-  "config-tooltip-dialog-area-tooltip": "화면에서 툴팁 요소의 앵커 영역을 설정합니다.",
+  "config-tooltip-dialog-area-horizontal": "가로 위치",
+  "config-tooltip-dialog-area-horizontal-tooltip": "화면에서 툴팁 요소의 가로 앵커를 설정합니다.",
+  "config-tooltip-dialog-area-vertical": "세로 위치",
+  "config-tooltip-dialog-area-vertical-tooltip": "화면에서 툴팁 요소의 세로 앵커를 설정합니다.",
   "config-tooltip-padding-top": "상단 안쪽 여백",
   "config-tooltip-padding-top-tooltip": "툴팁 요소의 상단 안쪽 여백을 픽셀 단위로 설정합니다.",
   "config-tooltip-padding-right": "우측 안쪽 여백",
@@ -43,5 +45,11 @@
   "config-tooltip-background-opacity": "배경 좌투명도",
   "config-tooltip-background-opacity-tooltip": "툴팁 배경의 좌투명도를 설정합니다 (0 = 투명, 1 = 불투명).",
   "config-tooltip-background-corner-radius": "배경 모서리 반지름",
-  "config-tooltip-background-corner-radius-tooltip": "툴팁 배경의 모서리 반지름을 픽셀 단위로 설정합니다."
+  "config-tooltip-background-corner-radius-tooltip": "툴팁 배경의 모서리 반지름을 픽셀 단위로 설정합니다.",
+  "config-tooltip-section-general": "일반",
+  "config-tooltip-section-layout": "레이아웃",
+  "config-tooltip-section-content": "내용",
+  "config-tooltip-section-background": "배경",
+  "config-tooltip-font-size": "글꼴 크기",
+  "config-tooltip-font-size-tooltip": "툴팁 텍스트의 글꼴 크기를 픽셀 단위로 설정합니다."
 }
