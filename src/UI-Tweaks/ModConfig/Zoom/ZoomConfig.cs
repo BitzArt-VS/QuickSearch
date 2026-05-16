@@ -9,10 +9,10 @@ public record ZoomConfig : INotifyPropertyChanged
     public bool Enable { get; set; } = false;
 
     [JsonProperty("strength", Order = 2)]
-    public int Strength { get; set; } = 5;
+    public int Strength { get; set; } = 2;
 
     [JsonProperty("speed", Order = 3)]
-    public int Speed { get; set; } = 5;
+    public int Speed { get; set; } = 2;
 
     [JsonProperty("vignetteStrength", Order = 4)]
     public int VignetteStrength { get; set; } = 5;
