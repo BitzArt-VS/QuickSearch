@@ -1,12 +1,7 @@
-using BitzArt.UI.Tweaks.GameStatus;
 using BitzArt.UI.Tweaks.Config;
-using System;
-using System.Collections.Generic;
+using BitzArt.UI.Tweaks.GameStatus;
 using System.Globalization;
-using System.Linq;
 using System.Text.RegularExpressions;
-using System.Threading;
-using System.Threading.Tasks;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;

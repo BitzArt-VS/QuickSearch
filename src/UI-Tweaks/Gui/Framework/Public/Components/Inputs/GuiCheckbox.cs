@@ -1,5 +1,4 @@
 using Cairo;
-using System;
 using Vintagestory.API.Client;
 
 namespace BitzArt.UI.Tweaks.Gui;
@@ -54,7 +53,11 @@ public sealed class GuiCheckbox : GuiInputBase
     /// plays the vanilla toggle sound. No-op when <see cref="GuiInputBase.Enabled"/> is false.</summary>
     public void Toggle()
     {
-        if (!Enabled) return;
+        if (!Enabled)
+        {
+            return;
+        }
+
         Checked = !Checked;
         OnCheckedChanged.Invoke(Checked);
         ClientApi?.Gui.PlaySound("toggleswitch");
@@ -65,7 +68,11 @@ public sealed class GuiCheckbox : GuiInputBase
 
     private void HandleKeyDown(GuiKeyEventArgs args)
     {
-        if (!Enabled || !IsFocused) return;
+        if (!Enabled || !IsFocused)
+        {
+            return;
+        }
+
         if (args.KeyCode == (int)GlKeys.Space || args.KeyCode == (int)GlKeys.Enter)
         {
             Toggle();
@@ -75,7 +82,11 @@ public sealed class GuiCheckbox : GuiInputBase
         // Swallow other keys so global hotkeys don't fire while the checkbox is focused
         // (e.g. typing a hotkey letter wouldn't otherwise be consumed by anything else).
         // Tab / Escape stay unhandled so dialog-level traversal / close still work.
-        if (args.KeyCode == (int)GlKeys.Tab || args.KeyCode == (int)GlKeys.Escape) return;
+        if (args.KeyCode == (int)GlKeys.Tab || args.KeyCode == (int)GlKeys.Escape)
+        {
+            return;
+        }
+
         args.Handled = true;
     }
 

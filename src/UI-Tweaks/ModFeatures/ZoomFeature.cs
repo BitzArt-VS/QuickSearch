@@ -1,6 +1,5 @@
 using BitzArt.UI.Tweaks.Config;
 using HarmonyLib;
-using System;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.Client.NoObf;
@@ -10,19 +9,20 @@ namespace BitzArt.UI.Tweaks;
 public sealed class ZoomFeature(UiTweaksModSystem modSystem, ZoomConfig config)
     : ModSystemFeature<UiTweaksModSystem, ZoomConfig>(modSystem, config)
 {
-    private const int ZoomUpdateIntervalMilliseconds = 10;
     private const float MinimumFieldOfViewDegrees = 10;
     private const float DegreesToRadians = MathF.PI / 180;
     private const float MinimumMouseSensitivityReductionStrength = 0.35f;
     private const float MaximumMouseSensitivityReductionStrength = 1f;
     private const float VignetteStrengthBoost = 0f;
+    private const float ReturnZoomSpeedMultiplier = 2f;
     private const string HarmonyId = $"{Constants.ModId}.zoom";
+    private const string ZoomUpdateProfilingName = $"{Constants.ModId}.zoom.update";
 
     private ICoreClientAPI? _clientApi;
     private ClientMain? _clientMain;
     private Harmony? _harmony;
     private ZoomOverlayRenderer? _overlayRenderer;
-    private long? _zoomUpdateListenerId;
+    private ZoomUpdateRenderer? _zoomUpdateRenderer;
     private int? _activeZoomKeyCode;
     private bool _isKeyUpSubscribed;
     private bool _isZoomRequested;
@@ -41,17 +41,20 @@ public sealed class ZoomFeature(UiTweaksModSystem modSystem, ZoomConfig config)
         _clientMain = clientMain;
         _harmony = new Harmony(HarmonyId);
         _overlayRenderer = new(clientApi);
+        var zoomUpdateRenderer = new ZoomUpdateRenderer(UpdateZoom);
+        _zoomUpdateRenderer = zoomUpdateRenderer;
 
         ZoomProjectionPatch.Patch(_harmony);
         ZoomMouseSensitivityPatch.Patch(_harmony);
 
+        clientApi.Event.RegisterRenderer(zoomUpdateRenderer, EnumRenderStage.Before, ZoomUpdateProfilingName);
         clientApi.Input.AddHotKey(ModHotKeys.Zoom, _ => StartZooming());
     }
 
     public override void Dispose()
     {
         UnsubscribeFromKeyUp();
-        StopZoomUpdates();
+        UnregisterZoomUpdateRenderer();
         _isZoomRequested = false;
         _zoomProgress = 0;
 
@@ -72,6 +75,17 @@ public sealed class ZoomFeature(UiTweaksModSystem modSystem, ZoomConfig config)
         GC.SuppressFinalize(this);
     }
 
+    private void UnregisterZoomUpdateRenderer()
+    {
+        if (_clientApi is not null && _zoomUpdateRenderer is not null)
+        {
+            _clientApi.Event.UnregisterRenderer(_zoomUpdateRenderer, EnumRenderStage.Before);
+        }
+
+        _zoomUpdateRenderer?.Dispose();
+        _zoomUpdateRenderer = null;
+    }
+
     private bool StartZooming()
     {
         if (_clientApi is null || _clientMain is null)
@@ -82,7 +96,6 @@ public sealed class ZoomFeature(UiTweaksModSystem modSystem, ZoomConfig config)
         _isZoomRequested = true;
         _activeZoomKeyCode = _clientApi.Input.GetHotKeyByCode(ModHotKeys.Zoom.Code).CurrentMapping.KeyCode;
         SubscribeToKeyUp();
-        StartZoomUpdates();
 
         return true;
     }
@@ -97,7 +110,6 @@ public sealed class ZoomFeature(UiTweaksModSystem modSystem, ZoomConfig config)
         _activeZoomKeyCode = null;
         _isZoomRequested = false;
         UnsubscribeFromKeyUp();
-        StartZoomUpdates();
     }
 
     private void SubscribeToKeyUp()
@@ -122,43 +134,30 @@ public sealed class ZoomFeature(UiTweaksModSystem modSystem, ZoomConfig config)
         _isKeyUpSubscribed = false;
     }
 
-    private void StartZoomUpdates()
-    {
-        if (_clientApi is null || _zoomUpdateListenerId is not null)
-        {
-            return;
-        }
-
-        _zoomUpdateListenerId = _clientApi.Event.RegisterGameTickListener(UpdateZoom, ZoomUpdateIntervalMilliseconds);
-    }
-
-    private void StopZoomUpdates()
-    {
-        if (_clientApi is null || _zoomUpdateListenerId is null)
-        {
-            return;
-        }
-
-        _clientApi.Event.UnregisterGameTickListener(_zoomUpdateListenerId.Value);
-        _zoomUpdateListenerId = null;
-    }
-
     private void UpdateZoom(float deltaTime)
     {
         float targetZoomProgress = _isZoomRequested ? 1 : 0;
+
+        if (Math.Abs(_zoomProgress - targetZoomProgress) <= float.Epsilon)
+        {
+            return;
+        }
+
         float previousZoomProgress = _zoomProgress;
-        float zoomStep = GetZoomSpeed() * deltaTime;
+        float zoomSpeed = GetZoomSpeed();
+
+        if (!_isZoomRequested)
+        {
+            zoomSpeed *= ReturnZoomSpeedMultiplier;
+        }
+
+        float zoomStep = zoomSpeed * deltaTime;
 
         _zoomProgress = MoveTowards(_zoomProgress, targetZoomProgress, zoomStep);
 
         if (Math.Abs(_zoomProgress - previousZoomProgress) > float.Epsilon)
         {
             ApplyZoomProgress();
-        }
-
-        if (Math.Abs(_zoomProgress - targetZoomProgress) <= float.Epsilon)
-        {
-            StopZoomUpdates();
         }
     }
 
@@ -222,5 +221,21 @@ public sealed class ZoomFeature(UiTweaksModSystem modSystem, ZoomConfig config)
     private static float Lerp(float startValue, float endValue, float amount)
     {
         return startValue + (endValue - startValue) * amount;
+    }
+
+    private sealed class ZoomUpdateRenderer(Action<float> updateZoom) : IRenderer
+    {
+        public double RenderOrder => 0.05;
+
+        public int RenderRange => 1;
+
+        public void OnRenderFrame(float deltaTime, EnumRenderStage stage)
+        {
+            updateZoom(deltaTime);
+        }
+
+        public void Dispose()
+        {
+        }
     }
 }

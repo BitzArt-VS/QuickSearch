@@ -66,7 +66,10 @@ public sealed class GuiShadow : GuiComponent
         double x, double y, double w, double h,
         int steps, double offset, double spread, double alpha, double radius)
     {
-        if (steps <= 0 || alpha <= 0) return;
+        if (steps <= 0 || alpha <= 0)
+        {
+            return;
+        }
 
         for (int i = steps; i >= 1; i--)
         {

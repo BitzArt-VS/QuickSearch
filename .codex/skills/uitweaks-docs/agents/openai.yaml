@@ -1,6 +1,0 @@
-interface:
-  display_name: "UI-Tweaks Docs"
-  short_description: "Write and review UI-Tweaks documentation"
-  default_prompt: "Use $uitweaks-docs to update UI-Tweaks documentation or player-facing mod copy."
-policy:
-  allow_implicit_invocation: true

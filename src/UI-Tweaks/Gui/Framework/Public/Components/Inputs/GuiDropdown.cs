@@ -1,6 +1,4 @@
 using Cairo;
-using System;
-using System.Collections.Generic;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 
@@ -58,7 +56,11 @@ public class GuiDropdown<T> : GuiInputBase
     {
         get
         {
-            if (Items is null || SelectedIndex < 0 || SelectedIndex >= Items.Count) return default;
+            if (Items is null || SelectedIndex < 0 || SelectedIndex >= Items.Count)
+            {
+                return default;
+            }
+
             return Items[SelectedIndex];
         }
     }
@@ -179,18 +181,29 @@ public class GuiDropdown<T> : GuiInputBase
     public void SetSelectedIndex(int index)
     {
         int clamped = Items is null || index < 0 || index >= Items.Count ? -1 : index;
-        if (clamped == SelectedIndex) return;
+        if (clamped == SelectedIndex)
+        {
+            return;
+        }
 
         SelectedIndex = clamped;
         OnSelectionChanged.Invoke(SelectedIndex);
-        if (clamped >= 0) OnItemSelected.Invoke(Items![clamped]);
+        if (clamped >= 0)
+        {
+            OnItemSelected.Invoke(Items![clamped]);
+        }
+
         RequestReconcile();
     }
 
     /// <summary>Opens the popup. No-op when already open or while disabled.</summary>
     public void Open()
     {
-        if (IsOpen || !Enabled) return;
+        if (IsOpen || !Enabled)
+        {
+            return;
+        }
+
         IsOpen = true;
         RequestReconcile();
     }
@@ -198,7 +211,11 @@ public class GuiDropdown<T> : GuiInputBase
     /// <summary>Closes the popup. No-op when already closed.</summary>
     public void Close()
     {
-        if (!IsOpen) return;
+        if (!IsOpen)
+        {
+            return;
+        }
+
         IsOpen = false;
         _hoveredItemIndex = -1;
         RequestReconcile();
@@ -207,7 +224,14 @@ public class GuiDropdown<T> : GuiInputBase
     /// <summary>Flips the popup state.</summary>
     public void Toggle()
     {
-        if (IsOpen) Close(); else Open();
+        if (IsOpen)
+        {
+            Close();
+        }
+        else
+        {
+            Open();
+        }
     }
 
     // ── Iteration hooks (extension points) ───────────────────────────────────
@@ -239,8 +263,15 @@ public class GuiDropdown<T> : GuiInputBase
         if (Items is { } items && SelectedIndex >= 0 && SelectedIndex < items.Count)
         {
             var template = SelectedTemplate ?? ItemTemplate;
-            if (template is not null) template(builder, items[SelectedIndex]);
-            else builder.AddLabel(0, items[SelectedIndex]?.ToString() ?? string.Empty, font: Font);
+            if (template is not null)
+            {
+                template(builder, items[SelectedIndex]);
+            }
+            else
+            {
+                builder.AddLabel(0, items[SelectedIndex]?.ToString() ?? string.Empty, font: Font);
+            }
+
             return;
         }
 
@@ -266,9 +297,15 @@ public class GuiDropdown<T> : GuiInputBase
             int selIdx = actualIndex;
 
             GuiColor rowBg = GuiColor.Transparent;
-            if (selIdx == SelectedIndex) rowBg = SelectedItemBackground;
+            if (selIdx == SelectedIndex)
+            {
+                rowBg = SelectedItemBackground;
+            }
             // Hover wins over selected when both apply.
-            if (rowIdx == _hoveredItemIndex) rowBg = HoveredItemBackground;
+            if (rowIdx == _hoveredItemIndex)
+            {
+                rowBg = HoveredItemBackground;
+            }
 
             // Always pass `rowBg` (even when transparent) so the row's GuiContainer.Background
             // gets reapplied every reconcile. AddContainer's `background:` parameter is
@@ -293,8 +330,14 @@ public class GuiDropdown<T> : GuiInputBase
 
     private void RenderItem(IGuiRenderTreeBuilder b, T item)
     {
-        if (ItemTemplate is { } t) t(b, item);
-        else b.AddLabel(0, item?.ToString() ?? string.Empty, font: Font);
+        if (ItemTemplate is { } t)
+        {
+            t(b, item);
+        }
+        else
+        {
+            b.AddLabel(0, item?.ToString() ?? string.Empty, font: Font);
+        }
     }
 
     // ── Framework wiring ─────────────────────────────────────────────────────
@@ -309,7 +352,10 @@ public class GuiDropdown<T> : GuiInputBase
 
     private void HandleKeyDown(GuiKeyEventArgs args)
     {
-        if (!Enabled || !IsFocused) return;
+        if (!Enabled || !IsFocused)
+        {
+            return;
+        }
 
         switch (args.KeyCode)
         {
@@ -352,7 +398,11 @@ public class GuiDropdown<T> : GuiInputBase
     /// <inheritdoc/>
     protected override void OnInputClick(GuiMouseEventArgs e)
     {
-        if (e.Button != EnumMouseButton.Left) return;
+        if (e.Button != EnumMouseButton.Left)
+        {
+            return;
+        }
+
         Toggle();
     }
 
@@ -426,10 +476,21 @@ public class GuiDropdown<T> : GuiInputBase
         //    no need to read back stale LastBounds from a prior frame. When closed (or
         //    when no items / no overlay host is available), simply skip registration and
         //    the OverlayHost prunes any existing subtree on the next frame.
-        if (!IsOpen) return;
-        if (_overlayHost is null) return;
+        if (!IsOpen)
+        {
+            return;
+        }
+
+        if (_overlayHost is null)
+        {
+            return;
+        }
+
         int count = GetItemCount();
-        if (count <= 0) return;
+        if (count <= 0)
+        {
+            return;
+        }
 
         double inner = count * ItemHeight;
         double frame = inner + PopupPadding * 2;
@@ -479,7 +540,11 @@ public class GuiDropdown<T> : GuiInputBase
 
     private void SetHoveredItem(int idx)
     {
-        if (_hoveredItemIndex == idx) return;
+        if (_hoveredItemIndex == idx)
+        {
+            return;
+        }
+
         _hoveredItemIndex = idx;
         // Rebuild the dropdown subtree so the row's Background config picks up the new
         // hover state. Cheap for typical dropdown sizes — popups usually carry under 50

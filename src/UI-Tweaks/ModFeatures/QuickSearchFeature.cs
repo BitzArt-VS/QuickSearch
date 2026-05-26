@@ -1,5 +1,4 @@
 using BitzArt.UI.Tweaks.Config;
-using System;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 

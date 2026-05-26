@@ -1,6 +1,3 @@
-using System;
-using System.Threading.Tasks;
-
 namespace BitzArt.UI.Tweaks.Gui;
 
 /// <summary>
@@ -64,9 +61,19 @@ public readonly struct GuiCallback
     /// </summary>
     public void Invoke()
     {
-        if (_handler is null) return;
-        if (_isAsync) _ = ((Func<Task>)_handler).Invoke();
-        else ((Action)_handler).Invoke();
+        if (_handler is null)
+        {
+            return;
+        }
+
+        if (_isAsync)
+        {
+            _ = ((Func<Task>)_handler).Invoke();
+        }
+        else
+        {
+            ((Action)_handler).Invoke();
+        }
     }
 
     /// <summary>
@@ -76,9 +83,15 @@ public readonly struct GuiCallback
     /// </summary>
     public Task InvokeAsync()
     {
-        if (_handler is null) return Task.CompletedTask;
-        if (_isAsync) return ((Func<Task>)_handler).Invoke();
-        ((Action)_handler).Invoke();
+        if (_handler is null)
+        {
+            return Task.CompletedTask;
+        }
+
+        if (_isAsync)
+        {
+            return ((Func<Task>)_handler).Invoke();
+        } ((Action)_handler).Invoke();
         return Task.CompletedTask;
     }
 }
@@ -126,16 +139,32 @@ public readonly struct GuiCallback<T>
 
     public void Invoke(T arg)
     {
-        if (_handler is null) return;
-        if (_isAsync) _ = ((Func<T, Task>)_handler).Invoke(arg);
-        else ((Action<T>)_handler).Invoke(arg);
+        if (_handler is null)
+        {
+            return;
+        }
+
+        if (_isAsync)
+        {
+            _ = ((Func<T, Task>)_handler).Invoke(arg);
+        }
+        else
+        {
+            ((Action<T>)_handler).Invoke(arg);
+        }
     }
 
     public Task InvokeAsync(T arg)
     {
-        if (_handler is null) return Task.CompletedTask;
-        if (_isAsync) return ((Func<T, Task>)_handler).Invoke(arg);
-        ((Action<T>)_handler).Invoke(arg);
+        if (_handler is null)
+        {
+            return Task.CompletedTask;
+        }
+
+        if (_isAsync)
+        {
+            return ((Func<T, Task>)_handler).Invoke(arg);
+        } ((Action<T>)_handler).Invoke(arg);
         return Task.CompletedTask;
     }
 }

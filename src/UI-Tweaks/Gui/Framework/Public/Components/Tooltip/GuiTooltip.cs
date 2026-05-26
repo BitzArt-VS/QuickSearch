@@ -1,5 +1,4 @@
 using Cairo;
-using System;
 
 namespace BitzArt.UI.Tweaks.Gui;
 
@@ -66,7 +65,11 @@ public sealed class GuiTooltip : GuiNode
         // the start of every paint walk, so a single AddRegion call here is enough — no
         // teardown needed when this component is removed (its slot stops appearing in
         // the walk, and the next mouse-move clears the active tooltip).
-        if (_host is null || TooltipContent is null) return;
+        if (_host is null || TooltipContent is null)
+        {
+            return;
+        }
+
         _host.AddRegion(this, bounds, TooltipContent, ConfigureBackground);
     }
 }

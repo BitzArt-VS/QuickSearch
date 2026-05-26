@@ -8,9 +8,9 @@ namespace BitzArt.UI.Tweaks.Gui;
 /// black overlay while pressed. Text is centred horizontally and vertically and uses the
 /// vanilla button text colour, swapping to the active (hover/press) colour while pressed.
 /// <para>
-    /// Mouse handling follows the framework convention: <see cref="GuiButton"/> subscribes
-    /// its own slot-level <c>OnMouseDown</c> / <c>OnMouseUp</c> / <c>OnMouseClick</c>
-    /// handlers. The button itself exposes only a single
+/// Mouse handling follows the framework convention: <see cref="GuiButton"/> subscribes
+/// its own slot-level <c>OnMouseDown</c> / <c>OnMouseUp</c> / <c>OnMouseClick</c>
+/// handlers. The button itself exposes only a single
 /// <see cref="OnClick"/> property typed as <see cref="GuiCallback"/>, which can be assigned
 /// from either an <see cref="System.Action"/> or a <see cref="System.Func{T}"/> returning
 /// <see cref="System.Threading.Tasks.Task"/>.
@@ -142,7 +142,11 @@ public sealed class GuiButton : GuiComponent
 
     private void HandleMouseDown(GuiMouseEventArgs e)
     {
-        if (!Enabled) return;
+        if (!Enabled)
+        {
+            return;
+        }
+
         _isPressed = true;
         ClientApi?.Gui.PlaySound("menubutton_down");
         RequestPaint();
@@ -163,20 +167,31 @@ public sealed class GuiButton : GuiComponent
         // then released" case. When released inside, OnMouseClick follows immediately after
         // OnMouseUp, so we would double-play; the down-press sound is sufficient for that path.
         if (!inside && Enabled)
+        {
             ClientApi?.Gui.PlaySound("menubutton_up");
+        }
+
         RequestPaint();
     }
 
     private void HandleMouseClick(GuiMouseEventArgs e)
     {
-        if (!Enabled) return;
+        if (!Enabled)
+        {
+            return;
+        }
+
         OnClick.Invoke();
     }
 
     private void HandleMouseEnter(GuiMouseEventArgs e)
     {
         _isHovered = true;
-        if (Enabled) ClientApi?.Gui.PlaySound("menubutton");
+        if (Enabled)
+        {
+            ClientApi?.Gui.PlaySound("menubutton");
+        }
+
         RequestPaint();
     }
 

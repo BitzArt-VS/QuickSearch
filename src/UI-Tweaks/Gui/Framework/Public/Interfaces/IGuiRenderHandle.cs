@@ -6,6 +6,8 @@ public interface IGuiRenderHandle
 {
     public ICoreClientAPI ClientApi { get; }
 
+    public IGuiComponentSlot Slot { get; }
+
     /// <summary>Schedules reconciliation of <paramref name="renderFragment"/> and cascades to arrange + paint.</summary>
     public void RequestReconcile(GuiRenderFragment renderFragment);
 

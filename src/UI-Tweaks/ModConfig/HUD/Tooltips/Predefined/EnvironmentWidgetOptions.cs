@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Vintagestory.API.Client;
 
 namespace BitzArt.UI.Tweaks.Config;

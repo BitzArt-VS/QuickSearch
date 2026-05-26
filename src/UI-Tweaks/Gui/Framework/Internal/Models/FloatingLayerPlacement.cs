@@ -10,7 +10,7 @@ internal readonly record struct FloatingLayerPlacement
 
     public double MaxLogicalHeight { get; init; }
 
-    public IFloatingLayerInputHost? InputHost { get; init; }
+    public GuiSurfaceRenderer? InputHost { get; init; }
 
     public double InputRegionOffsetX { get; init; }
 

@@ -24,17 +24,15 @@ namespace BitzArt.UI.Tweaks.Gui;
 public sealed class OverlayHost
 {
     private readonly FloatingLayerRenderer _layer;
-    private readonly IFloatingLayerInputHost _inputHost;
-    private readonly DialogScreenProjection _screenProjection;
+    private readonly DialogRenderer _renderer;
     private readonly FloatingLayerAnchor _anchor;
 
     private GuiComponentBounds _activeBounds;
 
-    internal OverlayHost(FloatingLayerRenderer layer, IFloatingLayerInputHost inputHost, DialogScreenProjection screenProjection)
+    internal OverlayHost(FloatingLayerRenderer layer, DialogRenderer renderer)
     {
         _layer = layer;
-        _inputHost = inputHost;
-        _screenProjection = screenProjection;
+        _renderer = renderer;
         _anchor = ComputeAnchor;
     }
 
@@ -62,7 +60,7 @@ public sealed class OverlayHost
         {
             Anchor = _anchor,
             FixedLogicalSize = new GuiMeasuredSize(dialogLocalBounds.Width, dialogLocalBounds.Height),
-            InputHost = _inputHost,
+            InputHost = _renderer,
             InputRegionOffsetX = dialogLocalBounds.X,
             InputRegionOffsetY = dialogLocalBounds.Y,
             AutoClearWhenNotRefreshed = true,
@@ -82,7 +80,7 @@ public sealed class OverlayHost
 
     private (double posX, double posY) ComputeAnchor(double physicalWidth, double physicalHeight, float scale, ICoreClientAPI clientApi)
     {
-        var (originX, originY) = _screenProjection.GetScreenOrigin();
+        var (originX, originY) = _renderer.GetScreenOrigin();
         return (originX + _activeBounds.X * scale, originY + _activeBounds.Y * scale);
     }
 }

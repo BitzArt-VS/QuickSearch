@@ -1,4 +1,3 @@
-using System;
 using System.Reflection;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
@@ -12,7 +11,7 @@ internal static class ClientApiExtensions
     private static FieldInfo? _platformField;
     private static MethodInfo? _loadMouseCursorMethod;
 
-    public static void UnregisterDialog(this ICoreClientAPI clientApi, VanillaGuiDialog dialog)
+    public static void UnregisterDialog(this ICoreClientAPI clientApi, Vintagestory.API.Client.GuiDialog dialog)
     {
         _clientMainField ??= clientApi.GetType()
             .GetField("game", BindingFlags.NonPublic | BindingFlags.Instance)
@@ -22,7 +21,7 @@ internal static class ClientApiExtensions
             ?? throw new InvalidOperationException("'game' field is null.");
 
         _unregisterDialogMethod ??= clientMain.GetType()
-            .GetMethod("UnregisterDialog", BindingFlags.Public | BindingFlags.Instance, null, [typeof(VanillaGuiDialog)], null)
+            .GetMethod("UnregisterDialog", BindingFlags.Public | BindingFlags.Instance, null, [typeof(Vintagestory.API.Client.GuiDialog)], null)
             ?? throw new InvalidOperationException($"Could not find 'UnregisterDialog' method on '{clientMain.GetType().Name}'.");
 
         _unregisterDialogMethod.Invoke(clientMain, [dialog]);

@@ -2,10 +2,8 @@ using Vintagestory.API.Client;
 
 namespace BitzArt.UI.Tweaks.Gui;
 
-public interface IGuiDialog : IGuiComponent
+public interface IGuiDialog : IGuiComponent, IDisposable
 {
-    double RenderOrder { get; }
-
     /// <summary>Horizontal offset from screen-centre in logical pixels. Drives dialog dragging.</summary>
     double OffsetX { get; }
 

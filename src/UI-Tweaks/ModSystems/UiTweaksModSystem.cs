@@ -13,6 +13,7 @@ public class UiTweaksModSystem : ClientModSystem
 
         Features =
         [
+            new GuiDialogHostFeature(this),
             new ModConfigFeature(this, config),
             new GameTweaksFeature(this, config.GameTweaks),
             new GameStatusFeature(this, config),

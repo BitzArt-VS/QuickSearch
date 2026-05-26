@@ -1,6 +1,4 @@
 using Cairo;
-using System;
-using System.Collections.Generic;
 
 namespace BitzArt.UI.Tweaks.Gui;
 
@@ -23,22 +21,27 @@ internal sealed class GuiRenderTreeBuilder : IGuiRenderTreeBuilder, IDisposable
     // Ordered list of active slots, rebuilt each Run() to match the current frame order.
     // Used by arrange and paint walks to iterate children in declaration order.
     private readonly List<ComponentSlot> _renderOrder = [];
+    private readonly IReadOnlyList<IGuiComponentSlot> _componentSlots;
 
     // Reused scratch buffers — avoid allocating inside the hot path.
     private readonly HashSet<ComponentSlotKey> _seenKeys = [];
     private readonly List<ComponentSlotKey> _staleKeys = [];
 
-    // Cascading-value chain visible to slots declared **inside** this builder. Updated by
-    // the parent builder during reconcile (see Run()): set to the parent's chain when the
-    // owning component is not a provider, or to a new chain link when it is. The root
-    // dialog builder leaves this null. Read live by descendant RenderHandles via their
-    // parent-builder reference, so cascade updates from any ancestor reconcile propagate
-    // without touching descendant handles.
+    // Cascading-value chain visible to the component that owns this builder. Parent
+    // reconciliation sets this to the chain snapshotted at the owning slot's declaration site.
+    internal CascadingValueChain? InheritedCascadeChain;
+
+    // Cascading-value chain visible to slots declared inside this builder. Parent
+    // reconciliation initializes it from InheritedCascadeChain; PushCascadeScope mutates it
+    // temporarily during this builder's blueprint phase for descendants declared inside the scope.
     internal CascadingValueChain? CascadeChain;
+
+    internal IReadOnlyList<IGuiComponentSlot> ComponentSlots => _componentSlots;
 
     internal GuiRenderTreeBuilder(GuiSurfaceRenderer renderer)
     {
         _renderer = renderer;
+        _componentSlots = _renderOrder.AsReadOnly();
     }
 
     public IGuiComponentBuilder<T> AddComponent<T>(int key)
@@ -50,8 +53,10 @@ internal sealed class GuiRenderTreeBuilder : IGuiRenderTreeBuilder, IDisposable
         // _seenKeys is cleared at the start of every Run() and populated here, so a key
         // that's already present means the same slot was declared twice among siblings.
         if (!_seenKeys.Add(slotKey))
+        {
             throw new InvalidOperationException(
                 $"Duplicate component key {key} for {typeof(T).Name} within the same render tree level. Each (Type, key) pair must be unique among siblings.");
+        }
 
         RenderTreeFrame<T> frame;
 
@@ -122,39 +127,17 @@ internal sealed class GuiRenderTreeBuilder : IGuiRenderTreeBuilder, IDisposable
                 slot = CreateSlot(frame);
                 _keyedSlots[slotKey] = slot;
             }
-            if (slot!.Instance is GuiComponent comp)
-            {
-                // Reset layout parameters to canonical defaults before applying the new
-                // pass's config actions — blueprints are declarative (full state), not
-                // deltas. Without this, stale LP from a previous view (e.g. a list column
-                // that becomes a setting row at the same key) would persist across reuses.
-                comp.ResetLayoutParameters();
-            }
-
-            frame.ApplySlotConfiguration(slot.Instance);
-            frame.ApplyConfiguration(slot!.Instance);
-            frame.ComposeSlotConfiguration();
-            if (isNew) slot.Instance.OnInitialized();
-            slot.Instance.OnParametersSet();
-            // Propagate the cascade chain from the declaration site to the child builder.
-            // frame.CascadeChain was snapshotted in AddComponent during the blueprint phase
-            // at the point where this slot was declared — it captures any PushCascadeScope
-            // wrappers that were lexically active around the AddComponent call. The child
-            // builder inherits this chain so its own slots (and their descendants) can
-            // look up those values.
-            slot.ChildBuilder.CascadeChain = frame.CascadeChain;
-            // Cancel any separately scheduled rebuild for this child's fragment — we are
-            // about to rebuild its subtree right now, making the pending entry redundant.
-            _renderer.Cancel(slot.Instance.RenderFragment);
-            slot.ChildBuilder.Run(slot.Instance.RenderFragment);
-            _renderOrder.Add(slot);
+            ReconcileSlot(slot!, frame, isNew);
+            _renderOrder.Add(slot!);
         }
 
         _staleKeys.Clear();
         foreach (var key in _keyedSlots.Keys)
         {
             if (!_seenKeys.Contains(key))
+            {
                 _staleKeys.Add(key);
+            }
         }
         foreach (var key in _staleKeys)
         {
@@ -171,7 +154,10 @@ internal sealed class GuiRenderTreeBuilder : IGuiRenderTreeBuilder, IDisposable
     public void Dispose()
     {
         foreach (var slot in _keyedSlots.Values)
+        {
             DisposeSlot(slot);
+        }
+
         _keyedSlots.Clear();
         _renderOrder.Clear();
         _frames.Clear();
@@ -190,12 +176,41 @@ internal sealed class GuiRenderTreeBuilder : IGuiRenderTreeBuilder, IDisposable
     {
         var childBuilder = new GuiRenderTreeBuilder(_renderer);
         var instance = frame.CreateInstance();
-        // The handle's `parentBuilder` is `this` — what this slot **consumes** as a
-        // cascade scope is whatever was visible to its parent (i.e. this builder's chain).
-        // Storing the builder reference (not the chain itself) means lookups always see
-        // the live chain as ancestors update it on subsequent reconciles.
-        instance.Attach(new RenderHandle(_renderer, childBuilder, this), _renderer.ClientApi);
-        return new ComponentSlot(instance, childBuilder, frame);
+        var slot = new ComponentSlot(_renderer, instance, childBuilder, frame);
+        instance.Attach(slot, _renderer.ClientApi);
+        return slot;
+    }
+
+    private void ReconcileSlot(ComponentSlot slot, RenderTreeFrame frame, bool isNew)
+    {
+        // Propagate the declaration-site cascade chain before any component callbacks run.
+        // Configure/OnInitialized/OnParametersSet may all read cascading values from the
+        // render handle, and descendants declared by this slot consume the same chain as
+        // their inherited parent scope during their own blueprint phase.
+        slot.ChildBuilder.InheritedCascadeChain = frame.CascadeChain;
+        slot.ChildBuilder.CascadeChain = frame.CascadeChain;
+
+        if (slot.Instance is GuiComponent component)
+        {
+            // Reset layout parameters to canonical defaults before applying the new
+            // pass's config actions — blueprints are declarative (full state), not
+            // deltas. Without this, stale LP from a previous view (e.g. a list column
+            // that becomes a setting row at the same key) would persist across reuses.
+            component.ResetLayoutParameters();
+        }
+
+        frame.ApplySlotConfiguration(slot.Instance);
+        frame.ApplyConfiguration(slot.Instance);
+        frame.ComposeSlotConfiguration(slot);
+        if (isNew)
+        {
+            slot.Instance.OnInitialized();
+        }
+        slot.Instance.OnParametersSet();
+        // Cancel any separately scheduled rebuild for this child's fragment — we are
+        // about to rebuild its subtree right now, making the pending entry redundant.
+        _renderer.Cancel(slot.Instance.RenderFragment);
+        slot.ChildBuilder.Run(slot.Instance.RenderFragment);
     }
 
     /// <summary>
@@ -428,10 +443,21 @@ internal sealed class GuiRenderTreeBuilder : IGuiRenderTreeBuilder, IDisposable
         // (per spec — fit-to-content has no overflow). Recomputed each frame so toggling
         // size mode at runtime takes effect immediately.
         GuiScrollDirection eff = container.Scroll;
-        if (lp.WidthMode == GuiSizeMode.FitContent) eff &= ~GuiScrollDirection.Horizontal;
-        if (lp.HeightMode == GuiSizeMode.FitContent) eff &= ~GuiScrollDirection.Vertical;
+        if (lp.WidthMode == GuiSizeMode.FitContent)
+        {
+            eff &= ~GuiScrollDirection.Horizontal;
+        }
+
+        if (lp.HeightMode == GuiSizeMode.FitContent)
+        {
+            eff &= ~GuiScrollDirection.Vertical;
+        }
+
         container.EffectiveScroll = eff;
-        if (eff == GuiScrollDirection.None) return false;
+        if (eff == GuiScrollDirection.None)
+        {
+            return false;
+        }
 
         // Measure children at unbounded space on scroll-enabled axes so that Fill children
         // report their true content size rather than collapsing to the viewport. FitContent
@@ -465,16 +491,37 @@ internal sealed class GuiRenderTreeBuilder : IGuiRenderTreeBuilder, IDisposable
         double hReserve = sbThickness + sbGap;
         double vpW = childContent.Width - (showV ? vReserve : 0);
         double vpH = childContent.Height - (showH ? hReserve : 0);
-        if (vpW < 0) vpW = 0;
-        if (vpH < 0) vpH = 0;
+        if (vpW < 0)
+        {
+            vpW = 0;
+        }
 
-        if (wantV && !showV && measured.Height > vpH + 0.5) showV = true;
-        if (wantH && !showH && measured.Width > vpW + 0.5) showH = true;
+        if (vpH < 0)
+        {
+            vpH = 0;
+        }
+
+        if (wantV && !showV && measured.Height > vpH + 0.5)
+        {
+            showV = true;
+        }
+
+        if (wantH && !showH && measured.Width > vpW + 0.5)
+        {
+            showH = true;
+        }
         // Recompute viewport dimensions if visibility flipped.
         vpW = childContent.Width - (showV ? vReserve : 0);
         vpH = childContent.Height - (showH ? hReserve : 0);
-        if (vpW < 0) vpW = 0;
-        if (vpH < 0) vpH = 0;
+        if (vpW < 0)
+        {
+            vpW = 0;
+        }
+
+        if (vpH < 0)
+        {
+            vpH = 0;
+        }
 
         // Push allocated + viewport + content sizes into the container so it can clamp the
         // scroll offset before we read it back to translate children, and so scrollbar
@@ -573,27 +620,27 @@ internal sealed class GuiRenderTreeBuilder : IGuiRenderTreeBuilder, IDisposable
 
     private void RegisterRegions(ComponentSlot slot, GuiComponentBounds bounds)
     {
-        if (slot.Frame.HasMouseHandlers)
+        if (slot.HasMouseHandlers)
         {
             _renderer.AddInteractiveRegion(new InteractiveRegion(
                 bounds,
                 slot.Instance,
-                slot.Frame.OnMouseDown,
-                slot.Frame.OnMouseUp,
-                slot.Frame.OnMouseClick,
-                slot.Frame.OnMouseMove,
-                slot.Frame.OnMouseEnter,
-                slot.Frame.OnMouseLeave));
+                slot.OnMouseDown,
+                slot.OnMouseUp,
+                slot.OnMouseClick,
+                slot.OnMouseMove,
+                slot.OnMouseEnter,
+                slot.OnMouseLeave));
         }
 
-        if (slot.Frame.HasKeyboardRegionHandlers)
+        if (slot.HasKeyboardRegionHandlers)
         {
             _renderer.AddKeyboardRegion(new KeyboardRegion(
                 slot.Instance,
-                slot.Frame.OnKeyDown,
-                slot.Frame.OnKeyUp,
-                slot.Frame.OnKeyPress,
-                slot.Frame.OnFocusChanged));
+                slot.OnKeyDown,
+                slot.OnKeyUp,
+                slot.OnKeyPress,
+                slot.OnFocusChanged));
         }
     }
 
@@ -636,7 +683,10 @@ internal sealed class GuiRenderTreeBuilder : IGuiRenderTreeBuilder, IDisposable
             }
 
             var lp = layoutComponent.LayoutParameters;
-            if (lp.Positioning == GuiComponentPositioning.Absolute) continue;
+            if (lp.Positioning == GuiComponentPositioning.Absolute)
+            {
+                continue;
+            }
 
             double childAvailW = Math.Max(0, availableWidth - lp.Margin.Horizontal);
             double childAvailH = Math.Max(0, availableHeight - lp.Margin.Vertical);
@@ -664,7 +714,11 @@ internal sealed class GuiRenderTreeBuilder : IGuiRenderTreeBuilder, IDisposable
     /// </summary>
     private static double AlignOffsetH(GuiHorizontalAlignment alignment, double extra)
     {
-        if (extra <= 0) return 0;
+        if (extra <= 0)
+        {
+            return 0;
+        }
+
         return alignment switch
         {
             GuiHorizontalAlignment.Center => extra * 0.5,
@@ -681,7 +735,11 @@ internal sealed class GuiRenderTreeBuilder : IGuiRenderTreeBuilder, IDisposable
     /// </summary>
     private static double AlignOffsetV(GuiVerticalAlignment alignment, double extra)
     {
-        if (extra <= 0) return 0;
+        if (extra <= 0)
+        {
+            return 0;
+        }
+
         return alignment switch
         {
             GuiVerticalAlignment.Center => extra * 0.5,
@@ -753,43 +811,6 @@ internal sealed class GuiRenderTreeBuilder : IGuiRenderTreeBuilder, IDisposable
             : availH; // Fill
 
         return new GuiMeasuredSize(w, h);
-    }
-
-    private sealed class ComponentSlot(IGuiNode instance, GuiRenderTreeBuilder childBuilder, RenderTreeFrame frame)
-    {
-        public readonly IGuiNode Instance = instance;
-        public readonly GuiRenderTreeBuilder ChildBuilder = childBuilder;
-
-        // The frame is stored here so AddComponent<T> can retrieve and reset it on subsequent
-        // rebuilds rather than allocating a new instance. Safe to cast back to RenderTreeFrame<T>
-        // since the slot key includes the type — the frame type always matches.
-        public readonly RenderTreeFrame Frame = frame;
-
-        public bool HasArrangedBounds;
-        public bool IsScrollable;
-        public GuiComponentBounds Bounds;
-        public GuiComponentBounds ScrollClipBounds;
-
-        public void SetLayoutTransparentBounds(GuiComponentBounds bounds)
-        {
-            HasArrangedBounds = true;
-            IsScrollable = false;
-            Bounds = bounds;
-        }
-
-        public void SetComponentBounds(GuiComponentBounds bounds)
-        {
-            HasArrangedBounds = true;
-            IsScrollable = false;
-            Bounds = bounds;
-            ScrollClipBounds = default;
-        }
-
-        public void SetScrollableBounds(GuiComponentBounds scrollClipBounds)
-        {
-            IsScrollable = true;
-            ScrollClipBounds = scrollClipBounds;
-        }
     }
 
     private struct SlotCallbacks
@@ -869,18 +890,18 @@ internal sealed class GuiRenderTreeBuilder : IGuiRenderTreeBuilder, IDisposable
             };
         }
 
-        public void ApplyTo(RenderTreeFrame frame)
+        public void ApplyTo(ComponentSlot slot)
         {
-            frame.OnMouseDown = OnMouseDown;
-            frame.OnMouseUp = OnMouseUp;
-            frame.OnMouseClick = OnMouseClick;
-            frame.OnMouseMove = OnMouseMove;
-            frame.OnMouseEnter = OnMouseEnter;
-            frame.OnMouseLeave = OnMouseLeave;
-            frame.OnKeyDown = OnKeyDown;
-            frame.OnKeyUp = OnKeyUp;
-            frame.OnKeyPress = OnKeyPress;
-            frame.OnFocusChanged = OnFocusChanged;
+            slot.OnMouseDown = OnMouseDown;
+            slot.OnMouseUp = OnMouseUp;
+            slot.OnMouseClick = OnMouseClick;
+            slot.OnMouseMove = OnMouseMove;
+            slot.OnMouseEnter = OnMouseEnter;
+            slot.OnMouseLeave = OnMouseLeave;
+            slot.OnKeyDown = OnKeyDown;
+            slot.OnKeyUp = OnKeyUp;
+            slot.OnKeyPress = OnKeyPress;
+            slot.OnFocusChanged = OnFocusChanged;
         }
     }
 
@@ -946,16 +967,6 @@ internal sealed class GuiRenderTreeBuilder : IGuiRenderTreeBuilder, IDisposable
             // Mouse + keyboard handlers are also per-pass: each blueprint pass re-registers
             // them via own-slot configuration and the On* extensions, mirroring how Configure
             // actions are re-registered.
-            OnMouseDown = default;
-            OnMouseUp = default;
-            OnMouseClick = default;
-            OnMouseMove = default;
-            OnMouseEnter = default;
-            OnMouseLeave = default;
-            OnKeyDown = default;
-            OnKeyUp = default;
-            OnKeyPress = default;
-            OnFocusChanged = default;
             _ownCallbacks = default;
             _externalCallbacks = default;
         }
@@ -964,7 +975,10 @@ internal sealed class GuiRenderTreeBuilder : IGuiRenderTreeBuilder, IDisposable
 
         public override void ApplyConfiguration(IGuiNode instance)
         {
-            if (instance is T typed) _configure?.Invoke(typed);
+            if (instance is T typed)
+            {
+                _configure?.Invoke(typed);
+            }
         }
 
         public override void ApplySlotConfiguration(IGuiNode instance)
@@ -976,9 +990,9 @@ internal sealed class GuiRenderTreeBuilder : IGuiRenderTreeBuilder, IDisposable
             }
         }
 
-        public override void ComposeSlotConfiguration()
+        public override void ComposeSlotConfiguration(ComponentSlot slot)
         {
-            SlotCallbacks.Combine(_ownCallbacks, _externalCallbacks).ApplyTo(this);
+            SlotCallbacks.Combine(_ownCallbacks, _externalCallbacks).ApplyTo(slot);
         }
 
         IGuiComponentBuilder<TNewComponent> IGuiRenderTreeBuilder.AddComponent<TNewComponent>(int key)
@@ -1021,7 +1035,7 @@ internal sealed class GuiRenderTreeBuilder : IGuiRenderTreeBuilder, IDisposable
         }
     }
 
-    private abstract class RenderTreeFrame
+    internal abstract class RenderTreeFrame
     {
         public abstract Type ComponentType { get; }
         public int Key { get; protected init; }
@@ -1032,42 +1046,15 @@ internal sealed class GuiRenderTreeBuilder : IGuiRenderTreeBuilder, IDisposable
         // the child builder's CascadeChain before recursing into the slot's subtree.
         public CascadingValueChain? CascadeChain;
 
-        // Mouse handlers live on the base so the renderer can read them via a non-generic
-        // reference. Default-valued GuiCallback<T> means "no handler" — checking HasMouseHandlers
-        // before allocating a region keeps the hot non-interactive path zero-cost.
-        public GuiCallback<GuiMouseEventArgs> OnMouseDown;
-        public GuiCallback<GuiMouseEventArgs> OnMouseUp;
-        public GuiCallback<GuiMouseEventArgs> OnMouseClick;
-        public GuiCallback<GuiMouseEventArgs> OnMouseMove;
-        public GuiCallback<GuiMouseEventArgs> OnMouseEnter;
-        public GuiCallback<GuiMouseEventArgs> OnMouseLeave;
-
-        // Keyboard handlers — fire only while this slot's component is the focused node
-        // (see FocusManager). Stored on the frame so the renderer can read them via a
-        // non-generic reference, same pattern as the mouse handlers above.
-        public GuiCallback<GuiKeyEventArgs> OnKeyDown;
-        public GuiCallback<GuiKeyEventArgs> OnKeyUp;
-        public GuiCallback<GuiKeyEventArgs> OnKeyPress;
-        public GuiCallback<bool> OnFocusChanged;
-
-        public bool HasMouseHandlers =>
-            OnMouseDown.HasHandler || OnMouseUp.HasHandler
-            || OnMouseClick.HasHandler || OnMouseMove.HasHandler
-            || OnMouseEnter.HasHandler || OnMouseLeave.HasHandler;
-
-        public bool HasKeyboardRegionHandlers =>
-            OnKeyDown.HasHandler || OnKeyUp.HasHandler || OnKeyPress.HasHandler || OnFocusChanged.HasHandler;
-
         public abstract IGuiNode CreateInstance();
         /// <summary>Clears per-pass state (registered configuration actions and mouse handlers).
         /// Called when an existing frame is reused at the start of a new blueprint pass.</summary>
         public abstract void Reset();
         public abstract void ApplySlotConfiguration(IGuiNode instance);
         public abstract void ApplyConfiguration(IGuiNode instance);
-        public abstract void ComposeSlotConfiguration();
+        public abstract void ComposeSlotConfiguration(ComponentSlot slot);
     }
 
     private readonly record struct ComponentSlotKey(Type ComponentType, int Key);
 
 }
-

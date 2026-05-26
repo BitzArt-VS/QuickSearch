@@ -1,5 +1,4 @@
 using Cairo;
-using System;
 using Vintagestory.API.Config;
 
 namespace BitzArt.UI.Tweaks.Gui;
@@ -175,7 +174,11 @@ public class GuiDialogTitleBar : GuiContainer
     private void HandleMouseDown(GuiMouseEventArgs e)
     {
         // Only the left mouse button initiates a drag — matches vanilla title-bar behaviour.
-        if (e.Button != Vintagestory.API.Common.EnumMouseButton.Left) return;
+        if (e.Button != Vintagestory.API.Common.EnumMouseButton.Left)
+        {
+            return;
+        }
+
         _dragging = true;
         _dragLastX = e.AbsolutePosition.X;
         _dragLastY = e.AbsolutePosition.Y;
@@ -183,13 +186,21 @@ public class GuiDialogTitleBar : GuiContainer
 
     private void HandleMouseMove(GuiMouseEventArgs e)
     {
-        if (!_dragging) return;
+        if (!_dragging)
+        {
+            return;
+        }
+
         double dx = e.AbsolutePosition.X - _dragLastX;
         double dy = e.AbsolutePosition.Y - _dragLastY;
         _dragLastX = e.AbsolutePosition.X;
         _dragLastY = e.AbsolutePosition.Y;
 
-        if (dx == 0 && dy == 0) return;
+        if (dx == 0 && dy == 0)
+        {
+            return;
+        }
+
         OnDrag?.Invoke(dx, dy);
     }
 

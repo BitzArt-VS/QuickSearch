@@ -1,5 +1,4 @@
 using BitzArt.UI.Tweaks.Config;
-using System;
 
 namespace BitzArt.UI.Tweaks;
 

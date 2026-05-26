@@ -1,5 +1,4 @@
 using Cairo;
-using System;
 using Vintagestory.API.Client;
 using Vintagestory.API.Config;
 
@@ -93,7 +92,11 @@ public sealed class GuiSlider : GuiInputBase
     public void SetValue(int value)
     {
         int snapped = Snap(value);
-        if (snapped == Value) return;
+        if (snapped == Value)
+        {
+            return;
+        }
+
         Value = snapped;
         OnValueChanged.Invoke(Value);
         RequestPaint();
@@ -109,7 +112,10 @@ public sealed class GuiSlider : GuiInputBase
 
     private void HandleKeyDown(GuiKeyEventArgs args)
     {
-        if (!Enabled || !IsFocused) return;
+        if (!Enabled || !IsFocused)
+        {
+            return;
+        }
 
         int dir = args.KeyCode switch
         {
@@ -131,7 +137,10 @@ public sealed class GuiSlider : GuiInputBase
         }
 
         // Let Tab / Escape pass through for dialog-level traversal / close.
-        if (args.KeyCode == (int)GlKeys.Tab || args.KeyCode == (int)GlKeys.Escape) return;
+        if (args.KeyCode == (int)GlKeys.Tab || args.KeyCode == (int)GlKeys.Escape)
+        {
+            return;
+        }
 
         // Swallow other keys so global hotkeys don't fire while the slider is focused.
         args.Handled = true;
@@ -147,7 +156,11 @@ public sealed class GuiSlider : GuiInputBase
     /// <inheritdoc/>
     protected override void OnInputMouseMove(GuiMouseEventArgs e)
     {
-        if (!IsPressed) return;
+        if (!IsPressed)
+        {
+            return;
+        }
+
         UpdateValueFromMouse(e.Position.X);
     }
 
@@ -155,7 +168,9 @@ public sealed class GuiSlider : GuiInputBase
     protected override void OnInputMouseUp(GuiMouseEventArgs e)
     {
         if (TriggerOnMouseUp && Value != _pressStartValue)
+        {
             OnValueChanged.Invoke(Value);
+        }
     }
 
     /// <summary>
@@ -173,17 +188,27 @@ public sealed class GuiSlider : GuiInputBase
     private void UpdateValueFromMouse(double mouseX)
     {
         double sliderSpan = LastBounds.Width - 2 * Padding - HandleWidth;
-        if (sliderSpan <= 0) return;
+        if (sliderSpan <= 0)
+        {
+            return;
+        }
 
         double localX = mouseX - LastBounds.X - Padding - HandleWidth / 2.0;
         double t = Math.Clamp(localX / sliderSpan, 0.0, 1.0);
         double raw = MinValue + (MaxValue - MinValue) * t;
         int snapped = Snap((int)Math.Round(raw));
 
-        if (snapped == Value) return;
+        if (snapped == Value)
+        {
+            return;
+        }
+
         Value = snapped;
         if (!TriggerOnMouseUp)
+        {
             OnValueChanged.Invoke(Value);
+        }
+
         RequestPaint();
     }
 
@@ -197,7 +222,11 @@ public sealed class GuiSlider : GuiInputBase
         // Round to nearest multiple of step using integer math.
         int snappedRel = ((rel + step / 2) / step) * step;
         int result = MinValue + snappedRel;
-        if (result > MaxValue) result = MinValue + ((MaxValue - MinValue) / step) * step;
+        if (result > MaxValue)
+        {
+            result = MinValue + ((MaxValue - MinValue) / step) * step;
+        }
+
         return result;
     }
 
@@ -245,7 +274,9 @@ public sealed class GuiSlider : GuiInputBase
         //    the dialog surface will clip if it extends past the dialog edge — acceptable
         //    for an initial implementation, matches vanilla without TooltipExceedClipBounds.
         if (Enabled && (IsPressed || IsHovered))
+        {
             DrawValueTooltip(ctx, handleCenterX, bounds.Y);
+        }
     }
 
     private double ComputeHandleCenterX(GuiComponentBounds bounds)
@@ -261,8 +292,10 @@ public sealed class GuiSlider : GuiInputBase
         // 1. Drop shadow — dialed back from the default GuiShadow values: a touch lower
         //    alpha and a wider spread so the falloff feels softer rather than crisp.
         if (enabled)
+        {
             GuiShadow.Draw(ctx, x, y, w, h,
                 steps: 3, offset: 1.0, spread: 0.85, alpha: 0.14, radius: 1);
+        }
 
         // 2. Body fill. ButtonBackColor carries vanilla's 0.8 alpha which would let the
         //    dark filled track bleed through the handle; force opaque so the handle reads
@@ -295,7 +328,10 @@ public sealed class GuiSlider : GuiInputBase
     private void DrawValueTooltip(Context ctx, double anchorX, double trackTop)
     {
         string text = OnTooltipText?.Invoke(Value) ?? (Value + Unit);
-        if (string.IsNullOrEmpty(text)) return;
+        if (string.IsNullOrEmpty(text))
+        {
+            return;
+        }
 
         const double padX = 7;
         const double padY = 4;

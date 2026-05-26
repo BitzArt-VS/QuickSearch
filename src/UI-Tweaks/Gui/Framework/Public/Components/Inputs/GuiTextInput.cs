@@ -1,5 +1,4 @@
 using Cairo;
-using System;
 using System.Globalization;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
@@ -112,9 +111,21 @@ public sealed class GuiTextInput : GuiInputBase
     public bool SetText(string text)
     {
         text ??= string.Empty;
-        if (MaxLength >= 0 && text.Length > MaxLength) text = text[..MaxLength];
-        if (!IsValidCandidate(text)) return false;
-        if (Text == text) return true;
+        if (MaxLength >= 0 && text.Length > MaxLength)
+        {
+            text = text[..MaxLength];
+        }
+
+        if (!IsValidCandidate(text))
+        {
+            return false;
+        }
+
+        if (Text == text)
+        {
+            return true;
+        }
+
         Text = text;
         _caret = Math.Min(_caret, Text.Length);
         OnTextChanged.Invoke(Text);
@@ -139,7 +150,10 @@ public sealed class GuiTextInput : GuiInputBase
         // and win the topmost-wins reverse hit-test for any pixel inside the gutter.
         base.BuildRenderTree(builder);
 
-        if (!SpinnerButtonsVisible) return;
+        if (!SpinnerButtonsVisible)
+        {
+            return;
+        }
 
         builder.Add<GuiMouseTarget>(1)
             .Configure(target => target.Content = BuildSpinnerUpTargetContent)
@@ -182,12 +196,20 @@ public sealed class GuiTextInput : GuiInputBase
     {
         if (up)
         {
-            if (_spinnerUpHovered == hovered) return;
+            if (_spinnerUpHovered == hovered)
+            {
+                return;
+            }
+
             _spinnerUpHovered = hovered;
         }
         else
         {
-            if (_spinnerDownHovered == hovered) return;
+            if (_spinnerDownHovered == hovered)
+            {
+                return;
+            }
+
             _spinnerDownHovered = hovered;
         }
 
@@ -198,12 +220,20 @@ public sealed class GuiTextInput : GuiInputBase
     {
         if (up)
         {
-            if (_spinnerUpPressed == pressed) return;
+            if (_spinnerUpPressed == pressed)
+            {
+                return;
+            }
+
             _spinnerUpPressed = pressed;
         }
         else
         {
-            if (_spinnerDownPressed == pressed) return;
+            if (_spinnerDownPressed == pressed)
+            {
+                return;
+            }
+
             _spinnerDownPressed = pressed;
         }
 
@@ -212,8 +242,15 @@ public sealed class GuiTextInput : GuiInputBase
 
     private void HandleSpinnerMouseDown(GuiMouseEventArgs e, int direction)
     {
-        if (!Enabled) return;
-        if (e.Button != EnumMouseButton.Left) return;
+        if (!Enabled)
+        {
+            return;
+        }
+
+        if (e.Button != EnumMouseButton.Left)
+        {
+            return;
+        }
 
         SetSpinnerPressed(direction > 0, pressed: true);
 
@@ -222,8 +259,15 @@ public sealed class GuiTextInput : GuiInputBase
         double step = SpinnerInterval;
         if (ClientApi?.Input is { } input)
         {
-            if (input.KeyboardKeyState[(int)GlKeys.ShiftLeft]) step /= 10;
-            if (input.KeyboardKeyState[(int)GlKeys.ControlLeft]) step /= 100;
+            if (input.KeyboardKeyState[(int)GlKeys.ShiftLeft])
+            {
+                step /= 10;
+            }
+
+            if (input.KeyboardKeyState[(int)GlKeys.ControlLeft])
+            {
+                step /= 100;
+            }
         }
 
         // In integer mode round the step magnitude up to at least 1 so modifier keys
@@ -242,15 +286,26 @@ public sealed class GuiTextInput : GuiInputBase
             ? ((long)Math.Round(next)).ToString(GlobalConstants.DefaultCultureInfo)
             : Math.Round(next, 4).ToString(GlobalConstants.DefaultCultureInfo);
 
-        if (MaxLength >= 0 && nextText.Length > MaxLength) return;
-        if (!IsValidCandidate(nextText)) return;
+        if (MaxLength >= 0 && nextText.Length > MaxLength)
+        {
+            return;
+        }
+
+        if (!IsValidCandidate(nextText))
+        {
+            return;
+        }
 
         ClientApi?.Gui.PlaySound("tick");
         // Vanilla focuses the input on a button click; we mirror that so the user can
         // immediately type into the field after stepping the value with the buttons.
         FocusManager?.RequestFocus(this);
 
-        if (Text == nextText) return;
+        if (Text == nextText)
+        {
+            return;
+        }
+
         Text = nextText;
         _caret = Text.Length;
         OnTextChanged.Invoke(Text);
@@ -291,7 +346,10 @@ public sealed class GuiTextInput : GuiInputBase
 
     private void HandleKeyDown(GuiKeyEventArgs args)
     {
-        if (!Enabled || !IsFocused) return;
+        if (!Enabled || !IsFocused)
+        {
+            return;
+        }
 
         int keyCode = args.KeyCode;
         switch (keyCode)
@@ -353,7 +411,10 @@ public sealed class GuiTextInput : GuiInputBase
 
     private void HandleKeyPress(GuiKeyEventArgs args)
     {
-        if (!Enabled || !IsFocused) return;
+        if (!Enabled || !IsFocused)
+        {
+            return;
+        }
 
         char ch = args.KeyChar;
         // Filter non-printable and control characters — OnKeyDown already handled
@@ -378,10 +439,16 @@ public sealed class GuiTextInput : GuiInputBase
     /// <inheritdoc/>
     public override void OnFrame(float deltaTime)
     {
-        if (!Enabled || !IsFocused) return;
+        if (!Enabled || !IsFocused)
+        {
+            return;
+        }
 
         _blinkAccumulator += deltaTime;
-        if (_blinkAccumulator < BlinkPeriodSeconds) return;
+        if (_blinkAccumulator < BlinkPeriodSeconds)
+        {
+            return;
+        }
 
         _blinkAccumulator -= BlinkPeriodSeconds;
         _caretBlinkOn = !_caretBlinkOn;
@@ -404,8 +471,15 @@ public sealed class GuiTextInput : GuiInputBase
     /// </summary>
     private bool IsValidCandidate(string candidate)
     {
-        if (Mode == GuiTextInputMode.Text) return true;
-        if (string.IsNullOrEmpty(candidate)) return true;
+        if (Mode == GuiTextInputMode.Text)
+        {
+            return true;
+        }
+
+        if (string.IsNullOrEmpty(candidate))
+        {
+            return true;
+        }
 
         bool allowDecimal = Mode == GuiTextInputMode.Decimal;
         int dotCount = 0;
@@ -415,16 +489,31 @@ public sealed class GuiTextInput : GuiInputBase
             char c = candidate[i];
             if (c == '-')
             {
-                if (i != 0) return false;
+                if (i != 0)
+                {
+                    return false;
+                }
+
                 continue;
             }
             if (c == '.')
             {
-                if (!allowDecimal) return false;
-                if (++dotCount > 1) return false;
+                if (!allowDecimal)
+                {
+                    return false;
+                }
+
+                if (++dotCount > 1)
+                {
+                    return false;
+                }
+
                 continue;
             }
-            if (c < '0' || c > '9') return false;
+            if (c < '0' || c > '9')
+            {
+                return false;
+            }
         }
 
         // Ensure the result isn't just "-" by itself? Allow it as an intermediate state —

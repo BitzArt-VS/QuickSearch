@@ -1,6 +1,5 @@
 using BitzArt.UI.Tweaks.Config;
 using BitzArt.UI.Tweaks.Gui;
-using System;
 using System.Globalization;
 using Vintagestory.API.Client;
 using Vintagestory.API.Config;
@@ -46,7 +45,11 @@ internal sealed class TooltipDetailModConfigPage : GuiComponent
 
     protected override void BuildRenderTree(IGuiRenderTreeBuilder builder)
     {
-        if (_context is null || _options is null) return;
+        if (_context is null || _options is null)
+        {
+            return;
+        }
+
         var options = _options;
 
         BuildSectionLabel(builder, key: 100, Lang.Get($"{Constants.ModId}:config-tooltip-section-general"), isFirst: true);
@@ -103,7 +106,11 @@ internal sealed class TooltipDetailModConfigPage : GuiComponent
                 widthMode: GuiSizeMode.Fill,
                 onTextChanged: val =>
                 {
-                    if (!double.TryParse(val, NumberStyles.Any, InvCulture, out double v) || v <= 0) return;
+                    if (!double.TryParse(val, NumberStyles.Any, InvCulture, out double v) || v <= 0)
+                    {
+                        return;
+                    }
+
                     options.Height = v;
                     options.NotifyPropertyChanged(nameof(TooltipOptions.Height));
                     _context!.SaveConfig();
@@ -119,7 +126,11 @@ internal sealed class TooltipDetailModConfigPage : GuiComponent
                 widthMode: GuiSizeMode.Fill,
                 onTextChanged: val =>
                 {
-                    if (!double.TryParse(val, NumberStyles.Any, InvCulture, out double v) || v <= 0) return;
+                    if (!double.TryParse(val, NumberStyles.Any, InvCulture, out double v) || v <= 0)
+                    {
+                        return;
+                    }
+
                     options.Width = v;
                     options.NotifyPropertyChanged(nameof(TooltipOptions.Width));
                     _context!.SaveConfig();
@@ -135,7 +146,11 @@ internal sealed class TooltipDetailModConfigPage : GuiComponent
                 widthMode: GuiSizeMode.Fill,
                 onTextChanged: val =>
                 {
-                    if (!double.TryParse(val, NumberStyles.Any, InvCulture, out double v)) return;
+                    if (!double.TryParse(val, NumberStyles.Any, InvCulture, out double v))
+                    {
+                        return;
+                    }
+
                     options.Offset.X = v;
                     options.NotifyPropertyChanged(nameof(TooltipOptions.Offset));
                     _context!.SaveConfig();
@@ -151,7 +166,11 @@ internal sealed class TooltipDetailModConfigPage : GuiComponent
                 widthMode: GuiSizeMode.Fill,
                 onTextChanged: val =>
                 {
-                    if (!double.TryParse(val, NumberStyles.Any, InvCulture, out double v)) return;
+                    if (!double.TryParse(val, NumberStyles.Any, InvCulture, out double v))
+                    {
+                        return;
+                    }
+
                     options.Offset.Y = v;
                     options.NotifyPropertyChanged(nameof(TooltipOptions.Offset));
                     _context!.SaveConfig();
@@ -181,7 +200,11 @@ internal sealed class TooltipDetailModConfigPage : GuiComponent
                 widthMode: GuiSizeMode.Fill,
                 onTextChanged: val =>
                 {
-                    if (!double.TryParse(val, NumberStyles.Any, InvCulture, out double v) || v <= 0) return;
+                    if (!double.TryParse(val, NumberStyles.Any, InvCulture, out double v) || v <= 0)
+                    {
+                        return;
+                    }
+
                     options.FontSize = v;
                     options.NotifyPropertyChanged(nameof(TooltipOptions.FontSize));
                     _context!.SaveConfig();
@@ -197,7 +220,11 @@ internal sealed class TooltipDetailModConfigPage : GuiComponent
                 widthMode: GuiSizeMode.Fill,
                 onTextChanged: val =>
                 {
-                    if (!double.TryParse(val, NumberStyles.Any, InvCulture, out double v)) return;
+                    if (!double.TryParse(val, NumberStyles.Any, InvCulture, out double v))
+                    {
+                        return;
+                    }
+
                     options.Padding.Top = v;
                     options.NotifyPropertyChanged(nameof(TooltipOptions.Padding));
                     _context!.SaveConfig();
@@ -213,7 +240,11 @@ internal sealed class TooltipDetailModConfigPage : GuiComponent
                 widthMode: GuiSizeMode.Fill,
                 onTextChanged: val =>
                 {
-                    if (!double.TryParse(val, NumberStyles.Any, InvCulture, out double v)) return;
+                    if (!double.TryParse(val, NumberStyles.Any, InvCulture, out double v))
+                    {
+                        return;
+                    }
+
                     options.Padding.Right = v;
                     options.NotifyPropertyChanged(nameof(TooltipOptions.Padding));
                     _context!.SaveConfig();
@@ -229,7 +260,11 @@ internal sealed class TooltipDetailModConfigPage : GuiComponent
                 widthMode: GuiSizeMode.Fill,
                 onTextChanged: val =>
                 {
-                    if (!double.TryParse(val, NumberStyles.Any, InvCulture, out double v)) return;
+                    if (!double.TryParse(val, NumberStyles.Any, InvCulture, out double v))
+                    {
+                        return;
+                    }
+
                     options.Padding.Bottom = v;
                     options.NotifyPropertyChanged(nameof(TooltipOptions.Padding));
                     _context!.SaveConfig();
@@ -245,7 +280,11 @@ internal sealed class TooltipDetailModConfigPage : GuiComponent
                 widthMode: GuiSizeMode.Fill,
                 onTextChanged: val =>
                 {
-                    if (!double.TryParse(val, NumberStyles.Any, InvCulture, out double v)) return;
+                    if (!double.TryParse(val, NumberStyles.Any, InvCulture, out double v))
+                    {
+                        return;
+                    }
+
                     options.Padding.Left = v;
                     options.NotifyPropertyChanged(nameof(TooltipOptions.Padding));
                     _context!.SaveConfig();
@@ -276,7 +315,11 @@ internal sealed class TooltipDetailModConfigPage : GuiComponent
                 widthMode: GuiSizeMode.Fill,
                 onTextChanged: val =>
                 {
-                    if (!double.TryParse(val, NumberStyles.Any, InvCulture, out double v)) return;
+                    if (!double.TryParse(val, NumberStyles.Any, InvCulture, out double v))
+                    {
+                        return;
+                    }
+
                     options.BackgroundOpacity = v;
                     options.NotifyPropertyChanged(nameof(TooltipOptions.BackgroundOpacity));
                     _context!.SaveConfig();
@@ -292,7 +335,11 @@ internal sealed class TooltipDetailModConfigPage : GuiComponent
                 widthMode: GuiSizeMode.Fill,
                 onTextChanged: val =>
                 {
-                    if (!double.TryParse(val, NumberStyles.Any, InvCulture, out double v)) return;
+                    if (!double.TryParse(val, NumberStyles.Any, InvCulture, out double v))
+                    {
+                        return;
+                    }
+
                     options.BackgroundCornerRadius = v;
                     options.NotifyPropertyChanged(nameof(TooltipOptions.BackgroundCornerRadius));
                     _context!.SaveConfig();

@@ -1,6 +1,5 @@
 using BitzArt.UI.Tweaks.Gui;
 using Cairo;
-using System;
 
 namespace BitzArt.UI.Tweaks;
 

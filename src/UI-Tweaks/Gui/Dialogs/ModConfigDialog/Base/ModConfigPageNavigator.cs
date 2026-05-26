@@ -1,6 +1,4 @@
 using BitzArt.UI.Tweaks.Gui;
-using System;
-using System.Collections.Generic;
 
 namespace BitzArt.UI.Tweaks;
 
@@ -47,7 +45,11 @@ internal sealed class ModConfigPageNavigator
 
     public void Pop()
     {
-        if (_stack.Count <= 1) return;
+        if (_stack.Count <= 1)
+        {
+            return;
+        }
+
         _stack.RemoveAt(_stack.Count - 1);
         RebuildPreviousNamesCache();
         _stateChanged();
@@ -56,7 +58,11 @@ internal sealed class ModConfigPageNavigator
     public void PopToName(string name)
     {
         int index = _stack.FindIndex(e => e.Name == name);
-        if (index < 0 || index == _stack.Count - 1) return;
+        if (index < 0 || index == _stack.Count - 1)
+        {
+            return;
+        }
+
         _stack.RemoveRange(index + 1, _stack.Count - index - 1);
         RebuildPreviousNamesCache();
         _stateChanged();

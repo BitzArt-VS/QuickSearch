@@ -1,6 +1,0 @@
-interface:
-  display_name: "UI-Tweaks Localization"
-  short_description: "Update all UI-Tweaks language files"
-  default_prompt: "Use $uitweaks-localization to add or review UI-Tweaks translation keys across every language file."
-policy:
-  allow_implicit_invocation: true

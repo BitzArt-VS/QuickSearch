@@ -1,6 +1,5 @@
 using BitzArt.UI.Tweaks.Config;
 using BitzArt.UI.Tweaks.Gui;
-using System;
 using Vintagestory.API.Client;
 using Vintagestory.API.Config;
 
@@ -30,36 +29,51 @@ public class ModConfigDialog : Gui.GuiDialog
     private static NavPage CreateNavPage<T>() where T : IModConfigPage, new()
         => new(T.PageName, b => b.Add<T>(0, widthMode: GuiSizeMode.Fill));
 
-    private readonly ICoreClientAPI _clientApi;
-    private readonly UiTweaksModConfig _config;
-    private readonly ModConfigContext _context;
-    private readonly Debouncer _saveDebouncer;
-    private readonly ModConfigPageNavigator _navigator;
+    private UiTweaksModConfig? _config;
+    private ModConfigContext? _context;
+    private Debouncer? _saveDebouncer;
+    private ModConfigPageNavigator? _navigator;
 
-    public ModConfigDialog(ICoreClientAPI clientApi, UiTweaksModConfig config) : base(clientApi)
+    private ModConfigContext Context => _context
+        ?? throw new InvalidOperationException($"{nameof(ModConfigDialog)} has not been configured.");
+
+    private ModConfigPageNavigator Navigator => _navigator
+        ?? throw new InvalidOperationException($"{nameof(ModConfigDialog)} has not been configured.");
+
+    public ModConfigDialog()
     {
-        _clientApi = clientApi;
-        _config = config;
-        _saveDebouncer = new Debouncer(
-            TimeSpan.FromMilliseconds(SaveDebounceMs),
-            () => _clientApi.StoreModConfig(_config, Constants.ModConfigFileName));
-        _context = new ModConfigContext(_config, _saveDebouncer.Trigger);
-
-        var initialPage = CreateNavPage<GeneralModConfigPage>();
-        _navigator = new ModConfigPageNavigator(() => RequestReconcile(), initialPage.Label, initialPage.Content);
-
-        LayoutParameters.Width = 650;
-        LayoutParameters.Height = 520;
-        LayoutParameters.Padding = new GuiThickness(0);
-
         IsResizable = true;
         MinWidth = 600;
         MinHeight = 360;
     }
 
+    public void Configure(UiTweaksModConfig config)
+    {
+        ArgumentNullException.ThrowIfNull(config);
+
+        if (ReferenceEquals(_config, config) && _context is not null && _navigator is not null)
+        {
+            return;
+        }
+
+        _saveDebouncer?.Flush();
+        _saveDebouncer?.Dispose();
+
+        _config = config;
+        _saveDebouncer = new Debouncer(
+            TimeSpan.FromMilliseconds(SaveDebounceMs),
+            () => ClientApi.StoreModConfig(config, Constants.ModConfigFileName));
+        _context = new ModConfigContext(config, _saveDebouncer.Trigger);
+
+        var initialPage = CreateNavPage<GeneralModConfigPage>();
+        _navigator = new ModConfigPageNavigator(() => RequestReconcile(), initialPage.Label, initialPage.Content);
+    }
+
     public override void Dispose()
     {
-        _saveDebouncer.Flush();
+        _saveDebouncer?.Flush();
+        _saveDebouncer?.Dispose();
+        _saveDebouncer = null;
         base.Dispose();
     }
 
@@ -68,17 +82,28 @@ public class ModConfigDialog : Gui.GuiDialog
         RequestArrange();
     }
 
+    protected override void ConfigureSlot(IGuiSlotBuilder builder)
+    {
+        base.ConfigureSlot(builder);
+        builder.ConfigureLayout(layoutParameters =>
+        {
+            layoutParameters.Width = 650;
+            layoutParameters.Height = 520;
+            layoutParameters.Padding = new GuiThickness(0);
+        });
+    }
+
     protected override void BuildRenderTree(IGuiRenderTreeBuilder builder)
     {
-        builder.AddCascadingValue(_context, builder =>
-        builder.AddCascadingValue(_navigator, builder =>
+        builder.AddCascadingValue(Context, builder =>
+        builder.AddCascadingValue(Navigator, builder =>
         {
             builder.AddContainer(0, fill: true,
                 content: builder =>
                 {
                     builder
                         .AddDialogTitleBar(0, Lang.Get($"{Constants.ModId}:ui-tweaks-config"),
-                            onDrag: Move, onClose: Close);
+                            onDrag: Move, onClose: RequestClose);
 
                     builder
                         .AddDialogBackground(1, fill: true,
@@ -108,7 +133,7 @@ public class ModConfigDialog : Gui.GuiDialog
                                 .Configure(row =>
                                 {
                                     row.Text = page.Label;
-                                    row.IsSelected = _navigator.RootPageName == page.Label;
+                                    row.IsSelected = Navigator.RootPageName == page.Label;
                                     row.OnClick = (Action)(() => SelectPage(page));
                                 });
                         }
@@ -136,9 +161,9 @@ public class ModConfigDialog : Gui.GuiDialog
                                         builder.Add<GuiBreadcrumbs>(0, widthMode: GuiSizeMode.Fill)
                                             .Configure(c =>
                                             {
-                                                c.CurrentItem = _navigator.CurrentPageName;
-                                                c.PreviousItems = _navigator.BreadcrumbPreviousItems;
-                                                c.OnItemClicked = name => _navigator.PopToName(name);
+                                                c.CurrentItem = Navigator.CurrentPageName;
+                                                c.PreviousItems = Navigator.BreadcrumbPreviousItems;
+                                                c.OnItemClicked = name => Navigator.PopToName(name);
                                             });
 
                                         builder.AddRectangle(1,
@@ -150,7 +175,7 @@ public class ModConfigDialog : Gui.GuiDialog
                                 builder.AddContainer<ConfigScrollPanel>(1,
                                     fill: true,
                                     margin: new GuiThickness(0, 8, 8, 8),
-                                    content: _navigator.CurrentContent);
+                                    content: Navigator.CurrentContent);
                             });
                     });
             });
@@ -158,9 +183,12 @@ public class ModConfigDialog : Gui.GuiDialog
 
     private void SelectPage(NavPage page)
     {
-        if (_navigator.IsAtRoot(page.Label)) return;
-        _navigator.NavigateToRoot(page.Label, page.Content);
+        if (Navigator.IsAtRoot(page.Label))
+        {
+            return;
+        }
+
+        Navigator.NavigateToRoot(page.Label, page.Content);
     }
 
 }
-

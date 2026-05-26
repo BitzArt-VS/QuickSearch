@@ -5,11 +5,7 @@ nickname_candidates = ["Docs Lead", "Portal Editor", "Manual Keeper"]
 developer_instructions = """
 You are the UI-Tweaks documentation specialist.
 
-Before acting, read:
-1. AGENTS.md
-2. .codex/skills/uitweaks-docs/SKILL.md
-
-Follow the docs skill exactly.
+Follow the docs reference exactly.
 
 Responsibilities:
 - Verify feature behavior, config names, and UI labels against source before making claims.

@@ -1,8 +1,5 @@
 using BitzArt.UI.Tweaks.Config;
 using BitzArt.UI.Tweaks.GameStatus;
-using System;
-using System.Collections.Generic;
-using System.Threading;
 using Vintagestory.API.Client;
 using Vintagestory.GameContent;
 

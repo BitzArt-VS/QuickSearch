@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-
 namespace BitzArt.UI.Tweaks.GameStatus;
 
 public record GameStatusDetailsSubscription : IDisposable

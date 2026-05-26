@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
@@ -20,14 +18,21 @@ internal static class GuiResizeCursors
 
     internal static void EnsureLoaded(ICoreClientAPI api)
     {
-        if (_loaded) return;
+        if (_loaded)
+        {
+            return;
+        }
+
         _loaded = true;
 
         // Vanilla short-circuits cursor loading on macOS (the SDL/GLFW cursor API
         // misbehaves with custom cursors on Cocoa). Mirror that — the resize gesture
         // still works, just without the custom cursor visuals; vanilla "move" stays as
         // a passable fallback.
-        if (RuntimeEnv.OS == OS.Mac) return;
+        if (RuntimeEnv.OS == OS.Mac)
+        {
+            return;
+        }
 
         // coords.json mirrors the vanilla format: { "code": { x: int, y: int } } where
         // (x, y) is the hot-point in pixels.
@@ -48,7 +53,10 @@ internal static class GuiResizeCursors
             api.World.Logger.Warning("[UI-Tweaks] Failed to parse resize cursor coords.json: {0}", e.Message);
             return;
         }
-        if (coords is null) return;
+        if (coords is null)
+        {
+            return;
+        }
 
         TryLoad(api, coords, "resize-h", Horizontal);
         TryLoad(api, coords, "resize-v", Vertical);

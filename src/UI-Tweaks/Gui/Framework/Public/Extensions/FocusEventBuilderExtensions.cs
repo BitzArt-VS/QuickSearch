@@ -1,6 +1,3 @@
-using System;
-using System.Threading.Tasks;
-
 namespace BitzArt.UI.Tweaks.Gui;
 
 /// <summary>

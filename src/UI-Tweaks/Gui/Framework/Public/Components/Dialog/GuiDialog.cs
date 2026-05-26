@@ -1,25 +1,20 @@
-using System;
 using Vintagestory.API.Client;
 
 namespace BitzArt.UI.Tweaks.Gui;
 
 public abstract class GuiDialog : GuiComponent, IGuiDialog, IDisposable
 {
-    // ClientApi is guaranteed non-null for dialogs: Attach is called in the GuiDialog
-    // constructor before any consumer code runs, so the nullable base property is always set.
+    // ClientApi is guaranteed non-null after the dialog is attached by the dialog host.
     protected new ICoreClientAPI ClientApi => base.ClientApi!;
     protected bool IsDisposed { get; private set; }
-    public bool IsOpen { get; private set; }
 
     /// <summary>
     /// Whether this dialog currently holds keyboard focus. Only the focused dialog receives
-    /// keyboard events and is drawn on top of other dialogs at the same render rank.
+    /// keyboard events, and vanilla focus handling brings it in front of other Cairo dialogs.
     /// </summary>
     public bool IsFocused { get; private set; }
 
-    private readonly DialogRenderer _renderer;
-
-    public virtual double RenderOrder => 0.2;
+    private GuiDialogRuntime? _runtime;
 
     /// <summary>
     /// Horizontal offset in logical (unscaled) pixels from the screen-centred default position.
@@ -66,14 +61,13 @@ public abstract class GuiDialog : GuiComponent, IGuiDialog, IDisposable
         get => _isResizable;
         set
         {
-            if (_isResizable == value) return;
-            _isResizable = value;
-            // Lazy cursor registration: only pay the Cairo+temp-file cost when at least
-            // one resizable dialog is constructed in this session. Idempotent.
-            if (value)
+            if (_isResizable == value)
             {
-                GuiResizeCursors.EnsureLoaded(ClientApi);
+                return;
             }
+
+            _isResizable = value;
+            EnsureResizeCursors();
         }
     }
     private bool _isResizable = false;
@@ -110,64 +104,71 @@ public abstract class GuiDialog : GuiComponent, IGuiDialog, IDisposable
     private int _resizeAnchorLeft;
     private int _resizeAnchorTop;
 
-    protected GuiDialog(ICoreClientAPI clientApi)
+    protected GuiDialog()
     {
-        LayoutParameters.Width = 400;
-        LayoutParameters.Height = 300;
-        _renderer = new DialogRenderer(clientApi, this, GetType().Name);
-        Attach(_renderer.Handle, clientApi);
     }
 
-    public void Open()
+    internal void AttachRuntime(GuiDialogRuntime runtime)
     {
-        ObjectDisposedException.ThrowIf(IsDisposed, this);
+        _runtime = runtime;
+        EnsureResizeCursors();
+    }
 
-        if (IsOpen)
+    private GuiDialogRuntime Runtime => _runtime
+        ?? throw new InvalidOperationException("Dialog is not attached to a dialog host.");
+
+    private void EnsureResizeCursors()
+    {
+        if (!_isResizable || base.ClientApi is not ICoreClientAPI clientApi)
         {
             return;
         }
 
-        IsOpen = true;
-        // TryOpen drives vanilla focus management, which calls Focus() on the interceptor
-        // and propagates here via OnFocus(). It also adds the interceptor to game.OpenedGuis,
-        // which is what GuiManager.OnRenderFrameGUI iterates — our render is then driven
-        // from the interceptor's OnRenderGUI override, so this dialog shares the vanilla
-        // dialog z-stack instead of painting from a separate Ortho renderer slot.
-        _renderer.TryOpen();
-        RequestReconcile();
-        OnOpened();
-    }
-
-    public void Close()
-    {
-        if (!IsOpen)
-        {
-            return;
-        }
-
-        IsOpen = false;
-        // Suppress any active tooltip — otherwise its surface would flash on next open
-        // until the user moves the cursor off and back onto the trigger.
-        _renderer.HideTooltip();
-        // Clear focus on close so a re-opened dialog starts in a fresh state and the
-        // caret blink loop stops accumulating ticks against a node that may be pruned.
-        _renderer.SetFocusedNode(null);
-        _renderer.TryClose();
-        OnClosed();
+        // Lazy cursor registration: only pay the Cairo+temp-file cost when at least
+        // one resizable dialog is constructed in this session. Idempotent.
+        GuiResizeCursors.EnsureLoaded(clientApi);
     }
 
     /// <summary>
-    /// Requests keyboard focus for this dialog. Other open dialogs lose focus and this
-    /// dialog is brought to the front of its render rank.
+    /// Requests keyboard focus for this dialog. Other open dialogs lose focus and vanilla
+    /// focus handling brings this dialog to the front.
     /// </summary>
     public void RequestFocus()
     {
-        if (!IsOpen || IsDisposed) return;
-        _renderer.RequestFocus();
+        if (IsDisposed)
+        {
+            return;
+        }
+
+        Runtime.RequestFocus();
     }
 
-    protected virtual void OnOpened() { }
-    protected virtual void OnClosed() { }
+    protected void RequestClose()
+    {
+        if (IsDisposed)
+        {
+            return;
+        }
+
+        Runtime.RequestClose();
+    }
+
+    protected override void ConfigureSlot(IGuiSlotBuilder builder)
+    {
+        base.ConfigureSlot(builder);
+        IGuiDialog dialog = this;
+        builder.ConfigureLayout(layoutParameters =>
+        {
+            layoutParameters.Width = 400;
+            layoutParameters.Height = 300;
+        });
+        builder
+            .OnMouseDown(dialog.OnMouseDown)
+            .OnMouseUp(dialog.OnMouseUp)
+            .OnMouseMove(dialog.OnMouseMove)
+            .OnMouseLeave(dialog.OnMouseLeave);
+    }
+
     protected virtual void OnResizeUpdated(bool sizeChanged)
     {
         if (sizeChanged)
@@ -178,21 +179,29 @@ public abstract class GuiDialog : GuiComponent, IGuiDialog, IDisposable
 
     /// <summary>
     /// Override to react to focus changes. Vanilla <c>RequestFocus</c> already moves the
-    /// focused dialog to the front of its <c>DrawOrder</c> rank inside <c>OpenedGuis</c>,
-    /// so the renderer needs no extra work to draw on top of same-rank vanilla dialogs.
+    /// focused dialog to the front of the opened dialog list, so the renderer needs no
+    /// extra dialog-level ordering API.
     /// </summary>
     protected virtual void OnFocusChanged(bool focused) { }
 
     void IGuiDialog.OnFocus()
     {
-        if (IsFocused) return;
+        if (IsFocused)
+        {
+            return;
+        }
+
         IsFocused = true;
         OnFocusChanged(true);
     }
 
     void IGuiDialog.OnUnFocus()
     {
-        if (!IsFocused) return;
+        if (!IsFocused)
+        {
+            return;
+        }
+
         IsFocused = false;
         OnFocusChanged(false);
     }
@@ -208,23 +217,40 @@ public abstract class GuiDialog : GuiComponent, IGuiDialog, IDisposable
 
     void IGuiDialog.OnMouseDown(GuiMouseEventArgs args)
     {
-        if (!IsResizable) return;
-        if (_resizeEdge != GuiResizeEdge.None) return;
+        if (!IsResizable)
+        {
+            return;
+        }
+
+        if (_resizeEdge != GuiResizeEdge.None)
+        {
+            return;
+        }
 
         var edge = HitTestResizeEdge(args.Position.X, args.Position.Y);
-        if (edge == GuiResizeEdge.None) return;
+        if (edge == GuiResizeEdge.None)
+        {
+            return;
+        }
 
         BeginResize(edge, args.Position.X, args.Position.Y);
         // Preserve any focused component through the gesture: re-claiming the currently
         // focused node sets _focusClaimedThisDispatch = true before the dispatcher's
         // automatic blur check runs.
-        var currentFocused = _renderer.FocusedNode;
-        if (currentFocused is not null) _renderer.SetFocusedNode(currentFocused);
+        var currentFocused = Runtime.FocusedNode;
+        if (currentFocused is not null)
+        {
+            Runtime.SetFocusedNode(currentFocused);
+        }
     }
 
     void IGuiDialog.OnMouseUp(GuiMouseEventArgs args)
     {
-        if (_resizeEdge == GuiResizeEdge.None) return;
+        if (_resizeEdge == GuiResizeEdge.None)
+        {
+            return;
+        }
+
         EndResize();
         RequestPaint();
     }
@@ -237,15 +263,23 @@ public abstract class GuiDialog : GuiComponent, IGuiDialog, IDisposable
             return;
         }
 
-        if (!IsResizable) return;
+        if (!IsResizable)
+        {
+            return;
+        }
+
         var edge = HitTestResizeEdge(args.Position.X, args.Position.Y);
-        _renderer.SetMouseOverCursor(CursorForEdge(edge));
+        Runtime.SetMouseOverCursor(CursorForEdge(edge));
     }
 
     void IGuiDialog.OnMouseLeave(GuiMouseEventArgs args)
     {
-        if (_resizeEdge != GuiResizeEdge.None) return;
-        _renderer.SetMouseOverCursor(null);
+        if (_resizeEdge != GuiResizeEdge.None)
+        {
+            return;
+        }
+
+        Runtime.SetMouseOverCursor(null);
     }
 
     private GuiResizeEdge HitTestResizeEdge(double lx, double ly)
@@ -255,8 +289,16 @@ public abstract class GuiDialog : GuiComponent, IGuiDialog, IDisposable
         const double t = ResizeEdgeThickness;
 
         var edge = GuiResizeEdge.None;
-        if (lx > w - t) edge |= GuiResizeEdge.Right;
-        if (ly > h - t) edge |= GuiResizeEdge.Bottom;
+        if (lx > w - t)
+        {
+            edge |= GuiResizeEdge.Right;
+        }
+
+        if (ly > h - t)
+        {
+            edge |= GuiResizeEdge.Bottom;
+        }
+
         return edge;
     }
 
@@ -292,14 +334,14 @@ public abstract class GuiDialog : GuiComponent, IGuiDialog, IDisposable
         // Pin the cursor for the gesture's duration so it stays correct even when the
         // pointer wanders outside the dialog mid-drag (vanilla GuiManager reads
         // MouseOverCursor unconditionally per frame, no hover gate).
-        _renderer.SetMouseOverCursor(CursorForEdge(edge));
+        Runtime.SetMouseOverCursor(CursorForEdge(edge));
     }
 
     private void EndResize()
     {
         _resizeEdge = GuiResizeEdge.None;
         // Reset the cursor so other dialogs / world cursor take over once we release.
-        _renderer.SetMouseOverCursor(null);
+        Runtime.SetMouseOverCursor(null);
     }
 
     /// <summary>
@@ -356,12 +398,12 @@ public abstract class GuiDialog : GuiComponent, IGuiDialog, IDisposable
         // behaviour where Escape first cancels the active input, then closes the dialog
         // on a second press. Components that need to consume Escape themselves can mark
         // the event Handled in their builder.OnKeyDown handler before this fallback runs.
-        if (_renderer.FocusedNode is not null)
+        if (Runtime.FocusedNode is not null)
         {
-            _renderer.SetFocusedNode(null);
+            Runtime.SetFocusedNode(null);
             return true;
         }
-        Close();
+        RequestClose();
         return true;
     }
 
@@ -371,10 +413,6 @@ public abstract class GuiDialog : GuiComponent, IGuiDialog, IDisposable
         {
             return;
         }
-
-        Close();
-
-        _renderer.Dispose();
 
         IsDisposed = true;
 

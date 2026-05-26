@@ -1,12 +1,8 @@
 using BitzArt.UI.Tweaks.Config;
 using BitzArt.UI.Tweaks.Gui;
-using System;
-using System.Collections.Generic;
 using System.Data;
-using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using Vintagestory.API.Client;
 using Vintagestory.API.Config;
 using Vintagestory.GameContent;

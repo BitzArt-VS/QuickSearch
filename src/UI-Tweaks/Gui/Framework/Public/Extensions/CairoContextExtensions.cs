@@ -1,5 +1,4 @@
 using Cairo;
-using System;
 using System.Reflection;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
@@ -111,8 +110,14 @@ public static class CairoContextExtensions
     public static void FillSolid(this Context ctx, GuiColor color, bool preserve = false)
     {
         ctx.SetSourceRGBA(color.R, color.G, color.B, color.A);
-        if (preserve) ctx.FillPreserve();
-        else ctx.Fill();
+        if (preserve)
+        {
+            ctx.FillPreserve();
+        }
+        else
+        {
+            ctx.Fill();
+        }
     }
 
     /// <summary>Strokes the current path with <paramref name="color"/> at <paramref name="width"/> logical pixels.</summary>
@@ -120,8 +125,14 @@ public static class CairoContextExtensions
     {
         ctx.SetSourceRGBA(color.R, color.G, color.B, color.A);
         ctx.LineWidth = width;
-        if (preserve) ctx.StrokePreserve();
-        else ctx.Stroke();
+        if (preserve)
+        {
+            ctx.StrokePreserve();
+        }
+        else
+        {
+            ctx.Stroke();
+        }
     }
 
     // ── Linear-gradient fills ─────────────────────────────────────────────────
@@ -138,8 +149,14 @@ public static class CairoContextExtensions
         grad.AddColorStop(0, new Color(topColor.R, topColor.G, topColor.B, topColor.A));
         grad.AddColorStop(1, new Color(bottomColor.R, bottomColor.G, bottomColor.B, bottomColor.A));
         ctx.SetSource(grad);
-        if (preserve) ctx.FillPreserve();
-        else ctx.Fill();
+        if (preserve)
+        {
+            ctx.FillPreserve();
+        }
+        else
+        {
+            ctx.Fill();
+        }
     }
 
     // ── Surface-pattern source ────────────────────────────────────────────────
@@ -219,8 +236,14 @@ public static class CairoContextExtensions
     public static void FillPattern(this Context ctx, ICoreClientAPI capi, AssetLocation textureLoc, byte mulAlpha = 255, float scale = 1f, bool preserve = false)
     {
         ctx.SetPatternSource(capi, textureLoc, mulAlpha, scale);
-        if (preserve) ctx.FillPreserve();
-        else ctx.Fill();
+        if (preserve)
+        {
+            ctx.FillPreserve();
+        }
+        else
+        {
+            ctx.Fill();
+        }
     }
 
     // ── Text ──────────────────────────────────────────────────────────────────
@@ -234,7 +257,10 @@ public static class CairoContextExtensions
     /// </summary>
     public static void DrawText(this Context ctx, string text, GuiFontStyle font, double x, double y)
     {
-        if (string.IsNullOrEmpty(text)) return;
+        if (string.IsNullOrEmpty(text))
+        {
+            return;
+        }
 
         double scale = RuntimeEnv.GUIScale;
         double physX = x * scale;
@@ -245,7 +271,11 @@ public static class CairoContextExtensions
         font.Apply(ctx);
         ctx.MoveTo((int)physX, (int)(physY + ctx.FontExtents.Ascent));
         ctx.ShowText(text);
-        if (font.RenderTwice) ctx.ShowText(text);
+        if (font.RenderTwice)
+        {
+            ctx.ShowText(text);
+        }
+
         ctx.Restore();
     }
 }

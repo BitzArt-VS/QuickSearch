@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
@@ -53,7 +52,10 @@ internal sealed class DialogInputDispatcher
     internal void SetFocusedNode(IGuiNode? node)
     {
         _focusClaimedThisDispatch = true;
-        if (ReferenceEquals(FocusedNode, node)) return;
+        if (ReferenceEquals(FocusedNode, node))
+        {
+            return;
+        }
 
         var previousNode = FocusedNode;
         FocusedNode = node;
@@ -63,7 +65,11 @@ internal sealed class DialogInputDispatcher
 
     internal void RefreshHoverIfNotCapturing(int physicalX, int physicalY)
     {
-        if (IsCapturing) return;
+        if (IsCapturing)
+        {
+            return;
+        }
+
         _convertToLogical(physicalX, physicalY, out double logicalX, out double logicalY);
         RefreshHover(physicalX, physicalY, logicalX, logicalY, EnumMouseButton.None);
     }
@@ -78,8 +84,16 @@ internal sealed class DialogInputDispatcher
         for (int i = _interactiveRegions.Count - 1; i >= 0; i--)
         {
             var region = _interactiveRegions[i];
-            if (!region.OnMouseWheel.HasHandler) continue;
-            if (!region.Contains(logicalX, logicalY)) continue;
+            if (!region.OnMouseWheel.HasHandler)
+            {
+                continue;
+            }
+
+            if (!region.Contains(logicalX, logicalY))
+            {
+                continue;
+            }
+
             region.OnMouseWheel.Invoke(MakeMouseArgs(physicalX, physicalY, logicalX, logicalY, EnumMouseButton.None) with { WheelDelta = delta });
             return true;
         }
@@ -92,7 +106,10 @@ internal sealed class DialogInputDispatcher
         _tooltipHost.Hide();
 
         int regionIndex = HitTest(logicalX, logicalY);
-        if (regionIndex < 0) return false;
+        if (regionIndex < 0)
+        {
+            return false;
+        }
 
         var region = _interactiveRegions[regionIndex];
         var mouseArgs = MakeMouseArgs(args.X, args.Y, logicalX, logicalY, args.Button);
@@ -101,15 +118,25 @@ internal sealed class DialogInputDispatcher
 
         _focusClaimedThisDispatch = false;
         region.OnMouseDown.Invoke(mouseArgs);
-        if (!_focusClaimedThisDispatch) SetFocusedNode(null);
+        if (!_focusClaimedThisDispatch)
+        {
+            SetFocusedNode(null);
+        }
 
         return true;
     }
 
     internal bool DispatchMouseUp(MouseEvent args)
     {
-        if (_capturedToken is null) return false;
-        if (args.Button != _capturedButton) return false;
+        if (_capturedToken is null)
+        {
+            return false;
+        }
+
+        if (args.Button != _capturedButton)
+        {
+            return false;
+        }
 
         _convertToLogical(args.X, args.Y, out double logicalX, out double logicalY);
         bool insideCapture = IsCursorInsideCapturedRegion(logicalX, logicalY);
@@ -134,7 +161,9 @@ internal sealed class DialogInputDispatcher
     internal bool DispatchMouseMove(MouseEvent args)
     {
         if (_capturedToken is not null)
+        {
             return DispatchMouseMoveToCapture(args);
+        }
 
         _convertToLogical(args.X, args.Y, out double logicalX, out double logicalY);
         int regionIndex = RefreshHover(args.X, args.Y, logicalX, logicalY, args.Button);
@@ -168,7 +197,11 @@ internal sealed class DialogInputDispatcher
 
     private bool DispatchMouseMoveToCapture(MouseEvent args)
     {
-        if (!_capturedOnMouseMove.HasHandler) return true;
+        if (!_capturedOnMouseMove.HasHandler)
+        {
+            return true;
+        }
+
         _convertToLogical(args.X, args.Y, out double logicalX, out double logicalY);
         var mouseArgs = MakeMouseArgs(args.X, args.Y, logicalX, logicalY, args.Button);
         _capturedOnMouseMove.Invoke(mouseArgs);
@@ -182,8 +215,15 @@ internal sealed class DialogInputDispatcher
     {
         for (int i = _interactiveRegions.Count - 1; i >= 0; i--)
         {
-            if (!_interactiveRegions[i].HasClickHandlers) continue;
-            if (_interactiveRegions[i].Contains(logicalX, logicalY)) return i;
+            if (!_interactiveRegions[i].HasClickHandlers)
+            {
+                continue;
+            }
+
+            if (_interactiveRegions[i].Contains(logicalX, logicalY))
+            {
+                return i;
+            }
         }
         return -1;
     }
@@ -201,7 +241,11 @@ internal sealed class DialogInputDispatcher
     {
         for (int i = _interactiveRegions.Count - 1; i >= 0; i--)
         {
-            if (_interactiveRegions[i].Token != _capturedToken) continue;
+            if (_interactiveRegions[i].Token != _capturedToken)
+            {
+                continue;
+            }
+
             return _interactiveRegions[i].Contains(logicalX, logicalY);
         }
         return false;
@@ -209,7 +253,11 @@ internal sealed class DialogInputDispatcher
 
     private void LeaveHoveredRegion(GuiMouseEventArgs mouseArgs)
     {
-        if (_hoveredToken is null) return;
+        if (_hoveredToken is null)
+        {
+            return;
+        }
+
         if (_hoveredOnMouseLeave.HasHandler)
         {
             _hoveredOnMouseLeave.Invoke(mouseArgs);
@@ -220,12 +268,20 @@ internal sealed class DialogInputDispatcher
 
     private void EnterHoveredRegion(object? newToken, GuiMouseEventArgs mouseArgs)
     {
-        if (newToken is null) return;
+        if (newToken is null)
+        {
+            return;
+        }
+
         _hoveredToken = newToken;
 
         for (int i = _interactiveRegions.Count - 1; i >= 0; i--)
         {
-            if (_interactiveRegions[i].Token != newToken) continue;
+            if (_interactiveRegions[i].Token != newToken)
+            {
+                continue;
+            }
+
             _hoveredOnMouseLeave = _interactiveRegions[i].OnMouseLeave;
             if (_interactiveRegions[i].OnMouseEnter.HasHandler)
             {
@@ -237,10 +293,18 @@ internal sealed class DialogInputDispatcher
 
     private void DispatchMouseMoveToHoveredRegion(object? token, GuiMouseEventArgs mouseArgs)
     {
-        if (token is null) return;
+        if (token is null)
+        {
+            return;
+        }
+
         for (int i = _interactiveRegions.Count - 1; i >= 0; i--)
         {
-            if (_interactiveRegions[i].Token != token) continue;
+            if (_interactiveRegions[i].Token != token)
+            {
+                continue;
+            }
+
             _interactiveRegions[i].OnMouseMove.Invoke(mouseArgs);
             return;
         }
@@ -248,12 +312,20 @@ internal sealed class DialogInputDispatcher
 
     private bool DispatchKey(GuiKeyEventKind kind, KeyEvent args)
     {
-        if (FocusedNode is null) return false;
+        if (FocusedNode is null)
+        {
+            return false;
+        }
+
         var keyArgs = new GuiKeyEventArgs(args);
 
         for (int i = 0; i < _keyboardRegions.Count; i++)
         {
-            if (!ReferenceEquals(_keyboardRegions[i].Token, FocusedNode)) continue;
+            if (!ReferenceEquals(_keyboardRegions[i].Token, FocusedNode))
+            {
+                continue;
+            }
+
             _keyboardRegions[i].Dispatch(kind, keyArgs);
             break;
         }
@@ -263,10 +335,18 @@ internal sealed class DialogInputDispatcher
 
     private void DispatchFocusChanged(IGuiNode? node, bool focused)
     {
-        if (node is null) return;
+        if (node is null)
+        {
+            return;
+        }
+
         for (int i = 0; i < _keyboardRegions.Count; i++)
         {
-            if (!ReferenceEquals(_keyboardRegions[i].Token, node)) continue;
+            if (!ReferenceEquals(_keyboardRegions[i].Token, node))
+            {
+                continue;
+            }
+
             _keyboardRegions[i].OnFocusChanged.Invoke(focused);
             return;
         }

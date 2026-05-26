@@ -1,6 +1,4 @@
 interface:
-  display_name: "Revalidation"
-  short_description: "Check Codex config against the codebase"
-  default_prompt: "Use $revalidation to verify Codex project instructions and skills against the current codebase."
-policy:
-  allow_implicit_invocation: true
+  display_name: "Agent Revalidation"
+  short_description: "Revalidate project agent and skill instructions against the current codebase"
+  default_prompt: "Use $revalidation to comprehensively revalidate this project's agent, skill, and instruction files against the current codebase, then update approved discrepancies."

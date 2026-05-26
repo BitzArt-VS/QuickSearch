@@ -1,55 +1,90 @@
-using System;
 using Vintagestory.API.Client;
 using Vintagestory.API.Config;
 
 namespace BitzArt.UI.Tweaks.Gui;
 
-internal sealed class DialogRenderer : GuiSurfaceRenderer, IFloatingLayerInputHost
+internal sealed class DialogRenderer<TDialog> : DialogRenderer
+    where TDialog : GuiDialog, new()
 {
-    private readonly IGuiDialog _dialog;
-    private readonly GuiCallback<GuiMouseEventArgs> _onDialogMouseDown;
-    private readonly GuiCallback<GuiMouseEventArgs> _onDialogMouseUp;
-    private readonly GuiCallback<GuiMouseEventArgs> _onDialogMouseMove;
-    private readonly GuiCallback<GuiMouseEventArgs> _onDialogMouseLeave;
+    internal new TDialog Dialog => (TDialog)base.Dialog;
+
+    internal DialogRenderer(
+        ICoreClientAPI clientApi,
+        Action<TDialog>? configure,
+        Action requestClose)
+        : base(clientApi)
+    {
+        try
+        {
+            InitializeDialog(configure, requestClose);
+        }
+        catch
+        {
+            Dispose();
+            throw;
+        }
+    }
+
+    internal void ReconcileDialog(Action<TDialog> configure)
+    {
+        ReconcileDialogSlot(configure);
+    }
+}
+
+internal abstract class DialogRenderer : GuiSurfaceRenderer
+{
+    private IGuiDialog _dialog = null!;
     private bool _isDisposed;
     private bool _isFocused;
+    private Action _requestClose = null!;
 
-    private readonly CairoDialogInputInterceptor _inputInterceptor;
+    private GuiElementAdapter _guiElementAdapter = null!;
 
     private double _currentLogicalWidth;
     private double _currentLogicalHeight;
 
     private readonly ScopedRebuildQueue _rebuildQueue = new();
-    private readonly DialogInputDispatcher _inputDispatcher;
+    private DialogInputDispatcher _inputDispatcher = null!;
 
-    private readonly DialogScreenProjection _screenProjection;
-
-    private readonly FloatingLayerRenderer _tooltipLayer;
-    private readonly TooltipHost _tooltipHost;
-    private readonly FloatingLayerRenderer _overlayLayer;
-    private readonly OverlayHost _overlayHost;
+    private FloatingLayerRenderer _tooltipLayer = null!;
+    private TooltipHost _tooltipHost = null!;
+    private FloatingLayerRenderer _overlayLayer = null!;
+    private OverlayHost _overlayHost = null!;
     private readonly GuiCursorHost _cursorHost = new();
     private string? _dialogOverrideCursor;
 
-    private readonly FocusManager _focusManager;
-    private readonly IFloatingLayer[] _floatingLayers;
+    private FocusManager _focusManager = null!;
+    private FloatingLayerRenderer[] _floatingLayers = [];
 
     internal GuiCursorHost CursorHost => _cursorHost;
     internal IGuiNode? FocusedNode => _inputDispatcher.FocusedNode;
+    internal IGuiDialog Dialog => _dialog;
 
-    public override double RenderOrder => _dialog.RenderOrder;
-
-    internal DialogRenderer(ICoreClientAPI clientApi, IGuiDialog dialog, string name)
+    protected DialogRenderer(ICoreClientAPI clientApi)
         : base(clientApi)
     {
-        _dialog = dialog;
-        _onDialogMouseDown = new Action<GuiMouseEventArgs>(dialog.OnMouseDown);
-        _onDialogMouseUp = new Action<GuiMouseEventArgs>(dialog.OnMouseUp);
-        _onDialogMouseMove = new Action<GuiMouseEventArgs>(dialog.OnMouseMove);
-        _onDialogMouseLeave = new Action<GuiMouseEventArgs>(dialog.OnMouseLeave);
+    }
 
-        if (dialog.LayoutParameters.Width.IsAuto || dialog.LayoutParameters.Height.IsAuto)
-            throw new ArgumentException("Dialog must have fixed width and height for rendering.", nameof(dialog));
+    protected TDialog InitializeDialog<TDialog>(Action<TDialog>? configure, Action requestClose)
+        where TDialog : GuiDialog, new()
+    {
+        _requestClose = requestClose;
+
+        _tooltipLayer = new FloatingLayerRenderer(_clientApi);
+        _overlayLayer = new FloatingLayerRenderer(_clientApi);
+        _tooltipHost = new TooltipHost(_tooltipLayer);
+        _overlayHost = new OverlayHost(_overlayLayer, this);
+        _floatingLayers = [_overlayLayer, _tooltipLayer];
+        _focusManager = new FocusManager(this);
+
+        _inputDispatcher = new DialogInputDispatcher(TryToLogical, _tooltipHost);
+
+        Builder.CascadeChain = BuildRootCascadeChain();
+        _tooltipLayer.SetCascadeChain(Builder.CascadeChain);
+        _overlayLayer.SetCascadeChain(Builder.CascadeChain);
+
+        ReconcileDialogSlot(configure);
+        var dialog = (TDialog)_dialog;
 
         _currentLogicalWidth = dialog.LayoutParameters.Width.Value;
         _currentLogicalHeight = dialog.LayoutParameters.Height.Value;
@@ -58,24 +93,40 @@ internal sealed class DialogRenderer : GuiSurfaceRenderer, IFloatingLayerInputHo
             (int)Math.Round(_currentLogicalWidth * _currentScale),
             (int)Math.Round(_currentLogicalHeight * _currentScale));
 
-        _tooltipLayer = new FloatingLayerRenderer(clientApi);
-        _overlayLayer = new FloatingLayerRenderer(clientApi);
-        _screenProjection = new DialogScreenProjection(clientApi, dialog);
-        _tooltipHost = new TooltipHost(_tooltipLayer);
-        _overlayHost = new OverlayHost(_overlayLayer, this, _screenProjection);
-        _floatingLayers = [_overlayLayer, _tooltipLayer];
-        _focusManager = new FocusManager(this);
+        _guiElementAdapter = new GuiElementAdapter(_clientApi, this);
+        _clientApi.Gui.RegisterDialog(_guiElementAdapter);
+        _guiElementAdapter.TryOpen();
 
-        _inputDispatcher = new DialogInputDispatcher(_screenProjection.TryToLogical, _tooltipHost);
+        return dialog;
+    }
 
-        Builder.CascadeChain = BuildRootCascadeChain();
-        _tooltipLayer.SetCascadeChain(Builder.CascadeChain);
-        _overlayLayer.SetCascadeChain(Builder.CascadeChain);
+    protected void ReconcileDialogSlot<TDialog>(Action<TDialog>? configure)
+        where TDialog : GuiDialog, new()
+    {
+        Builder.Run(builder =>
+        {
+            builder.Add<TDialog>(0)
+                .Configure(dialog =>
+                {
+                    if (!ReferenceEquals(_dialog, dialog))
+                    {
+                        _dialog = dialog;
+                        dialog.AttachRuntime(new GuiDialogRuntime(this, _requestClose));
+                    }
 
-        _inputInterceptor = new CairoDialogInputInterceptor(clientApi, this);
-        clientApi.Gui.RegisterDialog(_inputInterceptor);
-
+                    configure?.Invoke(dialog);
+                });
+        });
+        ValidateRootSize();
         RequestArrange();
+    }
+
+    private void ValidateRootSize()
+    {
+        if (!_dialog.LayoutParameters.Width.IsFixed || !_dialog.LayoutParameters.Height.IsFixed)
+        {
+            throw new InvalidOperationException("Dialog must have fixed width and height for rendering.");
+        }
     }
 
     private CascadingValueChain BuildRootCascadeChain()
@@ -87,9 +138,12 @@ internal sealed class DialogRenderer : GuiSurfaceRenderer, IFloatingLayerInputHo
         return chain;
     }
 
-    public override void OnRenderFrame(float deltaTime, EnumRenderStage stage)
+    internal void OnRenderFrame(float deltaTime)
     {
-        if (_isDisposed) return;
+        if (_isDisposed)
+        {
+            return;
+        }
 
         _inputDispatcher.FocusedNode?.OnFrame(deltaTime);
         if (_rebuildQueue.Drain())
@@ -106,11 +160,13 @@ internal sealed class DialogRenderer : GuiSurfaceRenderer, IFloatingLayerInputHo
             ExecutePaintWalk();
         }
 
-        var (posX, posY) = _screenProjection.GetScreenOrigin();
+        var (posX, posY) = GetScreenOrigin();
         BlitAt(posX, posY);
 
         for (int i = 0; i < _floatingLayers.Length; i++)
+        {
             _floatingLayers[i].Render();
+        }
     }
 
     private void RequestSurfaceUpdateForScaleOrSizeChanges()
@@ -124,7 +180,6 @@ internal sealed class DialogRenderer : GuiSurfaceRenderer, IFloatingLayerInputHo
             return;
         }
 
-        bool logicalSizeChanged = logicalWidth != _currentLogicalWidth || logicalHeight != _currentLogicalHeight;
         _currentScale = scale;
         _currentLogicalWidth = logicalWidth;
         _currentLogicalHeight = logicalHeight;
@@ -141,26 +196,17 @@ internal sealed class DialogRenderer : GuiSurfaceRenderer, IFloatingLayerInputHo
         _tooltipHost.ResetFrame();
 
         for (int i = 0; i < _floatingLayers.Length; i++)
+        {
             _floatingLayers[i].OnFrameStart();
-
-        // Register the dialog as the lowest-z-order background region so any click inside
-        // the dialog bounds that misses all component regions hits the dialog itself. Added
-        // first (index 0) so the reverse-order hit-test always prefers components over it.
-        _inputDispatcher.AddInteractiveRegion(new InteractiveRegion(
-            new GuiComponentBounds(0, 0, _currentLogicalWidth, _currentLogicalHeight),
-            _dialog,
-            onMouseDown: _onDialogMouseDown,
-            onMouseUp: _onDialogMouseUp,
-            onMouseClick: default,
-            onMouseMove: _onDialogMouseMove,
-            onMouseEnter: default,
-            onMouseLeave: _onDialogMouseLeave));
+        }
 
         var bounds = new GuiComponentBounds(0, 0, _currentLogicalWidth, _currentLogicalHeight);
-        DrawSurfaceContents(bounds, _dialog.LayoutParameters.Direction, _currentScale, arrange: true);
+        DrawSurfaceContents(bounds, GuiDirection.Vertical, _currentScale, arrange: true);
 
         for (int i = 0; i < _floatingLayers.Length; i++)
+        {
             _floatingLayers[i].RunWalk();
+        }
 
         _inputDispatcher.RefreshHoverIfNotCapturing(_clientApi.Input.MouseX, _clientApi.Input.MouseY);
     }
@@ -170,14 +216,18 @@ internal sealed class DialogRenderer : GuiSurfaceRenderer, IFloatingLayerInputHo
         _tooltipHost.ResetFrame();
 
         var bounds = new GuiComponentBounds(0, 0, _currentLogicalWidth, _currentLogicalHeight);
-        DrawSurfaceContents(bounds, _dialog.LayoutParameters.Direction, _currentScale, arrange: false);
+        DrawSurfaceContents(bounds, GuiDirection.Vertical, _currentScale, arrange: false);
 
         _inputDispatcher.RefreshHoverIfNotCapturing(_clientApi.Input.MouseX, _clientApi.Input.MouseY);
     }
 
     public override void Schedule(GuiRenderFragment fragment, GuiRenderTreeBuilder builder)
     {
-        if (_isDisposed) return;
+        if (_isDisposed)
+        {
+            return;
+        }
+
         _rebuildQueue.Schedule(fragment, builder);
         RequestReconcile();
     }
@@ -189,17 +239,14 @@ internal sealed class DialogRenderer : GuiSurfaceRenderer, IFloatingLayerInputHo
 
     // --- Lifecycle ---
 
-    internal void TryOpen() => _inputInterceptor.TryOpen();
-    internal void TryClose() => _inputInterceptor.TryClose();
-
-    internal void RequestFocus() => _clientApi.Gui.RequestFocus(_inputInterceptor);
+    internal void RequestFocus() => _clientApi.Gui.RequestFocus(_guiElementAdapter);
 
     internal void SetMouseOverCursor(string? cursor)
     {
         _dialogOverrideCursor = cursor;
-        // Set immediately on the interceptor so the cursor is correct even when the
+        // Set immediately on the adapter so the cursor is correct even when the
         // mouse is stationary (e.g. holding down at the start of a resize gesture).
-        _inputInterceptor.MouseOverCursor = cursor;
+        _guiElementAdapter.MouseOverCursor = cursor;
     }
 
     // --- Focus forwarding ---
@@ -218,11 +265,15 @@ internal sealed class DialogRenderer : GuiSurfaceRenderer, IFloatingLayerInputHo
 
     internal bool OnEscapePressed() => _dialog.OnEscapePressed();
 
-    // --- Full event handlers (called directly by the interceptor) ---
+    // --- Full event handlers (called directly by the adapter) ---
 
     internal void OnMouseDown(MouseEvent args)
     {
-        if (args.Handled) return;
+        if (args.Handled)
+        {
+            return;
+        }
+
         bool hit = _inputDispatcher.DispatchMouseDown(args);
         if (hit)
         {
@@ -233,7 +284,11 @@ internal sealed class DialogRenderer : GuiSurfaceRenderer, IFloatingLayerInputHo
 
     internal void OnMouseUp(MouseEvent args)
     {
-        if (args.Handled) return;
+        if (args.Handled)
+        {
+            return;
+        }
+
         _inputDispatcher.DispatchMouseUp(args);
         if (ContainsScreenPoint(args.X, args.Y) || ContainsOverlayScreenPoint(args.X, args.Y))
         {
@@ -243,11 +298,15 @@ internal sealed class DialogRenderer : GuiSurfaceRenderer, IFloatingLayerInputHo
 
     internal void OnMouseMove(MouseEvent args)
     {
-        if (args.Handled) return;
+        if (args.Handled)
+        {
+            return;
+        }
+
         bool dispatched = _inputDispatcher.DispatchMouseMove(args);
         // Resize cursor (set via SetMouseOverCursor during dispatch) takes priority over
         // any component hover cursor. Fall back to the hover cursor when not resizing.
-        _inputInterceptor.MouseOverCursor = _dialogOverrideCursor ?? _cursorHost.HoverCursor;
+        _guiElementAdapter.MouseOverCursor = _dialogOverrideCursor ?? _cursorHost.HoverCursor;
         if (dispatched || ContainsScreenPoint(args.X, args.Y) || ContainsOverlayScreenPoint(args.X, args.Y))
         {
             args.Handled = true;
@@ -256,7 +315,11 @@ internal sealed class DialogRenderer : GuiSurfaceRenderer, IFloatingLayerInputHo
 
     internal void OnMouseWheel(MouseWheelEventArgs args)
     {
-        if (args.IsHandled) return;
+        if (args.IsHandled)
+        {
+            return;
+        }
+
         if (_isFocused
             && (ContainsScreenPoint(_clientApi.Input.MouseX, _clientApi.Input.MouseY)
                 || ContainsOverlayScreenPoint(_clientApi.Input.MouseX, _clientApi.Input.MouseY)))
@@ -268,50 +331,122 @@ internal sealed class DialogRenderer : GuiSurfaceRenderer, IFloatingLayerInputHo
 
     internal void OnKeyDown(KeyEvent args)
     {
-        if (args.Handled) return;
+        if (args.Handled)
+        {
+            return;
+        }
+
         _dialog.OnKeyDown(args);
-        if (args.Handled) return;
+        if (args.Handled)
+        {
+            return;
+        }
+
         _inputDispatcher.DispatchKeyDown(args);
     }
 
     internal void OnKeyUp(KeyEvent args)
     {
-        if (args.Handled) return;
+        if (args.Handled)
+        {
+            return;
+        }
+
         _dialog.OnKeyUp(args);
-        if (args.Handled) return;
+        if (args.Handled)
+        {
+            return;
+        }
+
         _inputDispatcher.DispatchKeyUp(args);
     }
 
     internal void OnKeyPress(KeyEvent args)
     {
-        if (args.Handled) return;
+        if (args.Handled)
+        {
+            return;
+        }
+
         _dialog.OnKeyPress(args);
-        if (args.Handled) return;
+        if (args.Handled)
+        {
+            return;
+        }
+
         _inputDispatcher.DispatchKeyPress(args);
     }
 
     // --- Geometry helpers (used by GuiDialog for resize hit-testing and overlay checks) ---
 
-    public override bool ContainsScreenPoint(int x, int y) => _screenProjection.Contains(x, y);
+    public override bool ContainsScreenPoint(int x, int y)
+    {
+        var (positionX, positionY, physicalWidth, physicalHeight, _) = ResolveScreenRect();
+        return x >= positionX && x < positionX + physicalWidth
+            && y >= positionY && y < positionY + physicalHeight;
+    }
+
     public bool ContainsOverlayScreenPoint(int x, int y) => _overlayLayer.ContainsScreenPoint(x, y);
 
-    internal (int posX, int posY) GetScreenOrigin() => _screenProjection.GetScreenOrigin();
+    internal (int posX, int posY) GetScreenOrigin()
+    {
+        var (positionX, positionY, _, _, _) = ResolveScreenRect();
+        return (positionX, positionY);
+    }
 
-    public bool TryToLogical(int x, int y, out double logicalX, out double logicalY) =>
-        _screenProjection.TryToLogical(x, y, out logicalX, out logicalY);
+    public bool TryToLogical(int x, int y, out double logicalX, out double logicalY)
+    {
+        var (positionX, positionY, physicalWidth, physicalHeight, scale) = ResolveScreenRect();
+        logicalX = (x - positionX) / scale;
+        logicalY = (y - positionY) / scale;
+        return x >= positionX && x < positionX + physicalWidth
+            && y >= positionY && y < positionY + physicalHeight;
+    }
+
+    private (int positionX, int positionY, double physicalWidth, double physicalHeight, float scale) ResolveScreenRect()
+    {
+        float scale = RuntimeEnv.GUIScale;
+        double physicalWidth = Math.Round(_dialog.LayoutParameters.Width.Value * scale);
+        double physicalHeight = Math.Round(_dialog.LayoutParameters.Height.Value * scale);
+        var (positionX, positionY) = ComputeScreenOrigin(physicalWidth, physicalHeight, scale);
+        return (positionX, positionY, physicalWidth, physicalHeight, scale);
+    }
+
+    private (int positionX, int positionY) ComputeScreenOrigin(double physicalWidth, double physicalHeight, float scale)
+    {
+        // The surface renderer rounds logical size to physical pixels before blitting.
+        // Center against that same rounded rectangle so resize anchoring cannot alternate
+        // between adjacent integer origins while the logical size crosses half-pixels.
+        int positionX = (int)((_clientApi.Render.FrameWidth - physicalWidth) / 2.0 + _dialog.OffsetX * scale);
+        int positionY = (int)((_clientApi.Render.FrameHeight - physicalHeight) / 2.0 + _dialog.OffsetY * scale);
+        return (positionX, positionY);
+    }
 
     internal void SetFocusedNode(IGuiNode? node) => _inputDispatcher.SetFocusedNode(node);
 
-    internal void HideTooltip() => _tooltipHost.Hide();
-
     public override void Dispose()
     {
-        if (_isDisposed) return;
+        if (_isDisposed)
+        {
+            return;
+        }
+
         _isDisposed = true;
-        _clientApi.UnregisterDialog(_inputInterceptor);
-        _inputInterceptor.Dispose();
+        _tooltipHost?.Hide();
+
+        _inputDispatcher?.SetFocusedNode(null);
+        if (_guiElementAdapter is not null)
+        {
+            _guiElementAdapter.TryClose();
+            _clientApi.UnregisterDialog(_guiElementAdapter);
+            _guiElementAdapter.Dispose();
+        }
+
         for (int i = 0; i < _floatingLayers.Length; i++)
+        {
             _floatingLayers[i].Dispose();
+        }
+
         base.Dispose();
     }
 }

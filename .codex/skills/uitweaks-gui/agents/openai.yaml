@@ -1,6 +1,0 @@
-interface:
-  display_name: "UI-Tweaks GUI"
-  short_description: "Work on the custom Cairo GUI framework"
-  default_prompt: "Use $uitweaks-gui to work on UI-Tweaks GUI framework components, rendering, or input handling."
-policy:
-  allow_implicit_invocation: true

@@ -1,5 +1,3 @@
-using System;
-
 namespace BitzArt.UI.Tweaks.Gui;
 
 public readonly record struct GuiColor
@@ -11,10 +9,25 @@ public readonly record struct GuiColor
 
     private GuiColor(double r, double g, double b, double a = 1.0)
     {
-        if (r < 0.0 || r > 1.0) throw new ArgumentOutOfRangeException(nameof(r), r, "Must be in [0, 1].");
-        if (g < 0.0 || g > 1.0) throw new ArgumentOutOfRangeException(nameof(g), g, "Must be in [0, 1].");
-        if (b < 0.0 || b > 1.0) throw new ArgumentOutOfRangeException(nameof(b), b, "Must be in [0, 1].");
-        if (a < 0.0 || a > 1.0) throw new ArgumentOutOfRangeException(nameof(a), a, "Must be in [0, 1].");
+        if (r < 0.0 || r > 1.0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(r), r, "Must be in [0, 1].");
+        }
+
+        if (g < 0.0 || g > 1.0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(g), g, "Must be in [0, 1].");
+        }
+
+        if (b < 0.0 || b > 1.0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(b), b, "Must be in [0, 1].");
+        }
+
+        if (a < 0.0 || a > 1.0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(a), a, "Must be in [0, 1].");
+        }
 
         R = r; G = g; B = b; A = a;
     }
@@ -69,12 +82,30 @@ public readonly record struct GuiColor
 
     public static GuiColor FromHsl(double h, double s, double l, double a = 1.0)
     {
-        if (h < 0.0 || h > 360.0) throw new ArgumentOutOfRangeException(nameof(h), h, "Must be in [0, 360].");
-        if (s < 0.0 || s > 1.0) throw new ArgumentOutOfRangeException(nameof(s), s, "Must be in [0, 1].");
-        if (l < 0.0 || l > 1.0) throw new ArgumentOutOfRangeException(nameof(l), l, "Must be in [0, 1].");
-        if (a < 0.0 || a > 1.0) throw new ArgumentOutOfRangeException(nameof(a), a, "Must be in [0, 1].");
+        if (h < 0.0 || h > 360.0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(h), h, "Must be in [0, 360].");
+        }
 
-        if (s == 0.0) return new(l, l, l, a);
+        if (s < 0.0 || s > 1.0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(s), s, "Must be in [0, 1].");
+        }
+
+        if (l < 0.0 || l > 1.0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(l), l, "Must be in [0, 1].");
+        }
+
+        if (a < 0.0 || a > 1.0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(a), a, "Must be in [0, 1].");
+        }
+
+        if (s == 0.0)
+        {
+            return new(l, l, l, a);
+        }
 
         double chroma = (1.0 - Math.Abs(2.0 * l - 1.0)) * s;
         double hPrime = h / 60.0;

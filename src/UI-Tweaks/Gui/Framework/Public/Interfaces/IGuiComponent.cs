@@ -10,6 +10,5 @@ public interface IGuiComponent : IGuiNode
     /// <see cref="GuiSizeMode.Fill"/>. Override in leaf components (text, icons) to
     /// report their natural size.
     /// </summary>
-    public GuiMeasuredSize Measure(double availableWidth, double availableHeight)
-        => default;
+    public GuiMeasuredSize Measure(double availableWidth, double availableHeight);
 }

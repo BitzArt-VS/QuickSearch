@@ -22,7 +22,11 @@ public sealed class GuiLabel : GuiComponent
 
     public override GuiMeasuredSize Measure(double availableWidth, double availableHeight)
     {
-        if (string.IsNullOrEmpty(Text)) return default;
+        if (string.IsNullOrEmpty(Text))
+        {
+            return default;
+        }
+
         return Font.Measure(Text);
     }
 

@@ -1,6 +1,5 @@
 using BitzArt.UI.Tweaks.Config;
 using HarmonyLib;
-using System;
 using System.ComponentModel;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;

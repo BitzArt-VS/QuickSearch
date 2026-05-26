@@ -1,5 +1,3 @@
-using System;
-
 namespace BitzArt.UI.Tweaks.Gui;
 
 public interface IGuiComponentBuilder<T> : IGuiRenderTreeBuilder, IGuiSlotBuilder

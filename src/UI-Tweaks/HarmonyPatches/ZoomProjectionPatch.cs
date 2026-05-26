@@ -1,5 +1,4 @@
 using HarmonyLib;
-using System;
 using Vintagestory.Client.NoObf;
 
 namespace BitzArt.UI.Tweaks;

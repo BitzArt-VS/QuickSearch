@@ -60,7 +60,11 @@ public class GuiDialogCloseIcon : GuiComponent
 
     public override void Render(Context ctx, GuiComponentBounds b)
     {
-        if (RenderHandle is null) return;
+        if (RenderHandle is null)
+        {
+            return;
+        }
+
         var icons = RenderHandle.ClientApi.Gui.Icons;
 
         // CTM is logical pixels here; vanilla's IconUtil.DrawCross expects raw line-width

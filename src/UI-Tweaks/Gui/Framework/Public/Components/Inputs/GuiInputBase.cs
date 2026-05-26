@@ -75,8 +75,16 @@ public abstract class GuiInputBase : GuiComponent
 
     private void HandleMouseDown(GuiMouseEventArgs args)
     {
-        if (!Enabled) return;
-        if (args.Button != EnumMouseButton.Left) return;
+        if (!Enabled)
+        {
+            return;
+        }
+
+        if (args.Button != EnumMouseButton.Left)
+        {
+            return;
+        }
+
         IsPressed = true;
         FocusManager?.RequestFocus(this);
         OnInputMouseDown(args);
@@ -89,7 +97,11 @@ public abstract class GuiInputBase : GuiComponent
         IsPressed = false;
         IsHovered = args.Position.X >= LastBounds.X && args.Position.X < LastBounds.Right
                  && args.Position.Y >= LastBounds.Y && args.Position.Y < LastBounds.Bottom;
-        if (wasPressed) OnInputMouseUp(args);
+        if (wasPressed)
+        {
+            OnInputMouseUp(args);
+        }
+
         if (wasPressed || IsHovered)
         {
             RequestPaint();
@@ -98,15 +110,31 @@ public abstract class GuiInputBase : GuiComponent
 
     private void HandleMouseClick(GuiMouseEventArgs args)
     {
-        if (!Enabled) return;
-        if (args.Button != EnumMouseButton.Left) return;
+        if (!Enabled)
+        {
+            return;
+        }
+
+        if (args.Button != EnumMouseButton.Left)
+        {
+            return;
+        }
+
         OnInputClick(args);
     }
 
     private void HandleMouseMove(GuiMouseEventArgs args)
     {
-        if (!Enabled) return;
-        if (!IsPressed) return;
+        if (!Enabled)
+        {
+            return;
+        }
+
+        if (!IsPressed)
+        {
+            return;
+        }
+
         OnInputMouseMove(args);
         RequestPaint();
     }

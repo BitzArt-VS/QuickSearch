@@ -1,2 +1,22 @@
-sandbox_mode = "workspace-write"
-default_permissions = ":workspace"
+approval_policy = "on-request"
+default_permissions = "workspace-net"
+web_search = "live"
+model_instructions_file = "personality.md"
+
+[windows]
+sandbox = "unelevated"
+
+[features]
+default_mode_request_user_input = true
+
+[permissions.workspace-net.filesystem]
+":minimal" = "read"
+
+[permissions.workspace-net.filesystem.":workspace_roots"]
+"." = "write"
+
+[permissions.workspace-net.network]
+enabled = true
+
+[permissions.workspace-net.network.domains]
+"*" = "allow"

@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-
 namespace BitzArt.UI.Tweaks.Gui;
 
 public static class RenderTreeBuilderExtensions
@@ -71,17 +68,35 @@ public static class RenderTreeBuilderExtensions
             width, height, widthMode, heightMode, fill, margin, padding, direction, positioning,
             horizontalAlignment, verticalAlignment);
         if (background is not null)
+        {
             b = b.Configure(c => c.Background = background.Value);
+        }
+
         if (scroll is not null)
+        {
             b = b.Configure(c => c.Scroll = scroll.Value);
+        }
+
         if (scrollbar is not null)
+        {
             b = b.Configure(c => c.Scrollbar = scrollbar.Value);
+        }
+
         if (alwaysShowScrollbar is not null)
+        {
             b = b.Configure(c => c.AlwaysShowScrollbar = alwaysShowScrollbar.Value);
+        }
+
         if (withInset)
+        {
             b = b.Configure(c => c.HasInset = true);
+        }
+
         if (configureInset is not null)
+        {
             b = b.Configure(c => c.InsetConfiguration = configureInset);
+        }
+
         return content is null ? b : b.Configure(c => c.Content = content);
     }
 
@@ -246,7 +261,9 @@ public static class RenderTreeBuilderExtensions
             horizontalAlignment, verticalAlignment);
 
         if (titleFont is not null)
+        {
             b = b.Configure(t => t.TitleFont = titleFont.Value);
+        }
 
         return b;
     }
@@ -357,9 +374,21 @@ public static class RenderTreeBuilderExtensions
         var b = ApplyLayout(builder.AddComponent<GuiInset>(key),
             width, height, widthMode, heightMode, fill, margin, padding, direction, positioning,
             horizontalAlignment, verticalAlignment);
-        if (depth is not null) b = b.Configure(c => c.Depth = depth.Value);
-        if (brightness is not null) b = b.Configure(c => c.Brightness = brightness.Value);
-        if (radius is not null) b = b.Configure(c => c.Radius = radius.Value);
+        if (depth is not null)
+        {
+            b = b.Configure(c => c.Depth = depth.Value);
+        }
+
+        if (brightness is not null)
+        {
+            b = b.Configure(c => c.Brightness = brightness.Value);
+        }
+
+        if (radius is not null)
+        {
+            b = b.Configure(c => c.Radius = radius.Value);
+        }
+
         return content is null ? b : b.Configure(c => c.Content = content);
     }
 
@@ -558,14 +587,46 @@ public static class RenderTreeBuilderExtensions
             builder.AddComponent<GuiTextInput>(key),
             width, height, widthMode, heightMode, fill, margin, padding, direction: null, positioning,
             horizontalAlignment, verticalAlignment);
-        if (text is not null) b = b.Configure(c => c.Text = text);
-        if (onTextChanged is not null) b = b.Configure(c => c.OnTextChanged = onTextChanged);
-        if (mode is not null) b = b.Configure(c => c.Mode = mode.Value);
-        if (placeholder is not null) b = b.Configure(c => c.Placeholder = placeholder);
-        if (maxLength is not null) b = b.Configure(c => c.MaxLength = maxLength.Value);
-        if (font is not null) b = b.Configure(c => c.Font = font.Value);
-        if (showSpinnerButtons is not null) b = b.Configure(c => c.ShowSpinnerButtons = showSpinnerButtons.Value);
-        if (spinnerInterval is not null) b = b.Configure(c => c.SpinnerInterval = spinnerInterval.Value);
+        if (text is not null)
+        {
+            b = b.Configure(c => c.Text = text);
+        }
+
+        if (onTextChanged is not null)
+        {
+            b = b.Configure(c => c.OnTextChanged = onTextChanged);
+        }
+
+        if (mode is not null)
+        {
+            b = b.Configure(c => c.Mode = mode.Value);
+        }
+
+        if (placeholder is not null)
+        {
+            b = b.Configure(c => c.Placeholder = placeholder);
+        }
+
+        if (maxLength is not null)
+        {
+            b = b.Configure(c => c.MaxLength = maxLength.Value);
+        }
+
+        if (font is not null)
+        {
+            b = b.Configure(c => c.Font = font.Value);
+        }
+
+        if (showSpinnerButtons is not null)
+        {
+            b = b.Configure(c => c.ShowSpinnerButtons = showSpinnerButtons.Value);
+        }
+
+        if (spinnerInterval is not null)
+        {
+            b = b.Configure(c => c.SpinnerInterval = spinnerInterval.Value);
+        }
+
         return b;
     }
 
@@ -638,9 +699,21 @@ public static class RenderTreeBuilderExtensions
             builder.AddComponent<GuiCheckbox>(key),
             width, height, widthMode, heightMode, fill, margin, padding, direction: null, positioning,
             horizontalAlignment, verticalAlignment);
-        if (checked_ is not null) b = b.Configure(c => c.Checked = checked_.Value);
-        if (onCheckedChanged is not null) b = b.Configure(c => c.OnCheckedChanged = onCheckedChanged);
-        if (size is not null) b = b.Configure(c => c.Size = size.Value);
+        if (checked_ is not null)
+        {
+            b = b.Configure(c => c.Checked = checked_.Value);
+        }
+
+        if (onCheckedChanged is not null)
+        {
+            b = b.Configure(c => c.OnCheckedChanged = onCheckedChanged);
+        }
+
+        if (size is not null)
+        {
+            b = b.Configure(c => c.Size = size.Value);
+        }
+
         return b;
     }
 
@@ -677,14 +750,46 @@ public static class RenderTreeBuilderExtensions
             builder.AddComponent<GuiSlider>(key),
             width, height, widthMode, heightMode, fill, margin, padding, direction: null, positioning,
             horizontalAlignment, verticalAlignment);
-        if (minValue is not null) b = b.Configure(c => c.MinValue = minValue.Value);
-        if (maxValue is not null) b = b.Configure(c => c.MaxValue = maxValue.Value);
-        if (step is not null) b = b.Configure(c => c.Step = step.Value);
-        if (unit is not null) b = b.Configure(c => c.Unit = unit);
-        if (value is not null) b = b.Configure(c => c.Value = value.Value);
-        if (onValueChanged is not null) b = b.Configure(c => c.OnValueChanged = onValueChanged);
-        if (onTooltipText is not null) b = b.Configure(c => c.OnTooltipText = onTooltipText);
-        if (triggerOnMouseUp is not null) b = b.Configure(c => c.TriggerOnMouseUp = triggerOnMouseUp.Value);
+        if (minValue is not null)
+        {
+            b = b.Configure(c => c.MinValue = minValue.Value);
+        }
+
+        if (maxValue is not null)
+        {
+            b = b.Configure(c => c.MaxValue = maxValue.Value);
+        }
+
+        if (step is not null)
+        {
+            b = b.Configure(c => c.Step = step.Value);
+        }
+
+        if (unit is not null)
+        {
+            b = b.Configure(c => c.Unit = unit);
+        }
+
+        if (value is not null)
+        {
+            b = b.Configure(c => c.Value = value.Value);
+        }
+
+        if (onValueChanged is not null)
+        {
+            b = b.Configure(c => c.OnValueChanged = onValueChanged);
+        }
+
+        if (onTooltipText is not null)
+        {
+            b = b.Configure(c => c.OnTooltipText = onTooltipText);
+        }
+
+        if (triggerOnMouseUp is not null)
+        {
+            b = b.Configure(c => c.TriggerOnMouseUp = triggerOnMouseUp.Value);
+        }
+
         return b;
     }
 
@@ -726,16 +831,56 @@ public static class RenderTreeBuilderExtensions
             builder.AddComponent<GuiDropdown<T>>(key),
             width, height, widthMode, heightMode, fill, margin, padding, direction: null, positioning,
             horizontalAlignment, verticalAlignment);
-        if (items is not null) b = b.Configure(c => c.Items = items);
-        if (selectedIndex is not null) b = b.Configure(c => c.SelectedIndex = selectedIndex.Value);
-        if (onSelectionChanged is not null) b = b.Configure(c => c.OnSelectionChanged = onSelectionChanged);
-        if (onItemSelected is not null) b = b.Configure(c => c.OnItemSelected = onItemSelected);
-        if (itemTemplate is not null) b = b.Configure(c => c.ItemTemplate = itemTemplate);
-        if (selectedTemplate is not null) b = b.Configure(c => c.SelectedTemplate = selectedTemplate);
-        if (placeholder is not null) b = b.Configure(c => c.Placeholder = placeholder);
-        if (font is not null) b = b.Configure(c => c.Font = font.Value);
-        if (itemHeight is not null) b = b.Configure(c => c.ItemHeight = itemHeight.Value);
-        if (maxPopupHeight is not null) b = b.Configure(c => c.MaxPopupHeight = maxPopupHeight.Value);
+        if (items is not null)
+        {
+            b = b.Configure(c => c.Items = items);
+        }
+
+        if (selectedIndex is not null)
+        {
+            b = b.Configure(c => c.SelectedIndex = selectedIndex.Value);
+        }
+
+        if (onSelectionChanged is not null)
+        {
+            b = b.Configure(c => c.OnSelectionChanged = onSelectionChanged);
+        }
+
+        if (onItemSelected is not null)
+        {
+            b = b.Configure(c => c.OnItemSelected = onItemSelected);
+        }
+
+        if (itemTemplate is not null)
+        {
+            b = b.Configure(c => c.ItemTemplate = itemTemplate);
+        }
+
+        if (selectedTemplate is not null)
+        {
+            b = b.Configure(c => c.SelectedTemplate = selectedTemplate);
+        }
+
+        if (placeholder is not null)
+        {
+            b = b.Configure(c => c.Placeholder = placeholder);
+        }
+
+        if (font is not null)
+        {
+            b = b.Configure(c => c.Font = font.Value);
+        }
+
+        if (itemHeight is not null)
+        {
+            b = b.Configure(c => c.ItemHeight = itemHeight.Value);
+        }
+
+        if (maxPopupHeight is not null)
+        {
+            b = b.Configure(c => c.MaxPopupHeight = maxPopupHeight.Value);
+        }
+
         return b;
     }
 
@@ -758,38 +903,71 @@ public static class RenderTreeBuilderExtensions
     {
         Action<GuiComponentLayoutParameters> action = null!;
 
-        if (width != null) action += lp => lp.Width = width.Value;
-        if (height != null) action += lp => lp.Height = height.Value;
-        if (widthMode != null) action += lp => lp.WidthMode = widthMode.Value;
-        if (heightMode != null) action += lp => lp.HeightMode = heightMode.Value;
-        if (margin != null) action += lp => lp.Margin = margin.Value;
-        if (padding != null) action += lp => lp.Padding = padding.Value;
-        if (direction != null) action += lp => lp.Direction = direction.Value;
-        if (positioning != null) action += lp => lp.Positioning = positioning.Value;
-        if (horizontalAlignment != null) action += lp => lp.HorizontalAlignment = horizontalAlignment.Value;
-        if (verticalAlignment != null) action += lp => lp.VerticalAlignment = verticalAlignment.Value;
+        if (width != null)
+        {
+            action += lp => lp.Width = width.Value;
+        }
 
-        if (fill) action += lp =>
+        if (height != null)
+        {
+            action += lp => lp.Height = height.Value;
+        }
+
+        if (widthMode != null)
+        {
+            action += lp => lp.WidthMode = widthMode.Value;
+        }
+
+        if (heightMode != null)
+        {
+            action += lp => lp.HeightMode = heightMode.Value;
+        }
+
+        if (margin != null)
+        {
+            action += lp => lp.Margin = margin.Value;
+        }
+
+        if (padding != null)
+        {
+            action += lp => lp.Padding = padding.Value;
+        }
+
+        if (direction != null)
+        {
+            action += lp => lp.Direction = direction.Value;
+        }
+
+        if (positioning != null)
+        {
+            action += lp => lp.Positioning = positioning.Value;
+        }
+
+        if (horizontalAlignment != null)
+        {
+            action += lp => lp.HorizontalAlignment = horizontalAlignment.Value;
+        }
+
+        if (verticalAlignment != null)
+        {
+            action += lp => lp.VerticalAlignment = verticalAlignment.Value;
+        }
+
+        if (fill)
+        {
+            action += lp =>
         {
             lp.WidthMode = GuiSizeMode.Fill;
             lp.HeightMode = GuiSizeMode.Fill;
         };
+        }
 
         if (action is null)
         {
             return builder;
         }
 
-        return builder.Configure(node =>
-        {
-            if (node is not IGuiComponent component)
-            {
-                throw new InvalidOperationException(
-                    $"Layout parameters cannot be applied to layout-transparent node {typeof(T).Name}.");
-            }
-
-            action(component.LayoutParameters);
-        });
+        return builder.ConfigureLayout(action);
     }
 }
 

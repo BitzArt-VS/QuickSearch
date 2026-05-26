@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace BitzArt.UI.Tweaks.Gui;
 
 internal sealed class ScopedRebuildQueue
@@ -17,7 +15,10 @@ internal sealed class ScopedRebuildQueue
 
     internal bool Drain()
     {
-        if (_pending.Count == 0) return false;
+        if (_pending.Count == 0)
+        {
+            return false;
+        }
 
         (_pending, _active) = (_active, _pending);
         while (_active.Count > 0)

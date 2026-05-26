@@ -57,7 +57,11 @@ public class GuiDialogBackground : GuiContainer
 
     protected override void DrawBackground(Context ctx, GuiComponentBounds bounds)
     {
-        if (RenderHandle is null) return;
+        if (RenderHandle is null)
+        {
+            return;
+        }
+
         var capi = RenderHandle.ClientApi;
 
         double sw = StrokeWidth / RuntimeEnv.GUIScale;

@@ -1,5 +1,4 @@
 using Cairo;
-using System;
 using Vintagestory.API.Config;
 
 namespace BitzArt.UI.Tweaks.Gui;

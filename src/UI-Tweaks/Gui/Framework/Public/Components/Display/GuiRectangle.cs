@@ -15,7 +15,11 @@ public class GuiRectangle : GuiComponent
 
     public override void Render(Context context, GuiComponentBounds bounds)
     {
-        if (Color.A <= 0) return;
+        if (Color.A <= 0)
+        {
+            return;
+        }
+
         context.SetSourceRGBA(Color.R, Color.G, Color.B, Color.A);
         context.Rectangle(bounds.X, bounds.Y, bounds.Width, bounds.Height);
         context.Fill();

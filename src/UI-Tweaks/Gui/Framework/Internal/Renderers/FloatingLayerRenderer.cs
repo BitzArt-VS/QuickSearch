@@ -1,10 +1,9 @@
-using System;
 using Vintagestory.API.Client;
 using Vintagestory.API.Config;
 
 namespace BitzArt.UI.Tweaks.Gui;
 
-internal class FloatingLayerRenderer : GuiSurfaceRenderer, IFloatingLayer
+internal class FloatingLayerRenderer : GuiSurfaceRenderer
 {
     protected GuiMeasuredSize _measuredSize;
 
@@ -29,7 +28,11 @@ internal class FloatingLayerRenderer : GuiSurfaceRenderer, IFloatingLayer
 
     public void Hide(object token)
     {
-        if (!ReferenceEquals(_activeToken, token)) return;
+        if (!ReferenceEquals(_activeToken, token))
+        {
+            return;
+        }
+
         ClearActive();
     }
 
@@ -44,7 +47,10 @@ internal class FloatingLayerRenderer : GuiSurfaceRenderer, IFloatingLayer
             ClearActive();
         }
 
-        if (!_activePlacement.RewalkOnDialogWalk) return;
+        if (!_activePlacement.RewalkOnDialogWalk)
+        {
+            return;
+        }
 
         // The host's region tables were just cleared by the dialog's arrange walk —
         // even an unchanged layer must re-walk so its regions get re-registered.
@@ -61,13 +67,20 @@ internal class FloatingLayerRenderer : GuiSurfaceRenderer, IFloatingLayer
         // tied to the dialog's walk cadence — e.g. tooltips driven by mouse events)
         // reconcile here so changes between walks still take effect.
         if (!_activePlacement.RewalkOnDialogWalk)
+        {
             Update();
+        }
+
         Blit();
     }
 
     private void ClearActive()
     {
-        if (ActiveFragment is null) return;
+        if (ActiveFragment is null)
+        {
+            return;
+        }
+
         _activeToken = null;
         ActiveFragment = null;
         _activePlacement = default;
@@ -75,14 +88,23 @@ internal class FloatingLayerRenderer : GuiSurfaceRenderer, IFloatingLayer
 
     protected void Update()
     {
-        if (ActiveFragment is null) return;
+        if (ActiveFragment is null)
+        {
+            return;
+        }
 
         float scale = RuntimeEnv.GUIScale;
-        if (!HasPendingSurfaceUpdate && scale == _currentScale) return;
+        if (!HasPendingSurfaceUpdate && scale == _currentScale)
+        {
+            return;
+        }
 
         ReconcileAndMeasure();
 
-        if (_measuredSize.Width <= 0 || _measuredSize.Height <= 0) return;
+        if (_measuredSize.Width <= 0 || _measuredSize.Height <= 0)
+        {
+            return;
+        }
 
         ReallocateSurfaceIfNeeded(scale);
         DrawToSurface(scale);
@@ -109,8 +131,15 @@ internal class FloatingLayerRenderer : GuiSurfaceRenderer, IFloatingLayer
 
     private void Blit()
     {
-        if (ActiveFragment is null) return;
-        if (_measuredSize.Width <= 0 || _measuredSize.Height <= 0) return;
+        if (ActiveFragment is null)
+        {
+            return;
+        }
+
+        if (_measuredSize.Width <= 0 || _measuredSize.Height <= 0)
+        {
+            return;
+        }
 
         var (posX, posY) = GetScreenPosition(PhysicalWidth, PhysicalHeight, _currentScale);
         BlitAt(posX, posY);
@@ -119,7 +148,9 @@ internal class FloatingLayerRenderer : GuiSurfaceRenderer, IFloatingLayer
     public override bool ContainsScreenPoint(int x, int y)
     {
         if (!IsActive || _measuredSize.Width <= 0 || _measuredSize.Height <= 0)
+        {
             return false;
+        }
 
         float scale = RuntimeEnv.GUIScale;
         var (posX, posY) = GetScreenPosition(PhysicalWidth, PhysicalHeight, scale);
@@ -128,14 +159,21 @@ internal class FloatingLayerRenderer : GuiSurfaceRenderer, IFloatingLayer
 
     public override void AddInteractiveRegion(in InteractiveRegion region)
     {
-        if (_activePlacement.InputHost is null) return;
+        if (_activePlacement.InputHost is null)
+        {
+            return;
+        }
+
         _activePlacement.InputHost.AddInteractiveRegion(
             region.Translated(_activePlacement.InputRegionOffsetX, _activePlacement.InputRegionOffsetY));
     }
 
     public override void AddKeyboardRegion(in KeyboardRegion region)
     {
-        if (_activePlacement.InputHost is null) return;
+        if (_activePlacement.InputHost is null)
+        {
+            return;
+        }
         // Keyboard regions are matched by token identity, not bounds; no translation.
         _activePlacement.InputHost.AddKeyboardRegion(region);
     }
@@ -143,7 +181,9 @@ internal class FloatingLayerRenderer : GuiSurfaceRenderer, IFloatingLayer
     protected virtual GuiMeasuredSize ResolveLogicalSize()
     {
         if (_activePlacement.FixedLogicalSize is GuiMeasuredSize fixedSize)
+        {
             return fixedSize;
+        }
 
         double maxWidth = _activePlacement.MaxLogicalWidth > 0
             ? _activePlacement.MaxLogicalWidth

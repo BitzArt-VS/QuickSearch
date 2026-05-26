@@ -1,5 +1,4 @@
 using Cairo;
-using System;
 using Vintagestory.API.Config;
 
 namespace BitzArt.UI.Tweaks.Gui;
@@ -111,8 +110,16 @@ public class GuiContainer : GuiComponent
     {
         double previousScrollX = ScrollX;
         double previousScrollY = ScrollY;
-        if (scrollX >= 0) ScrollX = scrollX;
-        if (scrollY >= 0) ScrollY = scrollY;
+        if (scrollX >= 0)
+        {
+            ScrollX = scrollX;
+        }
+
+        if (scrollY >= 0)
+        {
+            ScrollY = scrollY;
+        }
+
         if (ScrollX != previousScrollX || ScrollY != previousScrollY)
         {
             RequestArrange();
@@ -128,7 +135,11 @@ public class GuiContainer : GuiComponent
     /// </summary>
     protected virtual void DrawBackground(Context context, GuiComponentBounds bounds)
     {
-        if (Background.A <= 0) return;
+        if (Background.A <= 0)
+        {
+            return;
+        }
+
         context.SetSourceRGBA(Background.R, Background.G, Background.B, Background.A);
         context.Rectangle(bounds.X, bounds.Y, bounds.Width, bounds.Height);
         context.Fill();
@@ -186,7 +197,11 @@ public class GuiContainer : GuiComponent
     /// </summary>
     internal void DrawInsetBackground(Context context, GuiComponentBounds bounds)
     {
-        if (!HasInset) return;
+        if (!HasInset)
+        {
+            return;
+        }
+
         GuiInset.Draw(context, bounds, _inset.Depth, _inset.Brightness, _inset.Radius);
     }
 
@@ -305,10 +320,25 @@ public class GuiContainer : GuiComponent
 
         double maxX = Math.Max(0, contentW - viewportW);
         double maxY = Math.Max(0, contentH - viewportH);
-        if (ScrollX > maxX) ScrollX = maxX;
-        if (ScrollY > maxY) ScrollY = maxY;
-        if (ScrollX < 0) ScrollX = 0;
-        if (ScrollY < 0) ScrollY = 0;
+        if (ScrollX > maxX)
+        {
+            ScrollX = maxX;
+        }
+
+        if (ScrollY > maxY)
+        {
+            ScrollY = maxY;
+        }
+
+        if (ScrollX < 0)
+        {
+            ScrollX = 0;
+        }
+
+        if (ScrollY < 0)
+        {
+            ScrollY = 0;
+        }
     }
 
     /// <summary>
@@ -437,7 +467,11 @@ public class GuiContainer : GuiComponent
         double trackH = _viewportH;
         double ratio = _contentH > 0 ? Math.Min(1, _viewportH / _contentH) : 1;
         double handleH = Math.Max(MinHandleLength, ratio * trackH);
-        if (handleH > trackH) handleH = trackH;
+        if (handleH > trackH)
+        {
+            handleH = trackH;
+        }
+
         double scrollable = Math.Max(0, trackH - handleH);
         double maxScroll = Math.Max(0, _contentH - _viewportH);
         double handleY = _viewportY + (maxScroll > 0 ? ScrollY / maxScroll * scrollable : 0);
@@ -449,7 +483,11 @@ public class GuiContainer : GuiComponent
         double trackW = _viewportW;
         double ratio = _contentW > 0 ? Math.Min(1, _viewportW / _contentW) : 1;
         double handleW = Math.Max(MinHandleLength, ratio * trackW);
-        if (handleW > trackW) handleW = trackW;
+        if (handleW > trackW)
+        {
+            handleW = trackW;
+        }
+
         double scrollable = Math.Max(0, trackW - handleW);
         double maxScroll = Math.Max(0, _contentW - _viewportW);
         double handleX = _viewportX + (maxScroll > 0 ? ScrollX / maxScroll * scrollable : 0);
@@ -458,9 +496,16 @@ public class GuiContainer : GuiComponent
 
     private void HandleVScrollbarDown(GuiMouseEventArgs e)
     {
-        if (!_showVScrollbar) return;
+        if (!_showVScrollbar)
+        {
+            return;
+        }
+
         double maxScroll = Math.Max(0, _contentH - _viewportH);
-        if (maxScroll <= 0) return; // forced-visible scrollbar with no overflow — non-interactive.
+        if (maxScroll <= 0)
+        {
+            return; // forced-visible scrollbar with no overflow — non-interactive.
+        }
 
         var (handleY, handleH) = GetVHandleSpan();
         if (e.Position.Y >= handleY && e.Position.Y < handleY + handleH)
@@ -479,7 +524,11 @@ public class GuiContainer : GuiComponent
 
     private void HandleVScrollbarMove(GuiMouseEventArgs e)
     {
-        if (!_vDragging) return;
+        if (!_vDragging)
+        {
+            return;
+        }
+
         ApplyVHandlePos(e.Position.Y - _vDragHandleOffset);
     }
 
@@ -487,9 +536,16 @@ public class GuiContainer : GuiComponent
 
     private void HandleHScrollbarDown(GuiMouseEventArgs e)
     {
-        if (!_showHScrollbar) return;
+        if (!_showHScrollbar)
+        {
+            return;
+        }
+
         double maxScroll = Math.Max(0, _contentW - _viewportW);
-        if (maxScroll <= 0) return;
+        if (maxScroll <= 0)
+        {
+            return;
+        }
 
         var (handleX, handleW) = GetHHandleSpan();
         if (e.Position.X >= handleX && e.Position.X < handleX + handleW)
@@ -506,7 +562,11 @@ public class GuiContainer : GuiComponent
 
     private void HandleHScrollbarMove(GuiMouseEventArgs e)
     {
-        if (!_hDragging) return;
+        if (!_hDragging)
+        {
+            return;
+        }
+
         ApplyHHandlePos(e.Position.X - _hDragHandleOffset);
     }
 

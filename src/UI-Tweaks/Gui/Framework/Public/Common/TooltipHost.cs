@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using Vintagestory.API.Client;
 
 namespace BitzArt.UI.Tweaks.Gui;
@@ -75,7 +73,10 @@ public sealed class TooltipHost
         for (int i = _regions.Count - 1; i >= 0; i--)
         {
             var r = _regions[i];
-            if (!r.Contains(lx, ly)) continue;
+            if (!r.Contains(lx, ly))
+            {
+                continue;
+            }
 
             if (!ReferenceEquals(_activeRegionToken, r.Token))
             {
@@ -104,7 +105,9 @@ public sealed class TooltipHost
                 padding: new GuiThickness(GuiTooltipBackground.DefaultPadding),
                 content: userContent);
             if (configureBackground is not null)
+            {
                 slot.Configure(configureBackground);
+            }
         };
 
         var placement = new FloatingLayerPlacement
@@ -123,7 +126,11 @@ public sealed class TooltipHost
     /// </summary>
     internal void Hide()
     {
-        if (_activeRegionToken is null) return;
+        if (_activeRegionToken is null)
+        {
+            return;
+        }
+
         _activeRegionToken = null;
         _layer.Hide(LayerToken);
     }
@@ -138,10 +145,25 @@ public sealed class TooltipHost
         double frameWidth = clientApi.Render.FrameWidth;
         double frameHeight = clientApi.Render.FrameHeight;
 
-        if (posX + physW > frameWidth) posX = frameWidth - physW;
-        if (posY + physH > frameHeight) posY = mouseY - physH - 5 * scale; // flip above
-        if (posX < 0) posX = 0;
-        if (posY < 0) posY = 0;
+        if (posX + physW > frameWidth)
+        {
+            posX = frameWidth - physW;
+        }
+
+        if (posY + physH > frameHeight)
+        {
+            posY = mouseY - physH - 5 * scale; // flip above
+        }
+
+        if (posX < 0)
+        {
+            posX = 0;
+        }
+
+        if (posY < 0)
+        {
+            posY = 0;
+        }
 
         return (posX, posY);
     }

@@ -3,6 +3,10 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/main/VisualStudio.gitignore
 
+# Agent temporary files
+.workspace/plan/
+.workspace/investigate/
+
 # User-specific files
 *.rsuser
 *.suo
