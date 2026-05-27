@@ -1,6 +1,0 @@
-interface:
-  display_name: "Bottom-Up Review"
-  short_description: "Review code from least-dependent files upward"
-  default_prompt: "Use $review-bottom-up to review this module for naming, structure, and logical inconsistencies."
-policy:
-  allow_implicit_invocation: true
