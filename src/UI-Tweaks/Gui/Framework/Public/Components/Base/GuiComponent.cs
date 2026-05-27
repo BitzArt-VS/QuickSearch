@@ -26,7 +26,7 @@ public abstract class GuiComponent : GuiNode, IGuiComponent
         }
 
         return GuiComponentLayout.MeasureContent(
-            RenderHandle.Slot.Children,
+            Slot.Children,
             availableWidth,
             availableHeight,
             LayoutParameters.Direction);

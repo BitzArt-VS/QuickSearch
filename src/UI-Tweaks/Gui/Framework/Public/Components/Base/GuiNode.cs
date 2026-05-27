@@ -19,6 +19,7 @@ public abstract class GuiNode : IGuiNode
     public GuiRenderFragment RenderFragment { get; }
 
     protected IGuiRenderHandle? RenderHandle { get; private set; }
+    protected IGuiComponentSlot Slot => GetAttachedRenderHandle(nameof(Slot)).Slot;
     protected ICoreClientAPI? ClientApi { get; private set; }
 
     protected GuiNode()
