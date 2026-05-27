@@ -121,6 +121,48 @@ public class GuiComponentMeasurementTests
         Assert.Equal(new GuiMeasuredSize(25, 6), measured);
     }
 
+    [Fact]
+    public void PublicMeasureContentMatchesDefaultGuiComponentMeasurement()
+    {
+        var root = new TestContainer();
+        root.LayoutParameters.Direction = GuiDirection.Horizontal;
+
+        var childA = new FixedMeasureComponent(10, 5);
+        childA.LayoutParameters.Margin = new GuiThickness(1, 2, 3, 4);
+
+        var childB = new FixedMeasureComponent(7, 11);
+        childB.LayoutParameters.Padding = new GuiThickness(vertical: 1, horizontal: 2);
+
+        var transparent = new TransparentNode();
+
+        Mount(root,
+            Slot(childA),
+            Slot(transparent,
+                Slot(childB)));
+
+        var measured = GuiComponentLayout.MeasureContent(
+            root.RenderSlot.Children,
+            100,
+            100,
+            root.LayoutParameters.Direction);
+
+        Assert.Equal(root.Measure(100, 100), measured);
+    }
+
+    [Fact]
+    public void DirectImplementorCanReusePublicMeasurementHelpers()
+    {
+        var root = new ExternalBaseComponent();
+
+        Mount(root,
+            Slot(new FixedMeasureComponent(12, 6)),
+            Slot(new FixedMeasureComponent(8, 4)));
+
+        var measured = root.Measure(100, 100);
+
+        Assert.Equal(new GuiMeasuredSize(12, 10), measured);
+    }
+
     private static TestSlot Slot(IGuiNode node, params TestSlot[] children)
         => new(node, children);
 
@@ -130,9 +172,31 @@ public class GuiComponentMeasurementTests
         rootSlot.AttachRecursive();
     }
 
-    private sealed class TestContainer : GuiComponent;
+    private sealed class TestContainer : GuiComponent
+    {
+        public IGuiComponentSlot RenderSlot => GetAttachedRenderHandle(nameof(RenderSlot)).Slot;
+    }
 
     private sealed class TransparentNode : GuiNode;
+
+    private sealed class ExternalBaseComponent : IGuiComponent
+    {
+        private IGuiRenderHandle? _renderHandle;
+
+        public GuiComponentLayoutParameters LayoutParameters { get; } = new();
+        public GuiRenderFragment RenderFragment { get; } = _ => { };
+        public IGuiComponentSlot RenderSlot => _renderHandle!.Slot;
+
+        public void Attach(IGuiRenderHandle renderHandle, ICoreClientAPI clientApi)
+            => _renderHandle = renderHandle;
+
+        public GuiMeasuredSize Measure(double availableWidth, double availableHeight)
+            => GuiComponentLayout.MeasureContent(
+                _renderHandle!.Slot.Children,
+                availableWidth,
+                availableHeight,
+                LayoutParameters.Direction);
+    }
 
     private sealed class FixedMeasureComponent(double width, double height) : GuiComponent
     {
