@@ -6,11 +6,14 @@ internal sealed class GuiElementAdapter(ICoreClientAPI clientApi, DialogRenderer
     : Vintagestory.API.Client.GuiDialog(clientApi)
 {
     private readonly DialogRenderer _renderer = renderer;
+    private GuiInputRouter _input = null!;
     private bool _isDisposed;
 
     public override string? ToggleKeyCombinationCode => null;
 
     public override void OnGuiOpened() { }
+
+    internal void AttachInput(GuiInputRouter input) => _input = input;
 
     public override bool TryOpen()
     {
@@ -43,22 +46,22 @@ internal sealed class GuiElementAdapter(ICoreClientAPI clientApi, DialogRenderer
     public override void Focus()
     {
         base.Focus();
-        _renderer.OnFocus();
+        _input.OnFocus();
     }
 
     public override void UnFocus()
     {
         base.UnFocus();
-        _renderer.OnUnFocus();
+        _input.OnUnFocus();
     }
 
-    public override void OnMouseDown(MouseEvent args) => _renderer.OnMouseDown(args);
-    public override void OnMouseUp(MouseEvent args) => _renderer.OnMouseUp(args);
-    public override void OnMouseMove(MouseEvent args) => _renderer.OnMouseMove(args);
-    public override void OnMouseWheel(MouseWheelEventArgs args) => _renderer.OnMouseWheel(args);
+    public override void OnMouseDown(MouseEvent args) => _input.OnMouseDown(args);
+    public override void OnMouseUp(MouseEvent args) => _input.OnMouseUp(args);
+    public override void OnMouseMove(MouseEvent args) => _input.OnMouseMove(args);
+    public override void OnMouseWheel(MouseWheelEventArgs args) => _input.OnMouseWheel(args);
 
-    public override void OnKeyDown(KeyEvent args) => _renderer.OnKeyDown(args);
-    public override void OnKeyPress(KeyEvent args) => _renderer.OnKeyPress(args);
-    public override void OnKeyUp(KeyEvent args) => _renderer.OnKeyUp(args);
-    public override bool OnEscapePressed() => _renderer.OnEscapePressed();
+    public override void OnKeyDown(KeyEvent args) => _input.OnKeyDown(args);
+    public override void OnKeyPress(KeyEvent args) => _input.OnKeyPress(args);
+    public override void OnKeyUp(KeyEvent args) => _input.OnKeyUp(args);
+    public override bool OnEscapePressed() => _input.OnEscapePressed();
 }

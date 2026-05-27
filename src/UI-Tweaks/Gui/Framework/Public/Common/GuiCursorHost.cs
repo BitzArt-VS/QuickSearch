@@ -9,7 +9,7 @@ namespace BitzArt.UI.Tweaks.Gui;
 /// <b>Usage.</b> Resolve the host with <c>GetCascadingValue&lt;GuiCursorHost&gt;()</c> in
 /// <see cref="GuiComponent.OnParametersSet"/>, then call <see cref="SetHoverCursor"/>
 /// from an <c>OnMouseEnter</c> handler and pass <c>null</c> from <c>OnMouseLeave</c>.
-/// The dialog reads <see cref="HoverCursor"/> after every mouse-move dispatch and
+/// The input router reads <see cref="HoverCursor"/> after every mouse-move dispatch and
 /// forwards it to vanilla's per-dialog <c>MouseOverCursor</c> slot, which
 /// <c>GuiManager</c> then applies as the platform cursor for that frame.
 /// </para>
@@ -23,8 +23,7 @@ public sealed class GuiCursorHost
 {
     /// <summary>
     /// The cursor code currently requested by a hovered slot, or <c>null</c> when no slot
-    /// has set a preference. Read by <see cref="GuiDialog"/> after each mouse-move
-    /// dispatch.
+    /// has set a preference. Read by the input router after each mouse-move dispatch.
     /// </summary>
     public string? HoverCursor { get; private set; }
 

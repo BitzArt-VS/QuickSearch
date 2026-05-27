@@ -14,22 +14,22 @@ public static class GuiDialogHost
     internal static void Initialize(ICoreClientAPI clientApi) => Instance = new(clientApi);
 
     public static bool Toggle<TDialog>(Action<TDialog>? configure = null)
-        where TDialog : GuiDialog, new()
+        where TDialog : class, IGuiDialog, new()
         => Instance.Toggle(configure);
 
     public static TDialog Open<TDialog>(Action<TDialog>? configure = null)
-        where TDialog : GuiDialog, new()
+        where TDialog : class, IGuiDialog, new()
         => Instance.Open(configure);
 
     public static bool Close<TDialog>()
-        where TDialog : GuiDialog, new()
+        where TDialog : class, IGuiDialog, new()
         => Instance.Close<TDialog>();
 
     public static bool IsOpen<TDialog>()
-        where TDialog : GuiDialog, new()
+        where TDialog : class, IGuiDialog, new()
         => Instance.IsOpen<TDialog>();
 
     public static bool TryGet<TDialog>([NotNullWhen(true)] out TDialog? dialog)
-        where TDialog : GuiDialog, new()
+        where TDialog : class, IGuiDialog, new()
         => Instance.TryGet(out dialog);
 }

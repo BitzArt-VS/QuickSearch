@@ -257,8 +257,8 @@ public class GuiContainer : GuiComponent
     private double _hDragHandleOffset;
 
     // Stable tokens for scrollbar interactive regions. Allocated once per container —
-    // the framework dispatcher compares tokens by reference identity for capture matching,
-    // so each axis needs its own object.
+    // the input router compares tokens by reference identity for capture matching, so
+    // each axis needs its own object.
     internal readonly object VScrollbarToken = new();
     internal readonly object HScrollbarToken = new();
 

@@ -15,7 +15,7 @@ public sealed class GuiDialogHostInstance : IDisposable
     }
 
     public bool Toggle<TDialog>(Action<TDialog>? configure = null)
-        where TDialog : GuiDialog, new()
+        where TDialog : class, IGuiDialog, new()
     {
         ObjectDisposedException.ThrowIf(_isDisposed, this);
 
@@ -29,7 +29,7 @@ public sealed class GuiDialogHostInstance : IDisposable
     }
 
     public TDialog Open<TDialog>(Action<TDialog>? configure = null)
-        where TDialog : GuiDialog, new()
+        where TDialog : class, IGuiDialog, new()
     {
         ObjectDisposedException.ThrowIf(_isDisposed, this);
 
@@ -52,7 +52,7 @@ public sealed class GuiDialogHostInstance : IDisposable
     }
 
     public bool Close<TDialog>()
-        where TDialog : GuiDialog, new()
+        where TDialog : class, IGuiDialog, new()
     {
         ObjectDisposedException.ThrowIf(_isDisposed, this);
 
@@ -68,7 +68,7 @@ public sealed class GuiDialogHostInstance : IDisposable
     }
 
     public bool IsOpen<TDialog>()
-        where TDialog : GuiDialog, new()
+        where TDialog : class, IGuiDialog, new()
     {
         ObjectDisposedException.ThrowIf(_isDisposed, this);
 
@@ -76,7 +76,7 @@ public sealed class GuiDialogHostInstance : IDisposable
     }
 
     public bool TryGet<TDialog>([NotNullWhen(true)] out TDialog? dialog)
-        where TDialog : GuiDialog, new()
+        where TDialog : class, IGuiDialog, new()
     {
         ObjectDisposedException.ThrowIf(_isDisposed, this);
 

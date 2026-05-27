@@ -1,46 +1,87 @@
 using Vintagestory.API.Client;
-using Vintagestory.API.Common;
 using Vintagestory.API.Config;
+using EnumMouseButton = Vintagestory.API.Common.EnumMouseButton;
 
 namespace BitzArt.UI.Tweaks.Gui;
 
-internal sealed class DialogInputDispatcher
+internal sealed class GuiInputRouter
 {
     internal delegate bool CoordinateConverter(int x, int y, out double logicalX, out double logicalY);
 
-    // Shared
+    private readonly ICoreClientAPI _clientApi;
     private readonly CoordinateConverter _convertToLogical;
     private readonly TooltipHost _tooltipHost;
+    private readonly GuiCursorHost _cursorHost;
+    private readonly Func<int, int, bool> _containsSurfacePoint;
+    private readonly Func<int, int, bool> _containsOverlayPoint;
+    private readonly Action _requestHostFocus;
+    private readonly Action<string?> _setHostMouseCursor;
+    private readonly Action _onRootFocus;
+    private readonly Action _onRootUnFocus;
+    private readonly Func<bool> _onRootEscapePressed;
+    private readonly Action<KeyEvent> _onRootKeyDown;
+    private readonly Action<KeyEvent> _onRootKeyUp;
+    private readonly Action<KeyEvent> _onRootKeyPress;
 
-    // Interactive regions
     private readonly List<InteractiveRegion> _interactiveRegions = [];
-
-    // Keyboard / focus
     private readonly List<KeyboardRegion> _keyboardRegions = [];
 
-    // Mouse capture state
     private object? _capturedToken;
     private GuiCallback<GuiMouseEventArgs> _capturedOnMouseUp;
     private GuiCallback<GuiMouseEventArgs> _capturedOnMouseClick;
     private GuiCallback<GuiMouseEventArgs> _capturedOnMouseMove;
     private EnumMouseButton _capturedButton;
 
-    // Hover state
     private object? _hoveredToken;
     private GuiCallback<GuiMouseEventArgs> _hoveredOnMouseLeave;
 
-    // Focus tracking within a mouse dispatch
     private bool _focusClaimedThisDispatch;
+    private bool _isFocused;
+    private string? _overrideCursor;
 
     internal IGuiNode? FocusedNode { get; private set; }
     private bool IsCapturing => _capturedToken is not null;
 
-    internal DialogInputDispatcher(
+    internal GuiInputRouter(
+        ICoreClientAPI clientApi,
         CoordinateConverter convertToLogical,
-        TooltipHost tooltipHost)
+        TooltipHost tooltipHost,
+        GuiCursorHost cursorHost,
+        Func<int, int, bool> containsSurfacePoint,
+        Func<int, int, bool> containsOverlayPoint,
+        Action requestHostFocus,
+        Action<string?> setHostMouseCursor,
+        Action onRootFocus,
+        Action onRootUnFocus,
+        Func<bool> onRootEscapePressed,
+        Action<KeyEvent> onRootKeyDown,
+        Action<KeyEvent> onRootKeyUp,
+        Action<KeyEvent> onRootKeyPress)
     {
+        _clientApi = clientApi;
         _convertToLogical = convertToLogical;
         _tooltipHost = tooltipHost;
+        _cursorHost = cursorHost;
+        _containsSurfacePoint = containsSurfacePoint;
+        _containsOverlayPoint = containsOverlayPoint;
+        _requestHostFocus = requestHostFocus;
+        _setHostMouseCursor = setHostMouseCursor;
+        _onRootFocus = onRootFocus;
+        _onRootUnFocus = onRootUnFocus;
+        _onRootEscapePressed = onRootEscapePressed;
+        _onRootKeyDown = onRootKeyDown;
+        _onRootKeyUp = onRootKeyUp;
+        _onRootKeyPress = onRootKeyPress;
+    }
+
+    internal void RequestFocus() => _requestHostFocus.Invoke();
+
+    internal void SetMouseOverCursor(string? cursor)
+    {
+        _overrideCursor = cursor;
+        // Set immediately on the host so the cursor is correct even when the
+        // mouse is stationary (e.g. holding down at the start of a resize gesture).
+        _setHostMouseCursor.Invoke(cursor);
     }
 
     internal void ClearArrangedRegions()
@@ -48,6 +89,9 @@ internal sealed class DialogInputDispatcher
         _interactiveRegions.Clear();
         _keyboardRegions.Clear();
     }
+
+    internal void AddInteractiveRegion(in InteractiveRegion region) => _interactiveRegions.Add(region);
+    internal void AddKeyboardRegion(in KeyboardRegion region) => _keyboardRegions.Add(region);
 
     internal void SetFocusedNode(IGuiNode? node)
     {
@@ -74,10 +118,131 @@ internal sealed class DialogInputDispatcher
         RefreshHover(physicalX, physicalY, logicalX, logicalY, EnumMouseButton.None);
     }
 
-    internal void AddInteractiveRegion(in InteractiveRegion region) => _interactiveRegions.Add(region);
-    internal void AddKeyboardRegion(in KeyboardRegion region) => _keyboardRegions.Add(region);
+    internal void OnFocus()
+    {
+        _isFocused = true;
+        _onRootFocus.Invoke();
+    }
 
-    internal bool DispatchMouseWheel(int physicalX, int physicalY, float delta)
+    internal void OnUnFocus()
+    {
+        _isFocused = false;
+        _onRootUnFocus.Invoke();
+    }
+
+    internal bool OnEscapePressed() => _onRootEscapePressed.Invoke();
+
+    internal void OnMouseDown(MouseEvent args)
+    {
+        if (args.Handled)
+        {
+            return;
+        }
+
+        bool hit = DispatchMouseDown(args);
+        if (hit)
+        {
+            RequestFocus();
+            args.Handled = true;
+        }
+    }
+
+    internal void OnMouseUp(MouseEvent args)
+    {
+        if (args.Handled)
+        {
+            return;
+        }
+
+        DispatchMouseUp(args);
+        if (_containsSurfacePoint(args.X, args.Y) || _containsOverlayPoint(args.X, args.Y))
+        {
+            args.Handled = true;
+        }
+    }
+
+    internal void OnMouseMove(MouseEvent args)
+    {
+        if (args.Handled)
+        {
+            return;
+        }
+
+        bool dispatched = DispatchMouseMove(args);
+        // Override cursor (e.g. dialog resize) takes priority over any component hover cursor.
+        _setHostMouseCursor.Invoke(_overrideCursor ?? _cursorHost.HoverCursor);
+        if (dispatched || _containsSurfacePoint(args.X, args.Y) || _containsOverlayPoint(args.X, args.Y))
+        {
+            args.Handled = true;
+        }
+    }
+
+    internal void OnMouseWheel(MouseWheelEventArgs args)
+    {
+        if (args.IsHandled)
+        {
+            return;
+        }
+
+        int mouseX = _clientApi.Input.MouseX;
+        int mouseY = _clientApi.Input.MouseY;
+
+        if (_isFocused && (_containsSurfacePoint(mouseX, mouseY) || _containsOverlayPoint(mouseX, mouseY)))
+        {
+            DispatchMouseWheel(mouseX, mouseY, args.deltaPrecise);
+            args.SetHandled(true);
+        }
+    }
+
+    internal void OnKeyDown(KeyEvent args)
+    {
+        if (args.Handled)
+        {
+            return;
+        }
+
+        _onRootKeyDown.Invoke(args);
+        if (args.Handled)
+        {
+            return;
+        }
+
+        DispatchKeyDown(args);
+    }
+
+    internal void OnKeyUp(KeyEvent args)
+    {
+        if (args.Handled)
+        {
+            return;
+        }
+
+        _onRootKeyUp.Invoke(args);
+        if (args.Handled)
+        {
+            return;
+        }
+
+        DispatchKeyUp(args);
+    }
+
+    internal void OnKeyPress(KeyEvent args)
+    {
+        if (args.Handled)
+        {
+            return;
+        }
+
+        _onRootKeyPress.Invoke(args);
+        if (args.Handled)
+        {
+            return;
+        }
+
+        DispatchKeyPress(args);
+    }
+
+    private bool DispatchMouseWheel(int physicalX, int physicalY, float delta)
     {
         _convertToLogical(physicalX, physicalY, out double logicalX, out double logicalY);
 
@@ -100,7 +265,7 @@ internal sealed class DialogInputDispatcher
         return false;
     }
 
-    internal bool DispatchMouseDown(MouseEvent args)
+    private bool DispatchMouseDown(MouseEvent args)
     {
         _convertToLogical(args.X, args.Y, out double logicalX, out double logicalY);
         _tooltipHost.Hide();
@@ -126,7 +291,7 @@ internal sealed class DialogInputDispatcher
         return true;
     }
 
-    internal bool DispatchMouseUp(MouseEvent args)
+    private bool DispatchMouseUp(MouseEvent args)
     {
         if (_capturedToken is null)
         {
@@ -158,7 +323,7 @@ internal sealed class DialogInputDispatcher
         return true;
     }
 
-    internal bool DispatchMouseMove(MouseEvent args)
+    private bool DispatchMouseMove(MouseEvent args)
     {
         if (_capturedToken is not null)
         {
@@ -170,9 +335,9 @@ internal sealed class DialogInputDispatcher
         return regionIndex >= 0;
     }
 
-    internal bool DispatchKeyDown(KeyEvent args) => DispatchKey(GuiKeyEventKind.Down, args);
-    internal bool DispatchKeyUp(KeyEvent args) => DispatchKey(GuiKeyEventKind.Up, args);
-    internal bool DispatchKeyPress(KeyEvent args) => DispatchKey(GuiKeyEventKind.Press, args);
+    private bool DispatchKeyDown(KeyEvent args) => DispatchKey(GuiKeyEventKind.Down, args);
+    private bool DispatchKeyUp(KeyEvent args) => DispatchKey(GuiKeyEventKind.Up, args);
+    private bool DispatchKeyPress(KeyEvent args) => DispatchKey(GuiKeyEventKind.Press, args);
 
     private int RefreshHover(int physicalX, int physicalY, double logicalX, double logicalY, EnumMouseButton button)
     {

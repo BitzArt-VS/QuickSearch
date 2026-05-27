@@ -1,14 +1,14 @@
 namespace BitzArt.UI.Tweaks.Gui;
 
-internal sealed class GuiDialogRuntime(DialogRenderer renderer, Action requestClose)
+internal sealed class GuiDialogRuntime(GuiInputRouter inputRouter, Action requestClose) : IGuiDialogRuntime
 {
-    public IGuiNode? FocusedNode => renderer.FocusedNode;
+    public IGuiNode? FocusedNode => inputRouter.FocusedNode;
 
     public void RequestClose() => requestClose.Invoke();
 
-    public void RequestFocus() => renderer.RequestFocus();
+    public void RequestFocus() => inputRouter.RequestFocus();
 
-    public void SetFocusedNode(IGuiNode? node) => renderer.SetFocusedNode(node);
+    public void SetFocusedNode(IGuiNode? node) => inputRouter.SetFocusedNode(node);
 
-    public void SetMouseOverCursor(string? cursor) => renderer.SetMouseOverCursor(cursor);
+    public void SetMouseOverCursor(string? cursor) => inputRouter.SetMouseOverCursor(cursor);
 }

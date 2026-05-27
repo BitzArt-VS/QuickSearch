@@ -13,7 +13,7 @@ public abstract class GuiDialog : GuiComponent, IGuiDialog
     /// </summary>
     public bool IsFocused { get; private set; }
 
-    private GuiDialogRuntime? _runtime;
+    private IGuiDialogRuntime? _runtime;
 
     /// <summary>
     /// Horizontal offset in logical (unscaled) pixels from the screen-centred default position.
@@ -107,13 +107,13 @@ public abstract class GuiDialog : GuiComponent, IGuiDialog
     {
     }
 
-    internal void AttachRuntime(GuiDialogRuntime runtime)
+    void IGuiDialog.AttachDialogRuntime(IGuiDialogRuntime runtime)
     {
         _runtime = runtime;
         EnsureResizeCursors();
     }
 
-    private GuiDialogRuntime Runtime => _runtime
+    private IGuiDialogRuntime Runtime => _runtime
         ?? throw new InvalidOperationException("Dialog is not attached to a dialog host.");
 
     private void EnsureResizeCursors()
@@ -145,17 +145,16 @@ public abstract class GuiDialog : GuiComponent, IGuiDialog
     protected override void ConfigureSlot(IGuiSlotBuilder builder)
     {
         base.ConfigureSlot(builder);
-        IGuiDialog dialog = this;
         builder.ConfigureLayout(layoutParameters =>
         {
             layoutParameters.Width = 400;
             layoutParameters.Height = 300;
         });
         builder
-            .OnMouseDown(dialog.OnMouseDown)
-            .OnMouseUp(dialog.OnMouseUp)
-            .OnMouseMove(dialog.OnMouseMove)
-            .OnMouseLeave(dialog.OnMouseLeave);
+            .OnMouseDown(HandleDialogMouseDown)
+            .OnMouseUp(HandleDialogMouseUp)
+            .OnMouseMove(HandleDialogMouseMove)
+            .OnMouseLeave(HandleDialogMouseLeave);
     }
 
     protected virtual void OnResizeUpdated(bool sizeChanged)
@@ -173,7 +172,7 @@ public abstract class GuiDialog : GuiComponent, IGuiDialog
     /// </summary>
     protected virtual void OnFocusChanged(bool focused) { }
 
-    void IGuiDialog.OnFocus()
+    void IGuiDialog.OnDialogInputFocus()
     {
         if (IsFocused)
         {
@@ -184,7 +183,7 @@ public abstract class GuiDialog : GuiComponent, IGuiDialog
         OnFocusChanged(true);
     }
 
-    void IGuiDialog.OnUnFocus()
+    void IGuiDialog.OnDialogInputUnFocus()
     {
         if (!IsFocused)
         {
@@ -195,16 +194,16 @@ public abstract class GuiDialog : GuiComponent, IGuiDialog
         OnFocusChanged(false);
     }
 
-    void IGuiDialog.OnKeyDown(KeyEvent args) => OnKeyDown(args);
+    void IGuiDialog.OnDialogInputKeyDown(KeyEvent args) => OnKeyDown(args);
     protected virtual void OnKeyDown(KeyEvent args) { }
 
-    void IGuiDialog.OnKeyPress(KeyEvent args) => OnKeyPress(args);
+    void IGuiDialog.OnDialogInputKeyPress(KeyEvent args) => OnKeyPress(args);
     protected virtual void OnKeyPress(KeyEvent args) { }
 
-    void IGuiDialog.OnKeyUp(KeyEvent args) => OnKeyUp(args);
+    void IGuiDialog.OnDialogInputKeyUp(KeyEvent args) => OnKeyUp(args);
     protected virtual void OnKeyUp(KeyEvent args) { }
 
-    void IGuiDialog.OnMouseDown(GuiMouseEventArgs args)
+    private void HandleDialogMouseDown(GuiMouseEventArgs args)
     {
         if (!IsResizable)
         {
@@ -224,8 +223,8 @@ public abstract class GuiDialog : GuiComponent, IGuiDialog
 
         BeginResize(edge, args.Position.X, args.Position.Y);
         // Preserve any focused component through the gesture: re-claiming the currently
-        // focused node sets _focusClaimedThisDispatch = true before the dispatcher's
-        // automatic blur check runs.
+        // focused node sets the router's focus-claimed flag before its automatic
+        // blur check runs.
         var currentFocused = Runtime.FocusedNode;
         if (currentFocused is not null)
         {
@@ -233,7 +232,7 @@ public abstract class GuiDialog : GuiComponent, IGuiDialog
         }
     }
 
-    void IGuiDialog.OnMouseUp(GuiMouseEventArgs args)
+    private void HandleDialogMouseUp(GuiMouseEventArgs args)
     {
         if (_resizeEdge == GuiResizeEdge.None)
         {
@@ -244,7 +243,7 @@ public abstract class GuiDialog : GuiComponent, IGuiDialog
         RequestPaint();
     }
 
-    void IGuiDialog.OnMouseMove(GuiMouseEventArgs args)
+    private void HandleDialogMouseMove(GuiMouseEventArgs args)
     {
         if (_resizeEdge != GuiResizeEdge.None)
         {
@@ -261,7 +260,7 @@ public abstract class GuiDialog : GuiComponent, IGuiDialog
         Runtime.SetMouseOverCursor(CursorForEdge(edge));
     }
 
-    void IGuiDialog.OnMouseLeave(GuiMouseEventArgs args)
+    private void HandleDialogMouseLeave(GuiMouseEventArgs args)
     {
         if (_resizeEdge != GuiResizeEdge.None)
         {
@@ -381,7 +380,7 @@ public abstract class GuiDialog : GuiComponent, IGuiDialog
         OnResizeUpdated(newW != previousWidth || newH != previousHeight);
     }
 
-    bool IGuiDialog.OnEscapePressed()
+    bool IGuiDialog.OnDialogInputEscapePressed()
     {
         // When a component is focused, blur it instead of closing — mirrors typical UI
         // behaviour where Escape first cancels the active input, then closes the dialog

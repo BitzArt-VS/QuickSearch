@@ -29,8 +29,8 @@ public readonly struct GuiKeyEventArgs
     public bool CommandPressed => Event.CommandPressed;
 
     /// <summary>Marks the event as handled — suppresses subsequent framework defaults
-    /// (e.g. <see cref="GuiDialog.OnEscapePressed"/>'s "close on Escape" fallback when a
-    /// focused component consumes the Escape key).</summary>
+    /// (e.g. the default dialog "close on Escape" fallback when a focused component
+    /// consumes the Escape key).</summary>
     public bool Handled
     {
         get => Event.Handled;
