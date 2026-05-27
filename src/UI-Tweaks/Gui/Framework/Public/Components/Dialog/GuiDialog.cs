@@ -1,8 +1,9 @@
 using Vintagestory.API.Client;
+using Vintagestory.API.Config;
 
 namespace BitzArt.UI.Tweaks.Gui;
 
-public abstract class GuiDialog : GuiComponent, IGuiDialog
+public abstract class GuiDialog : GuiComponent, IGuiDialog, IGuiResizable
 {
     // ClientApi is guaranteed non-null after the dialog is attached by the dialog host.
     protected new ICoreClientAPI ClientApi => base.ClientApi!;
@@ -44,16 +45,11 @@ public abstract class GuiDialog : GuiComponent, IGuiDialog
     }
 
     /// <summary>
-    /// When true, the user can drag the dialog's bottom and right edges (and the SE corner)
-    /// to resize it. The cursor switches to a directional resize sprite while hovering a
-    /// grab zone. <see cref="MinWidth"/>/<see cref="MinHeight"/>/<see cref="MaxWidth"/>/
+    /// When true, the user can drag this dialog's supported resize edges. By default,
+    /// <see cref="SupportedResizeEdges"/> enables the bottom edge, right edge, and SE corner.
+    /// The cursor switches to a directional resize sprite while hovering a grab zone.
+    /// <see cref="MinWidth"/>/<see cref="MinHeight"/>/<see cref="MaxWidth"/>/
     /// <see cref="MaxHeight"/> bound the size; they have no effect when this is false.
-    /// <para>
-    /// Top and left edges are intentionally non-resizable: the dialog is rendered centred
-    /// on the screen with title-bar drag controlling the offset, so resizing from the
-    /// bottom-right keeps the gesture predictable (the un-dragged edges are pinned by the
-    /// existing centre+offset positioning, no compensation needed).
-    /// </para>
     /// </summary>
     public bool IsResizable
     {
@@ -64,12 +60,20 @@ public abstract class GuiDialog : GuiComponent, IGuiDialog
             {
                 return;
             }
-
             _isResizable = value;
-            EnsureResizeCursors();
         }
     }
     private bool _isResizable = false;
+
+    /// <summary>
+    /// The dialog edges that can be resized while <see cref="IsResizable"/> is true.
+    /// </summary>
+    public GuiResizeEdge SupportedResizeEdges => IsResizable ? ResizeEdges : GuiResizeEdge.None;
+
+    /// <summary>
+    /// The resize edges supported by this dialog when resize is enabled.
+    /// </summary>
+    protected virtual GuiResizeEdge ResizeEdges => GuiResizeEdge.Right | GuiResizeEdge.Bottom;
 
     /// <summary>Minimum logical-pixel width enforced while resizing. Default 200.</summary>
     public int MinWidth { get; set; } = 200;
@@ -80,29 +84,6 @@ public abstract class GuiDialog : GuiComponent, IGuiDialog
     /// <summary>Maximum logical-pixel height enforced while resizing. Default 1500.</summary>
     public int MaxHeight { get; set; } = 1500;
 
-    /// <summary>
-    /// Thickness of the inward edge grab zone, in logical pixels. The corner zone is the
-    /// square where two edge bands overlap. Tuned to be wide enough for comfortable
-    /// grabbing without overlapping inner content.
-    /// </summary>
-    private const double ResizeEdgeThickness = 6.0;
-
-    // Active resize state. None when not resizing. _resizeStart* snapshot the dialog's
-    // logical size + offset at MouseDown so per-frame updates compute against a stable
-    // baseline (avoiding drift from successive clamped deltas).
-    private GuiResizeEdge _resizeEdge = GuiResizeEdge.None;
-    private double _resizeStartMouseLogicalX;
-    private double _resizeStartMouseLogicalY;
-    private double _resizeStartW;
-    private double _resizeStartH;
-    private double _resizeStartOffsetX;
-    private double _resizeStartOffsetY;
-    // Physical-pixel left/top edge of the dialog at resize start. Used by UpdateResize
-    // to keep the pinned edge at an exact integer pixel despite the texture width
-    // oscillating between two rounded values as the logical size crosses half-integers.
-    private int _resizeAnchorLeft;
-    private int _resizeAnchorTop;
-
     protected GuiDialog()
     {
     }
@@ -110,23 +91,10 @@ public abstract class GuiDialog : GuiComponent, IGuiDialog
     void IGuiDialog.AttachDialogRuntime(IGuiDialogRuntime runtime)
     {
         _runtime = runtime;
-        EnsureResizeCursors();
     }
 
     private IGuiDialogRuntime Runtime => _runtime
         ?? throw new InvalidOperationException("Dialog is not attached to a dialog host.");
-
-    private void EnsureResizeCursors()
-    {
-        if (!_isResizable || base.ClientApi is not ICoreClientAPI clientApi)
-        {
-            return;
-        }
-
-        // Lazy cursor registration: only pay the Cairo+temp-file cost when at least
-        // one resizable dialog is constructed in this session. Idempotent.
-        GuiResizeCursors.EnsureLoaded(clientApi);
-    }
 
     /// <summary>
     /// Requests keyboard focus for this dialog. Other open dialogs lose focus and vanilla
@@ -151,11 +119,26 @@ public abstract class GuiDialog : GuiComponent, IGuiDialog
             layoutParameters.Height = 300;
         });
         builder
-            .OnMouseDown(HandleDialogMouseDown)
-            .OnMouseUp(HandleDialogMouseUp)
-            .OnMouseMove(HandleDialogMouseMove)
-            .OnMouseLeave(HandleDialogMouseLeave)
+            // Keep the root slot focusable/interactive when clicking empty dialog chrome.
+            // Resize gestures are wired automatically by the framework through IGuiResizable.
+            .OnMouseDown(static _ => { })
             .OnFocusChanged(HandleDialogFocusChanged);
+    }
+
+    public virtual void Resize(GuiComponentBounds bounds)
+    {
+        double previousWidth = LayoutParameters.Width.Value;
+        double previousHeight = LayoutParameters.Height.Value;
+
+        double newWidth = Math.Clamp(bounds.Width, MinWidth, MaxWidth);
+        double newHeight = Math.Clamp(bounds.Height, MinHeight, MaxHeight);
+
+        LayoutParameters.Width = newWidth;
+        LayoutParameters.Height = newHeight;
+
+        ApplyScreenBounds(bounds.X, bounds.Y, newWidth, newHeight);
+
+        OnResizeUpdated(newWidth != previousWidth || newHeight != previousHeight);
     }
 
     protected virtual void OnResizeUpdated(bool sizeChanged)
@@ -171,181 +154,13 @@ public abstract class GuiDialog : GuiComponent, IGuiDialog
         IsFocused = focused;
     }
 
-    private void HandleDialogMouseDown(GuiMouseEventArgs args)
+    private void ApplyScreenBounds(double x, double y, double width, double height)
     {
-        if (!IsResizable)
-        {
-            return;
-        }
+        float scale = RuntimeEnv.GUIScale;
+        double physicalWidth = Math.Round(width * scale);
+        double physicalHeight = Math.Round(height * scale);
 
-        if (_resizeEdge != GuiResizeEdge.None)
-        {
-            return;
-        }
-
-        var edge = HitTestResizeEdge(args.Position.X, args.Position.Y);
-        if (edge == GuiResizeEdge.None)
-        {
-            return;
-        }
-
-        BeginResize(edge, args.Position.X, args.Position.Y);
-        // Preserve any focused component through the gesture: re-claiming the currently
-        // focused node sets the router's focus-claimed flag before its automatic
-        // blur check runs.
-        var currentFocused = Runtime.FocusedNode;
-        if (currentFocused is not null)
-        {
-            Runtime.SetFocusedNode(currentFocused);
-        }
+        OffsetX = (x * scale + physicalWidth / 2.0 - ClientApi.Render.FrameWidth / 2.0) / scale;
+        OffsetY = (y * scale + physicalHeight / 2.0 - ClientApi.Render.FrameHeight / 2.0) / scale;
     }
-
-    private void HandleDialogMouseUp(GuiMouseEventArgs args)
-    {
-        if (_resizeEdge == GuiResizeEdge.None)
-        {
-            return;
-        }
-
-        EndResize();
-        RequestPaint();
-    }
-
-    private void HandleDialogMouseMove(GuiMouseEventArgs args)
-    {
-        if (_resizeEdge != GuiResizeEdge.None)
-        {
-            UpdateResize(args.Position.X, args.Position.Y);
-            return;
-        }
-
-        if (!IsResizable)
-        {
-            return;
-        }
-
-        var edge = HitTestResizeEdge(args.Position.X, args.Position.Y);
-        Runtime.SetMouseOverCursor(CursorForEdge(edge));
-    }
-
-    private void HandleDialogMouseLeave(GuiMouseEventArgs args)
-    {
-        if (_resizeEdge != GuiResizeEdge.None)
-        {
-            return;
-        }
-
-        Runtime.SetMouseOverCursor(null);
-    }
-
-    private GuiResizeEdge HitTestResizeEdge(double lx, double ly)
-    {
-        double w = LayoutParameters.Width.Value;
-        double h = LayoutParameters.Height.Value;
-        const double t = ResizeEdgeThickness;
-
-        var edge = GuiResizeEdge.None;
-        if (lx > w - t)
-        {
-            edge |= GuiResizeEdge.Right;
-        }
-
-        if (ly > h - t)
-        {
-            edge |= GuiResizeEdge.Bottom;
-        }
-
-        return edge;
-    }
-
-    /// <summary>
-    /// Selects the cursor sprite for an active or hovered resize edge combination.
-    /// Returns <c>null</c> when <paramref name="edge"/> is <see cref="GuiResizeEdge.None"/>.
-    /// </summary>
-    private static string? CursorForEdge(GuiResizeEdge edge) => edge switch
-    {
-        GuiResizeEdge.Right => GuiResizeCursors.Horizontal,
-        GuiResizeEdge.Bottom => GuiResizeCursors.Vertical,
-        GuiResizeEdge.Right | GuiResizeEdge.Bottom => GuiResizeCursors.DiagonalNwSe,
-        _ => null,
-    };
-
-    private void BeginResize(GuiResizeEdge edge, double logicalX, double logicalY)
-    {
-        float scale = Vintagestory.API.Config.RuntimeEnv.GUIScale;
-        _resizeEdge = edge;
-        _resizeStartMouseLogicalX = logicalX;
-        _resizeStartMouseLogicalY = logicalY;
-        _resizeStartW = LayoutParameters.Width.Value;
-        _resizeStartH = LayoutParameters.Height.Value;
-        _resizeStartOffsetX = OffsetX;
-        _resizeStartOffsetY = OffsetY;
-        // Snapshot the physical left/top edge so UpdateResize can anchor against an exact
-        // integer pixel. Without this, OffsetX derived from the fractional logical width
-        // causes posX to oscillate ±1 px every time the texture width rounds differently.
-        int physW = (int)Math.Round(_resizeStartW * scale);
-        int physH = (int)Math.Round(_resizeStartH * scale);
-        _resizeAnchorLeft = (int)((ClientApi.Render.FrameWidth - physW) / 2.0 + OffsetX * scale);
-        _resizeAnchorTop = (int)((ClientApi.Render.FrameHeight - physH) / 2.0 + OffsetY * scale);
-        // Pin the cursor for the gesture's duration so it stays correct even when the
-        // pointer wanders outside the dialog mid-drag (vanilla GuiManager reads
-        // MouseOverCursor unconditionally per frame, no hover gate).
-        Runtime.SetMouseOverCursor(CursorForEdge(edge));
-    }
-
-    private void EndResize()
-    {
-        _resizeEdge = GuiResizeEdge.None;
-        // Reset the cursor so other dialogs / world cursor take over once we release.
-        Runtime.SetMouseOverCursor(null);
-    }
-
-    /// <summary>
-    /// Recomputes <see cref="GuiComponent.LayoutParameters"/>.Width/Height and
-    /// <see cref="OffsetX"/>/<see cref="OffsetY"/> from the cursor delta against the
-    /// snapshot taken at <see cref="BeginResize"/>. Only South/East edges are supported
-    /// (see <see cref="IsResizable"/> remarks). The offset is derived from the snapshotted
-    /// physical anchor edge rather than the fractional logical delta, so the pinned edge
-    /// stays at an exact integer pixel throughout the gesture — no shiver.
-    /// Min/max bounds clamp the size; the dragged edge tracks the cursor up to the limit
-    /// and then stops cleanly.
-    /// </summary>
-    private void UpdateResize(double logicalX, double logicalY)
-    {
-        float scale = Vintagestory.API.Config.RuntimeEnv.GUIScale;
-        double dxLogical = logicalX - _resizeStartMouseLogicalX;
-        double dyLogical = logicalY - _resizeStartMouseLogicalY;
-
-        double newW = _resizeStartW;
-        double newH = _resizeStartH;
-        double newOffX = _resizeStartOffsetX;
-        double newOffY = _resizeStartOffsetY;
-
-        if ((_resizeEdge & GuiResizeEdge.Right) != 0)
-        {
-            newW = Math.Clamp(_resizeStartW + dxLogical, MinWidth, MaxWidth);
-            // Derive OffsetX from the snapshotted physical left anchor so the left edge
-            // never oscillates: posX = (FrameWidth - physNewW) / 2 + OffsetX * scale
-            // = _resizeAnchorLeft when OffsetX = (_resizeAnchorLeft + physNewW/2 - FrameWidth/2) / scale.
-            double physNewW = Math.Round(newW * scale);
-            newOffX = (_resizeAnchorLeft + physNewW / 2.0 - ClientApi.Render.FrameWidth / 2.0) / scale;
-        }
-        if ((_resizeEdge & GuiResizeEdge.Bottom) != 0)
-        {
-            newH = Math.Clamp(_resizeStartH + dyLogical, MinHeight, MaxHeight);
-            double physNewH = Math.Round(newH * scale);
-            newOffY = (_resizeAnchorTop + physNewH / 2.0 - ClientApi.Render.FrameHeight / 2.0) / scale;
-        }
-
-        double previousWidth = LayoutParameters.Width.Value;
-        double previousHeight = LayoutParameters.Height.Value;
-
-        LayoutParameters.Width = newW;
-        LayoutParameters.Height = newH;
-        OffsetX = newOffX;
-        OffsetY = newOffY;
-
-        OnResizeUpdated(newW != previousWidth || newH != previousHeight);
-    }
-
 }

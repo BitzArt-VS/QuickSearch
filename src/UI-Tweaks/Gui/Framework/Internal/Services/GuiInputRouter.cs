@@ -20,7 +20,9 @@ internal sealed class GuiInputRouter
     private readonly Func<IGuiNode?> _getRootNode;
 
     private readonly List<InteractiveRegion> _interactiveRegions = [];
+    private readonly List<ResizeRegion> _resizeRegions = [];
     private readonly List<KeyboardRegion> _keyboardRegions = [];
+    private readonly GuiResizeController _resizeController;
 
     private object? _capturedToken;
     private GuiCallback<GuiMouseEventArgs> _capturedOnMouseUp;
@@ -37,7 +39,7 @@ internal sealed class GuiInputRouter
     private string? _overrideCursor;
 
     internal IGuiNode? FocusedNode { get; private set; }
-    private bool IsCapturing => _capturedToken is not null;
+    private bool IsCapturing => _capturedToken is not null || _resizeController.IsResizing;
 
     internal GuiInputRouter(
         ICoreClientAPI clientApi,
@@ -61,6 +63,7 @@ internal sealed class GuiInputRouter
         _setHostMouseCursor = setHostMouseCursor;
         _requestClose = requestClose;
         _getRootNode = getRootNode;
+        _resizeController = new GuiResizeController(getRootNode, SetMouseOverCursor);
     }
 
     internal void RequestFocus() => _requestHostFocus.Invoke();
@@ -76,10 +79,22 @@ internal sealed class GuiInputRouter
     internal void ClearArrangedRegions()
     {
         _interactiveRegions.Clear();
+        _resizeRegions.Clear();
         _keyboardRegions.Clear();
     }
 
     internal void AddInteractiveRegion(in InteractiveRegion region) => _interactiveRegions.Add(region);
+    internal void AddResizeRegion(in ResizeRegion region)
+    {
+        if (region.Target.SupportedResizeEdges == GuiResizeEdge.None)
+        {
+            return;
+        }
+
+        GuiResizeCursors.EnsureLoaded(_clientApi);
+        _resizeRegions.Add(region);
+    }
+
     internal void AddKeyboardRegion(in KeyboardRegion region)
     {
         _keyboardRegions.Add(region);
@@ -115,6 +130,8 @@ internal sealed class GuiInputRouter
         }
 
         _convertToLogical(physicalX, physicalY, out double logicalX, out double logicalY);
+        var mouseArgs = MakeMouseArgs(physicalX, physicalY, logicalX, logicalY, EnumMouseButton.None);
+        _resizeController.UpdateHover(_resizeRegions, mouseArgs);
         RefreshHover(physicalX, physicalY, logicalX, logicalY, EnumMouseButton.None);
     }
 
@@ -296,6 +313,13 @@ internal sealed class GuiInputRouter
         _convertToLogical(args.X, args.Y, out double logicalX, out double logicalY);
         _tooltipHost.Hide();
 
+        if (_resizeController.TryBegin(
+            _resizeRegions,
+            MakeMouseArgs(args.X, args.Y, logicalX, logicalY, args.Button)))
+        {
+            return true;
+        }
+
         int regionIndex = HitTest(logicalX, logicalY);
         if (regionIndex < 0)
         {
@@ -319,6 +343,12 @@ internal sealed class GuiInputRouter
 
     private bool DispatchMouseUp(MouseEvent args)
     {
+        if (_resizeController.IsResizing)
+        {
+            _resizeController.End();
+            return true;
+        }
+
         if (_capturedToken is null)
         {
             return false;
@@ -351,12 +381,22 @@ internal sealed class GuiInputRouter
 
     private bool DispatchMouseMove(MouseEvent args)
     {
+        if (_resizeController.IsResizing)
+        {
+            _convertToLogical(args.X, args.Y, out double resizeLogicalX, out double resizeLogicalY);
+            _resizeController.Update(MakeMouseArgs(args.X, args.Y, resizeLogicalX, resizeLogicalY, args.Button));
+            return true;
+        }
+
         if (_capturedToken is not null)
         {
             return DispatchMouseMoveToCapture(args);
         }
 
         _convertToLogical(args.X, args.Y, out double logicalX, out double logicalY);
+        _resizeController.UpdateHover(
+            _resizeRegions,
+            MakeMouseArgs(args.X, args.Y, logicalX, logicalY, args.Button));
         int regionIndex = RefreshHover(args.X, args.Y, logicalX, logicalY, args.Button);
         return regionIndex >= 0;
     }

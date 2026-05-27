@@ -33,7 +33,8 @@ Don't repeat yourself after a tool call, pick up where you left off.
 
 **Treat the following as blocking requirement and follow it to the letter:**
 
-Before making any changes to the code, make sure to propose the whole design, and clearly highlight the changes you made using the format provided in `.agents/format/api-design.md`.
+Use **API design format** when designing public or internal APIs: `.agents/format/api-design.md`.
+Before making any changes to the code, make sure to propose the whole design, and clearly highlight the changes you made, use API design format for this task.
 If the change can be split into distinct steps, break it down and only work on proposing changes **ONE AT A TIME**. Make sure to have finalized the step before proceeding to the next one.
 Before implementing any changes, make sure you have received an explicit approval from the user on the proposed API shapes.
 Always make sure you have received an explicit approval on every change iteration, even if you have received an approval for a similar change before.
@@ -69,7 +70,7 @@ Before returning any response to the user, validate it against the following cri
 - Is the response not concise or not clear?
 - Would an uninitiated user not be able to understand it if they read this response in isolation without any additional context?
 - Does the response over-complicate an otherwise simple idea?
-- Does the response bring up details unnecessary not relevant to the user's request?
+- Does the response bring up details not relevant to the user's request?
 
 If any of these are true, revise the response until it meets all criteria.
 

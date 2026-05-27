@@ -52,6 +52,7 @@ internal abstract class GuiSurfaceRenderer : IDisposable
     public virtual void Cancel(GuiRenderFragment fragment) { }
 
     public virtual void AddInteractiveRegion(in InteractiveRegion region) { }
+    public virtual void AddResizeRegion(in ResizeRegion region) { }
     public virtual void AddKeyboardRegion(in KeyboardRegion region) { }
 
     public virtual bool ContainsScreenPoint(int x, int y) => false;

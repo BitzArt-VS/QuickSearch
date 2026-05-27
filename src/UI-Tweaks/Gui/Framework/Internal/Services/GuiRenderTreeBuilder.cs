@@ -620,6 +620,11 @@ internal sealed class GuiRenderTreeBuilder : IGuiRenderTreeBuilder, IDisposable
 
     private void RegisterRegions(ComponentSlot slot, GuiComponentBounds bounds)
     {
+        if (slot.Instance is IGuiResizable resizable && resizable.SupportedResizeEdges != GuiResizeEdge.None)
+        {
+            _renderer.AddResizeRegion(new ResizeRegion(bounds, slot.Instance, resizable));
+        }
+
         if (slot.HasMouseHandlers)
         {
             _renderer.AddInteractiveRegion(new InteractiveRegion(

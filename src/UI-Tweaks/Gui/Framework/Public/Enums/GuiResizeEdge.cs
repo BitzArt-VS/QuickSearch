@@ -1,7 +1,7 @@
 namespace BitzArt.UI.Tweaks.Gui;
 
 [Flags]
-internal enum GuiResizeEdge
+public enum GuiResizeEdge
 {
     None = 0,
     Top = 1 << 0,

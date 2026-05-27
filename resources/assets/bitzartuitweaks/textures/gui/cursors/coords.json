@@ -1,5 +1,6 @@
 {
     "resize-h":    { x: 12, y: 12 },
     "resize-v":    { x: 12, y: 12 },
-    "resize-nwse": { x: 12, y: 12 }
+    "resize-nwse": { x: 12, y: 12 },
+    "resize-nesw": { x: 12, y: 12 }
 }

@@ -10,6 +10,7 @@ internal static class GuiResizeCursors
     internal const string Horizontal = "bitzart-uitw-resize-h";
     internal const string Vertical = "bitzart-uitw-resize-v";
     internal const string DiagonalNwSe = "bitzart-uitw-resize-nwse";
+    internal const string DiagonalNeSw = "bitzart-uitw-resize-nesw";
 
     private const string Domain = "bitzartuitweaks";
     private const string CursorAssetDir = "textures/gui/cursors";
@@ -61,6 +62,7 @@ internal static class GuiResizeCursors
         TryLoad(api, coords, "resize-h", Horizontal);
         TryLoad(api, coords, "resize-v", Vertical);
         TryLoad(api, coords, "resize-nwse", DiagonalNwSe);
+        TryLoad(api, coords, "resize-nesw", DiagonalNeSw);
     }
 
     private static void TryLoad(ICoreClientAPI api, Dictionary<string, Vec2i> coords, string assetName, string registerCode)

@@ -242,9 +242,10 @@ internal abstract class DialogRenderer : GuiSurfaceRenderer
     public override void Cancel(GuiRenderFragment fragment) => _rebuildQueue.Cancel(fragment);
 
     public override void AddInteractiveRegion(in InteractiveRegion region) => _inputRouter.AddInteractiveRegion(region);
+    public override void AddResizeRegion(in ResizeRegion region) => _inputRouter.AddResizeRegion(region);
     public override void AddKeyboardRegion(in KeyboardRegion region) => _inputRouter.AddKeyboardRegion(region);
 
-    // --- Geometry helpers (used by GuiDialog for resize hit-testing and overlay checks) ---
+    // --- Geometry helpers (used for input, resize-region screen bounds, and overlay checks) ---
 
     public override bool ContainsScreenPoint(int x, int y)
     {
