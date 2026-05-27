@@ -30,14 +30,14 @@ public sealed class GuiComponentLayoutParameters
     /// <summary>
     /// How to resolve width when <see cref="Width"/> is <see cref="GuiSize.Auto"/>.
     /// <see cref="GuiSizeMode.Fill"/> stretches to available space.
-    /// <see cref="GuiSizeMode.FitContent"/> shrinks to children's combined width plus padding.
+    /// <see cref="GuiSizeMode.FitContent"/> uses measured content width plus padding.
     /// </summary>
     public GuiSizeMode WidthMode { get; set; } = GuiSizeMode.FitContent;
 
     /// <summary>
     /// How to resolve height when <see cref="Height"/> is <see cref="GuiSize.Auto"/>.
     /// <see cref="GuiSizeMode.Fill"/> stretches to available space.
-    /// <see cref="GuiSizeMode.FitContent"/> shrinks to children's combined height plus padding.
+    /// <see cref="GuiSizeMode.FitContent"/> uses measured content height plus padding.
     /// </summary>
     public GuiSizeMode HeightMode { get; set; } = GuiSizeMode.FitContent;
 

@@ -190,13 +190,13 @@ internal sealed class GuiRenderTreeBuilder : IGuiRenderTreeBuilder, IDisposable
         slot.ChildBuilder.InheritedCascadeChain = frame.CascadeChain;
         slot.ChildBuilder.CascadeChain = frame.CascadeChain;
 
-        if (slot.Instance is GuiComponent component)
+        if (slot.Instance is IGuiComponent component)
         {
             // Reset layout parameters to canonical defaults before applying the new
             // pass's config actions — blueprints are declarative (full state), not
             // deltas. Without this, stale LP from a previous view (e.g. a list column
             // that becomes a setting row at the same key) would persist across reuses.
-            component.ResetLayoutParameters();
+            component.LayoutParameters.Reset();
         }
 
         frame.ApplySlotConfiguration(slot.Instance);
@@ -304,7 +304,7 @@ internal sealed class GuiRenderTreeBuilder : IGuiRenderTreeBuilder, IDisposable
                 ? Math.Max(0, contentBounds.Height - consumedFlow - lp.Margin.Vertical)
                 : Math.Max(0, contentBounds.Height - lp.Margin.Vertical);
 
-            var (slotW, slotH) = ResolveSize(slot, availW, availH);
+            var (slotW, slotH) = GuiComponentLayout.ResolveAllocatedSize(layoutComponent, availW, availH);
 
             // Determine origin. Absolute components are always pinned to the content-area origin;
             // relative components are placed at the current cursor and advance it.
@@ -462,11 +462,11 @@ internal sealed class GuiRenderTreeBuilder : IGuiRenderTreeBuilder, IDisposable
         // Measure children at unbounded space on scroll-enabled axes so that Fill children
         // report their true content size rather than collapsing to the viewport. FitContent
         // children return their natural sizes as before. The PositiveInfinity sentinel
-        // propagates through AccumulateMeasure and triggers a FitContent fallback in
-        // ResolveSize for any Fill-mode component on an unbounded axis.
+        // propagates through component-owned measurement and triggers a FitContent fallback
+        // in ResolveAllocatedSize for any Fill-mode component on an unbounded axis.
         double measureAvailW = (eff & GuiScrollDirection.Horizontal) != 0 ? double.PositiveInfinity : childContent.Width;
         double measureAvailH = (eff & GuiScrollDirection.Vertical) != 0 ? double.PositiveInfinity : childContent.Height;
-        var measured = slot.ChildBuilder.MeasureChildren(measureAvailW, measureAvailH, lp.Direction);
+        var measured = container.Measure(measureAvailW, measureAvailH);
 
         // Determine scrollbar visibility. An axis-scrollbar shows when:
         //   (axis ∈ Scrollbar) AND (axis ∈ effective Scroll) AND
@@ -650,68 +650,6 @@ internal sealed class GuiRenderTreeBuilder : IGuiRenderTreeBuilder, IDisposable
     }
 
     /// <summary>
-    /// Measures all relative children within the given available space and returns their combined
-    /// extent: sum along the flow axis, max on the cross axis. Used by <see cref="ResolveSize"/>
-    /// when a slot's dimension mode is <see cref="GuiSizeMode.FitContent"/>.
-    /// </summary>
-    internal GuiMeasuredSize MeasureChildren(double availableWidth, double availableHeight, GuiDirection direction)
-    {
-        double totalW = 0, totalH = 0;
-        AccumulateMeasure(availableWidth, availableHeight, direction, ref totalW, ref totalH);
-        return new GuiMeasuredSize(totalW, totalH);
-    }
-
-    /// <summary>
-    /// Measure core that operates on externally-managed accumulators. Used directly by
-    /// <see cref="MeasureChildren"/> and recursively for layout-transparent wrappers
-    /// (slots whose instance does not implement <see cref="IGuiComponent"/>): the
-    /// wrapper's child builder calls back into this method with the parent's
-    /// accumulators, contributing to the parent's measured size as if the inner children
-    /// were declared at the parent's level.
-    /// </summary>
-    private void AccumulateMeasure(
-        double availableWidth,
-        double availableHeight,
-        GuiDirection direction,
-        ref double totalW,
-        ref double totalH)
-    {
-        foreach (var slot in _renderOrder)
-        {
-            // Transparent wrappers contribute their inner children directly to this
-            // measurement, mirroring how RenderInto inlines them at the parent's flow.
-            // The wrapper's own LayoutParameters are not consulted (they don't have any).
-            if (slot.Instance is not IGuiComponent layoutComponent)
-            {
-                slot.ChildBuilder.AccumulateMeasure(availableWidth, availableHeight, direction, ref totalW, ref totalH);
-                continue;
-            }
-
-            var lp = layoutComponent.LayoutParameters;
-            if (lp.Positioning == GuiComponentPositioning.Absolute)
-            {
-                continue;
-            }
-
-            double childAvailW = Math.Max(0, availableWidth - lp.Margin.Horizontal);
-            double childAvailH = Math.Max(0, availableHeight - lp.Margin.Vertical);
-
-            var (slotW, slotH) = ResolveSize(slot, childAvailW, childAvailH);
-
-            if (direction == GuiDirection.Vertical)
-            {
-                totalW = Math.Max(totalW, lp.Margin.Horizontal + slotW);
-                totalH += lp.Margin.Vertical + slotH;
-            }
-            else
-            {
-                totalW += lp.Margin.Horizontal + slotW;
-                totalH = Math.Max(totalH, lp.Margin.Vertical + slotH);
-            }
-        }
-    }
-
-    /// <summary>
     /// Translates a <see cref="GuiHorizontalAlignment"/> into a pixel offset, given the
     /// slack <paramref name="extra"/> (available cross-axis extent minus slot width).
     /// Negative or zero slack collapses to zero — alignment never pulls a slot outside
@@ -764,59 +702,6 @@ internal sealed class GuiRenderTreeBuilder : IGuiRenderTreeBuilder, IDisposable
 
     private static GuiComponentBounds? Union(GuiComponentBounds? extent, GuiComponentBounds bounds)
         => extent is null ? bounds : Union(extent.Value, bounds);
-
-    /// <summary>
-    /// Resolves the final width and height for a slot given the available space.
-    /// Only called for layout-participating slots (where the instance implements
-    /// <see cref="IGuiComponent"/>); transparent wrappers never reach this path.
-    /// Priority per dimension:
-    /// <list type="number">
-    ///   <item>Explicit <see cref="GuiComponentLayoutParameters.Width"/>/<see cref="GuiComponentLayoutParameters.Height"/> → resolve it.</item>
-    ///   <item><see cref="GuiSizeMode.FitContent"/> → <c>max(MeasureChildren(), Measure())</c> + padding.
-    ///     <see cref="IGuiComponent.Measure"/> acts as the leaf intrinsic-size hook; its default
-    ///     returns <c>(0, 0)</c> so pure containers are unaffected.</item>
-    ///   <item><see cref="GuiSizeMode.Fill"/> → <c>(availW, availH)</c> directly. <see cref="IGuiComponent.Measure"/> is not called.</item>
-    /// </list>
-    /// </summary>
-    private GuiMeasuredSize ResolveSize(ComponentSlot slot, double availW, double availH)
-    {
-        // Only invoked from the layout branch in RenderInto, which has already verified
-        // the slot's instance implements IGuiComponent — this cast is therefore safe.
-        var layoutComponent = (IGuiComponent)slot.Instance;
-        var layoutParameters = layoutComponent.LayoutParameters;
-
-        // Lazy on-demand so we never compute the same path twice.
-        // Inner-available values are clamped at zero — padding larger than available space
-        // would otherwise feed negative dimensions into Measure / MeasureChildren.
-        GuiMeasuredSize? instanceMeasured = null;
-        GuiMeasuredSize GetInstanceMeasured() =>
-            instanceMeasured ??= layoutComponent.Measure(
-                Math.Max(0, availW - layoutParameters.Padding.Horizontal),
-                Math.Max(0, availH - layoutParameters.Padding.Vertical));
-
-        GuiMeasuredSize? childrenMeasured = null;
-        GuiMeasuredSize GetChildrenMeasured() =>
-            childrenMeasured ??= slot.ChildBuilder.MeasureChildren(
-                Math.Max(0, availW - layoutParameters.Padding.Horizontal),
-                Math.Max(0, availH - layoutParameters.Padding.Vertical),
-                layoutParameters.Direction);
-
-        // When available space on an axis is PositiveInfinity the component is inside a
-        // scrollable measure pass on that axis. Fill mode cannot fill an unbounded extent,
-        // so it falls back to FitContent — measuring the component's own children to find
-        // the true content size. Bounded axes (finite availW / availH) are unaffected.
-        double w = layoutParameters.Width.CanResolve(availW) ? layoutParameters.Width.Resolve(availW)
-            : layoutParameters.WidthMode == GuiSizeMode.FitContent || double.IsPositiveInfinity(availW)
-                ? Math.Max(GetChildrenMeasured().Width, GetInstanceMeasured().Width) + layoutParameters.Padding.Horizontal
-            : availW; // Fill
-
-        double h = layoutParameters.Height.CanResolve(availH) ? layoutParameters.Height.Resolve(availH)
-            : layoutParameters.HeightMode == GuiSizeMode.FitContent || double.IsPositiveInfinity(availH)
-                ? Math.Max(GetChildrenMeasured().Height, GetInstanceMeasured().Height) + layoutParameters.Padding.Vertical
-            : availH; // Fill
-
-        return new GuiMeasuredSize(w, h);
-    }
 
     private struct SlotCallbacks
     {

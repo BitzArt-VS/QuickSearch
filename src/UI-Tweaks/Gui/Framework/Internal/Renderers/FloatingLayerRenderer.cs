@@ -112,8 +112,22 @@ internal class FloatingLayerRenderer : GuiSurfaceRenderer
 
     private void ReconcileAndMeasure()
     {
-        Builder.Run(ActiveFragment!);
+        Builder.Run(BuildRootFragment);
         _measuredSize = ResolveLogicalSize();
+    }
+
+    private void BuildRootFragment(IGuiRenderTreeBuilder builder)
+    {
+        GuiSize? width = null;
+        GuiSize? height = null;
+
+        if (_activePlacement.FixedLogicalSize is GuiMeasuredSize fixedSize)
+        {
+            width = fixedSize.Width;
+            height = fixedSize.Height;
+        }
+
+        builder.AddContainer(0, width: width, height: height, content: ActiveFragment);
     }
 
     private void ReallocateSurfaceIfNeeded(float scale)
@@ -192,7 +206,12 @@ internal class FloatingLayerRenderer : GuiSurfaceRenderer
             ? _activePlacement.MaxLogicalHeight
             : double.PositiveInfinity;
 
-        return Builder.MeasureChildren(maxWidth, maxHeight, GuiDirection.Vertical);
+        if (Builder.ComponentSlots.Count == 0 || Builder.ComponentSlots[0].Node is not IGuiComponent rootComponent)
+        {
+            return default;
+        }
+
+        return rootComponent.Measure(maxWidth, maxHeight);
     }
 
     protected virtual (double posX, double posY) GetScreenPosition(double physW, double physH, float scale) =>

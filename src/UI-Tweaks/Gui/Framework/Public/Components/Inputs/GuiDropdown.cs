@@ -347,7 +347,12 @@ public class GuiDropdown<T> : GuiInputBase
     {
         // No intrinsic minimum width — fill the row. Height is controlled via
         // LayoutParameters.Height (set by own-slot defaults).
-        return new GuiMeasuredSize(120, LayoutParameters.Height.FixedOrDefault(30));
+        // Include base child measurement so custom header templates can still participate
+        // when a dropdown is measured as FitContent or inside an unbounded scroll axis.
+        var content = base.Measure(availableWidth, availableHeight);
+        return new GuiMeasuredSize(
+            Math.Max(content.Width, 120),
+            Math.Max(content.Height, LayoutParameters.Height.FixedOrDefault(30)));
     }
 
     private void HandleKeyDown(GuiKeyEventArgs args)
