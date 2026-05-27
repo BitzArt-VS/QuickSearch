@@ -2,11 +2,10 @@ using Vintagestory.API.Client;
 
 namespace BitzArt.UI.Tweaks.Gui;
 
-public abstract class GuiDialog : GuiComponent, IGuiDialog, IDisposable
+public abstract class GuiDialog : GuiComponent, IGuiDialog
 {
     // ClientApi is guaranteed non-null after the dialog is attached by the dialog host.
     protected new ICoreClientAPI ClientApi => base.ClientApi!;
-    protected bool IsDisposed { get; private set; }
 
     /// <summary>
     /// Whether this dialog currently holds keyboard focus. Only the focused dialog receives
@@ -135,21 +134,11 @@ public abstract class GuiDialog : GuiComponent, IGuiDialog, IDisposable
     /// </summary>
     public void RequestFocus()
     {
-        if (IsDisposed)
-        {
-            return;
-        }
-
         Runtime.RequestFocus();
     }
 
     protected void RequestClose()
     {
-        if (IsDisposed)
-        {
-            return;
-        }
-
         Runtime.RequestClose();
     }
 
@@ -407,15 +396,4 @@ public abstract class GuiDialog : GuiComponent, IGuiDialog, IDisposable
         return true;
     }
 
-    public virtual void Dispose()
-    {
-        if (IsDisposed)
-        {
-            return;
-        }
-
-        IsDisposed = true;
-
-        GC.SuppressFinalize(this);
-    }
 }

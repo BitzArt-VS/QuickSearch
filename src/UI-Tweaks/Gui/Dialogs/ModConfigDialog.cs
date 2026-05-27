@@ -5,7 +5,7 @@ using Vintagestory.API.Config;
 
 namespace BitzArt.UI.Tweaks;
 
-public class ModConfigDialog : Gui.GuiDialog
+public class ModConfigDialog : Gui.GuiDialog, IDisposable
 {
     private const int SaveDebounceMs = 10000;
     private static readonly GuiSize SidebarWidth = GuiSize.Fraction(0.2, minimum: 200);
@@ -69,12 +69,11 @@ public class ModConfigDialog : Gui.GuiDialog
         _navigator = new ModConfigPageNavigator(() => RequestReconcile(), initialPage.Label, initialPage.Content);
     }
 
-    public override void Dispose()
+    public void Dispose()
     {
         _saveDebouncer?.Flush();
         _saveDebouncer?.Dispose();
         _saveDebouncer = null;
-        base.Dispose();
     }
 
     protected override void OnResizeUpdated(bool sizeChanged)
