@@ -154,7 +154,8 @@ public abstract class GuiDialog : GuiComponent, IGuiDialog
             .OnMouseDown(HandleDialogMouseDown)
             .OnMouseUp(HandleDialogMouseUp)
             .OnMouseMove(HandleDialogMouseMove)
-            .OnMouseLeave(HandleDialogMouseLeave);
+            .OnMouseLeave(HandleDialogMouseLeave)
+            .OnFocusChanged(HandleDialogFocusChanged);
     }
 
     protected virtual void OnResizeUpdated(bool sizeChanged)
@@ -165,43 +166,10 @@ public abstract class GuiDialog : GuiComponent, IGuiDialog
         }
     }
 
-    /// <summary>
-    /// Override to react to focus changes. Vanilla <c>RequestFocus</c> already moves the
-    /// focused dialog to the front of the opened dialog list, so the renderer needs no
-    /// extra dialog-level ordering API.
-    /// </summary>
-    protected virtual void OnFocusChanged(bool focused) { }
-
-    void IGuiDialog.OnDialogInputFocus()
+    private void HandleDialogFocusChanged(bool focused)
     {
-        if (IsFocused)
-        {
-            return;
-        }
-
-        IsFocused = true;
-        OnFocusChanged(true);
+        IsFocused = focused;
     }
-
-    void IGuiDialog.OnDialogInputUnFocus()
-    {
-        if (!IsFocused)
-        {
-            return;
-        }
-
-        IsFocused = false;
-        OnFocusChanged(false);
-    }
-
-    void IGuiDialog.OnDialogInputKeyDown(KeyEvent args) => OnKeyDown(args);
-    protected virtual void OnKeyDown(KeyEvent args) { }
-
-    void IGuiDialog.OnDialogInputKeyPress(KeyEvent args) => OnKeyPress(args);
-    protected virtual void OnKeyPress(KeyEvent args) { }
-
-    void IGuiDialog.OnDialogInputKeyUp(KeyEvent args) => OnKeyUp(args);
-    protected virtual void OnKeyUp(KeyEvent args) { }
 
     private void HandleDialogMouseDown(GuiMouseEventArgs args)
     {
@@ -378,21 +346,6 @@ public abstract class GuiDialog : GuiComponent, IGuiDialog
         OffsetY = newOffY;
 
         OnResizeUpdated(newW != previousWidth || newH != previousHeight);
-    }
-
-    bool IGuiDialog.OnDialogInputEscapePressed()
-    {
-        // When a component is focused, blur it instead of closing — mirrors typical UI
-        // behaviour where Escape first cancels the active input, then closes the dialog
-        // on a second press. Components that need to consume Escape themselves can mark
-        // the event Handled in their builder.OnKeyDown handler before this fallback runs.
-        if (Runtime.FocusedNode is not null)
-        {
-            Runtime.SetFocusedNode(null);
-            return true;
-        }
-        RequestClose();
-        return true;
     }
 
 }

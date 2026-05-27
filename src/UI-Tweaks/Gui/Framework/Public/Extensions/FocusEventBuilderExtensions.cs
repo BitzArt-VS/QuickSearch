@@ -2,7 +2,8 @@ namespace BitzArt.UI.Tweaks.Gui;
 
 /// <summary>
 /// Slot-level focus-event registration extensions. Focus changes are reference-routed:
-/// handlers fire when the slot's node becomes or stops being the focused node.
+/// handlers fire when the slot's node becomes or stops being the focused node. On the
+/// root dialog slot, handlers track native dialog/surface focus instead.
 /// </summary>
 public static class FocusEventBuilderExtensions
 {

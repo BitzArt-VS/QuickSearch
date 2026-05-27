@@ -82,12 +82,8 @@ internal abstract class DialogRenderer : GuiSurfaceRenderer
             ContainsOverlayScreenPoint,
             () => _clientApi.Gui.RequestFocus(_guiElementAdapter),
             cursor => _guiElementAdapter.MouseOverCursor = cursor,
-            () => _dialog.OnDialogInputFocus(),
-            () => _dialog.OnDialogInputUnFocus(),
-            () => _dialog.OnDialogInputEscapePressed(),
-            args => _dialog.OnDialogInputKeyDown(args),
-            args => _dialog.OnDialogInputKeyUp(args),
-            args => _dialog.OnDialogInputKeyPress(args));
+            _requestClose,
+            () => _dialog);
         _guiElementAdapter.AttachInput(_inputRouter);
         _focusManager = new FocusManager(_inputRouter);
 

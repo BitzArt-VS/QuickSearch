@@ -1,5 +1,3 @@
-using Vintagestory.API.Client;
-
 namespace BitzArt.UI.Tweaks.Gui;
 
 public interface IGuiDialog : IGuiComponent
@@ -11,17 +9,5 @@ public interface IGuiDialog : IGuiComponent
     double OffsetY { get; }
 
     void AttachDialogRuntime(IGuiDialogRuntime runtime) { }
-
-    void OnDialogInputFocus() { }
-
-    void OnDialogInputUnFocus() { }
-
-    bool OnDialogInputEscapePressed() => false;
-
-    void OnDialogInputKeyDown(KeyEvent args) { }
-
-    void OnDialogInputKeyUp(KeyEvent args) { }
-
-    void OnDialogInputKeyPress(KeyEvent args) { }
 
 }

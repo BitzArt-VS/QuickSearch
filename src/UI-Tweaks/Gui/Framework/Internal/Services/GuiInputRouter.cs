@@ -16,12 +16,8 @@ internal sealed class GuiInputRouter
     private readonly Func<int, int, bool> _containsOverlayPoint;
     private readonly Action _requestHostFocus;
     private readonly Action<string?> _setHostMouseCursor;
-    private readonly Action _onRootFocus;
-    private readonly Action _onRootUnFocus;
-    private readonly Func<bool> _onRootEscapePressed;
-    private readonly Action<KeyEvent> _onRootKeyDown;
-    private readonly Action<KeyEvent> _onRootKeyUp;
-    private readonly Action<KeyEvent> _onRootKeyPress;
+    private readonly Action _requestClose;
+    private readonly Func<IGuiNode?> _getRootNode;
 
     private readonly List<InteractiveRegion> _interactiveRegions = [];
     private readonly List<KeyboardRegion> _keyboardRegions = [];
@@ -37,6 +33,7 @@ internal sealed class GuiInputRouter
 
     private bool _focusClaimedThisDispatch;
     private bool _isFocused;
+    private bool _rootFocusDispatched;
     private string? _overrideCursor;
 
     internal IGuiNode? FocusedNode { get; private set; }
@@ -51,12 +48,8 @@ internal sealed class GuiInputRouter
         Func<int, int, bool> containsOverlayPoint,
         Action requestHostFocus,
         Action<string?> setHostMouseCursor,
-        Action onRootFocus,
-        Action onRootUnFocus,
-        Func<bool> onRootEscapePressed,
-        Action<KeyEvent> onRootKeyDown,
-        Action<KeyEvent> onRootKeyUp,
-        Action<KeyEvent> onRootKeyPress)
+        Action requestClose,
+        Func<IGuiNode?> getRootNode)
     {
         _clientApi = clientApi;
         _convertToLogical = convertToLogical;
@@ -66,12 +59,8 @@ internal sealed class GuiInputRouter
         _containsOverlayPoint = containsOverlayPoint;
         _requestHostFocus = requestHostFocus;
         _setHostMouseCursor = setHostMouseCursor;
-        _onRootFocus = onRootFocus;
-        _onRootUnFocus = onRootUnFocus;
-        _onRootEscapePressed = onRootEscapePressed;
-        _onRootKeyDown = onRootKeyDown;
-        _onRootKeyUp = onRootKeyUp;
-        _onRootKeyPress = onRootKeyPress;
+        _requestClose = requestClose;
+        _getRootNode = getRootNode;
     }
 
     internal void RequestFocus() => _requestHostFocus.Invoke();
@@ -91,7 +80,18 @@ internal sealed class GuiInputRouter
     }
 
     internal void AddInteractiveRegion(in InteractiveRegion region) => _interactiveRegions.Add(region);
-    internal void AddKeyboardRegion(in KeyboardRegion region) => _keyboardRegions.Add(region);
+    internal void AddKeyboardRegion(in KeyboardRegion region)
+    {
+        _keyboardRegions.Add(region);
+
+        if (_isFocused
+            && !_rootFocusDispatched
+            && ReferenceEquals(region.Token, _getRootNode())
+            && DispatchFocusChanged(_getRootNode(), focused: true))
+        {
+            _rootFocusDispatched = true;
+        }
+    }
 
     internal void SetFocusedNode(IGuiNode? node)
     {
@@ -103,8 +103,8 @@ internal sealed class GuiInputRouter
 
         var previousNode = FocusedNode;
         FocusedNode = node;
-        DispatchFocusChanged(previousNode, focused: false);
-        DispatchFocusChanged(node, focused: true);
+        DispatchFocusedNodeChanged(previousNode, focused: false);
+        DispatchFocusedNodeChanged(node, focused: true);
     }
 
     internal void RefreshHoverIfNotCapturing(int physicalX, int physicalY)
@@ -120,17 +120,43 @@ internal sealed class GuiInputRouter
 
     internal void OnFocus()
     {
+        if (_isFocused)
+        {
+            return;
+        }
+
         _isFocused = true;
-        _onRootFocus.Invoke();
+        _rootFocusDispatched = DispatchFocusChanged(_getRootNode(), focused: true);
     }
 
     internal void OnUnFocus()
     {
+        if (!_isFocused)
+        {
+            return;
+        }
+
         _isFocused = false;
-        _onRootUnFocus.Invoke();
+        if (_rootFocusDispatched)
+        {
+            DispatchFocusChanged(_getRootNode(), focused: false);
+            _rootFocusDispatched = false;
+        }
     }
 
-    internal bool OnEscapePressed() => _onRootEscapePressed.Invoke();
+    internal bool OnEscapePressed()
+    {
+        // Generic framework fallback: Escape first clears the focused component, then
+        // closes the dialog when nothing inside the dialog is focused.
+        if (FocusedNode is not null)
+        {
+            SetFocusedNode(null);
+            return true;
+        }
+
+        _requestClose.Invoke();
+        return true;
+    }
 
     internal void OnMouseDown(MouseEvent args)
     {
@@ -201,7 +227,7 @@ internal sealed class GuiInputRouter
             return;
         }
 
-        _onRootKeyDown.Invoke(args);
+        DispatchRootKey(GuiKeyEventKind.Down, args);
         if (args.Handled)
         {
             return;
@@ -217,7 +243,7 @@ internal sealed class GuiInputRouter
             return;
         }
 
-        _onRootKeyUp.Invoke(args);
+        DispatchRootKey(GuiKeyEventKind.Up, args);
         if (args.Handled)
         {
             return;
@@ -233,7 +259,7 @@ internal sealed class GuiInputRouter
             return;
         }
 
-        _onRootKeyPress.Invoke(args);
+        DispatchRootKey(GuiKeyEventKind.Press, args);
         if (args.Handled)
         {
             return;
@@ -338,6 +364,17 @@ internal sealed class GuiInputRouter
     private bool DispatchKeyDown(KeyEvent args) => DispatchKey(GuiKeyEventKind.Down, args);
     private bool DispatchKeyUp(KeyEvent args) => DispatchKey(GuiKeyEventKind.Up, args);
     private bool DispatchKeyPress(KeyEvent args) => DispatchKey(GuiKeyEventKind.Press, args);
+
+    private bool DispatchRootKey(GuiKeyEventKind kind, KeyEvent args)
+    {
+        var rootNode = _getRootNode();
+        if (rootNode is null)
+        {
+            return false;
+        }
+
+        return DispatchKeyToToken(rootNode, kind, args);
+    }
 
     private int RefreshHover(int physicalX, int physicalY, double logicalX, double logicalY, EnumMouseButton button)
     {
@@ -482,27 +519,47 @@ internal sealed class GuiInputRouter
             return false;
         }
 
+        if (ReferenceEquals(FocusedNode, _getRootNode()))
+        {
+            return false;
+        }
+
+        return DispatchKeyToToken(FocusedNode, kind, args);
+    }
+
+    private bool DispatchKeyToToken(object token, GuiKeyEventKind kind, KeyEvent args)
+    {
         var keyArgs = new GuiKeyEventArgs(args);
 
         for (int i = 0; i < _keyboardRegions.Count; i++)
         {
-            if (!ReferenceEquals(_keyboardRegions[i].Token, FocusedNode))
+            if (!ReferenceEquals(_keyboardRegions[i].Token, token))
             {
                 continue;
             }
 
             _keyboardRegions[i].Dispatch(kind, keyArgs);
-            break;
+            return true;
         }
 
-        return true;
+        return false;
     }
 
-    private void DispatchFocusChanged(IGuiNode? node, bool focused)
+    private void DispatchFocusedNodeChanged(IGuiNode? node, bool focused)
+    {
+        if (ReferenceEquals(node, _getRootNode()))
+        {
+            return;
+        }
+
+        DispatchFocusChanged(node, focused);
+    }
+
+    private bool DispatchFocusChanged(IGuiNode? node, bool focused)
     {
         if (node is null)
         {
-            return;
+            return false;
         }
 
         for (int i = 0; i < _keyboardRegions.Count; i++)
@@ -513,7 +570,8 @@ internal sealed class GuiInputRouter
             }
 
             _keyboardRegions[i].OnFocusChanged.Invoke(focused);
-            return;
+            return true;
         }
+        return false;
     }
 }

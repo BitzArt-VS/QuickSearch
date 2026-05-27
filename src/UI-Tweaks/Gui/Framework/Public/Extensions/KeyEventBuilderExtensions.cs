@@ -4,9 +4,10 @@ namespace BitzArt.UI.Tweaks.Gui;
 /// Slot-level keyboard-event registration extensions. Mirrors
 /// <see cref="MouseEventBuilderExtensions"/> for the keyboard counterpart.
 /// <para>
-/// Unlike mouse events, keyboard events are not spatially routed — they fire only on the
-/// slot whose component currently holds focus (<see cref="FocusManager"/>). A click on a
-/// focusable component requests focus; clicks elsewhere clear it.
+/// Unlike mouse events, keyboard events are not spatially routed. The root dialog slot
+/// receives keyboard events first for dialog-wide shortcuts; unhandled events then fire
+/// on the slot whose component currently holds focus (<see cref="FocusManager"/>). A
+/// click on a focusable component requests focus; clicks elsewhere clear it.
 /// </para>
 /// <para>
 /// Each event has separate sync (<see cref="Action{T}"/>) and async
