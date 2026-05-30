@@ -93,7 +93,7 @@ public readonly record struct GuiFontStyle
     /// Returns the advance width and line height of <paramref name="text"/> in logical pixels.
     /// Thread-unsafe — call from the render thread only.
     /// </summary>
-    public GuiMeasuredSize Measure(string text)
+    public GuiLayoutSize Measure(string text)
     {
         Apply(_measureContext);
         var te = _measureContext.TextExtents(text);
@@ -101,7 +101,7 @@ public readonly record struct GuiFontStyle
         // Apply scales font size by GUIScale, so extents come back in physical pixels.
         // Convert back to logical pixels for the layout system.
         double inv = 1.0 / RuntimeEnv.GUIScale;
-        return new GuiMeasuredSize(te.XAdvance * inv, fe.Height * inv);
+        return new GuiLayoutSize(te.XAdvance * inv, fe.Height * inv);
     }
 
     /// <summary>Returns the line height of this font in logical pixels.</summary>

@@ -23,7 +23,7 @@ internal sealed class ConfigNavigationRow : GuiComponent
     private bool _isHovered;
     private bool _isPressed;
 
-    public override GuiMeasuredSize Measure(double availableWidth, double availableHeight)
+    public override GuiLayoutSize Measure(GuiLayoutSize available)
     {
         var textSize = GuiFontStyle.MediumBold.Measure(Text);
         return new(textSize.Width + TextLeftPadding * 2, textSize.Height);

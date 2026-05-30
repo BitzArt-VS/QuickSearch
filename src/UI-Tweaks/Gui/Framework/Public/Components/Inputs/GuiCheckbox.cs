@@ -44,9 +44,9 @@ public sealed class GuiCheckbox : GuiInputBase
     }
 
     /// <inheritdoc/>
-    public override GuiMeasuredSize Measure(double availableWidth, double availableHeight)
+    public override GuiLayoutSize Measure(GuiLayoutSize available)
     {
-        return new GuiMeasuredSize(Size, Size);
+        return new GuiLayoutSize(Size, Size);
     }
 
     /// <summary>Flips <see cref="Checked"/>, fires <see cref="OnCheckedChanged"/>, and

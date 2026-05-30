@@ -20,7 +20,7 @@ public sealed class GuiLabel : GuiComponent
 
     // ── IGuiComponent ─────────────────────────────────────────────────────
 
-    public override GuiMeasuredSize Measure(double availableWidth, double availableHeight)
+    public override GuiLayoutSize Measure(GuiLayoutSize available)
     {
         if (string.IsNullOrEmpty(Text))
         {

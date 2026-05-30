@@ -5,7 +5,7 @@ namespace BitzArt.UI.Tweaks.Gui;
 
 internal class FloatingLayerRenderer : GuiSurfaceRenderer
 {
-    protected GuiMeasuredSize _measuredSize;
+    protected GuiLayoutSize _measuredSize;
 
     private object? _activeToken;
     private FloatingLayerPlacement _activePlacement;
@@ -121,7 +121,7 @@ internal class FloatingLayerRenderer : GuiSurfaceRenderer
         GuiSize? width = null;
         GuiSize? height = null;
 
-        if (_activePlacement.FixedLogicalSize is GuiMeasuredSize fixedSize)
+        if (_activePlacement.FixedLogicalSize is GuiLayoutSize fixedSize)
         {
             width = fixedSize.Width;
             height = fixedSize.Height;
@@ -192,9 +192,9 @@ internal class FloatingLayerRenderer : GuiSurfaceRenderer
         _activePlacement.InputHost.AddKeyboardRegion(region);
     }
 
-    protected virtual GuiMeasuredSize ResolveLogicalSize()
+    protected virtual GuiLayoutSize ResolveLogicalSize()
     {
-        if (_activePlacement.FixedLogicalSize is GuiMeasuredSize fixedSize)
+        if (_activePlacement.FixedLogicalSize is GuiLayoutSize fixedSize)
         {
             return fixedSize;
         }
@@ -211,7 +211,7 @@ internal class FloatingLayerRenderer : GuiSurfaceRenderer
             return default;
         }
 
-        return rootComponent.Measure(maxWidth, maxHeight);
+        return rootComponent.Measure(new GuiLayoutSize(maxWidth, maxHeight));
     }
 
     protected virtual (double posX, double posY) GetScreenPosition(double physW, double physH, float scale) =>

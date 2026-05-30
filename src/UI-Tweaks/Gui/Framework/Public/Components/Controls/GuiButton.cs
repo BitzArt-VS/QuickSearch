@@ -66,10 +66,10 @@ public sealed class GuiButton : GuiComponent
     // framework's inside/outside routing.
     private GuiComponentBounds _lastBounds;
 
-    public override GuiMeasuredSize Measure(double availableWidth, double availableHeight)
+    public override GuiLayoutSize Measure(GuiLayoutSize available)
     {
         var ts = NormalFont.Measure(Text);
-        return new GuiMeasuredSize(ts.Width + HorizontalTextPadding * 2, ts.Height + VerticalTextPadding * 2);
+        return new GuiLayoutSize(ts.Width + HorizontalTextPadding * 2, ts.Height + VerticalTextPadding * 2);
     }
 
     public override void Render(Context ctx, GuiComponentBounds b)

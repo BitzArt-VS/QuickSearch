@@ -12,56 +12,54 @@ public static class GuiComponentLayout
     /// Relative children participate in the sum; absolute children are skipped; transparent
     /// wrappers inline their inner children.
     /// </summary>
-    public static GuiMeasuredSize MeasureContent(
+    public static GuiLayoutSize MeasureContent(
         IReadOnlyList<IGuiComponentSlot> slots,
-        double availableWidth,
-        double availableHeight,
+        GuiLayoutSize available,
         GuiDirection direction)
     {
         double totalWidth = 0;
         double totalHeight = 0;
 
-        AccumulateContent(slots, availableWidth, availableHeight, direction, ref totalWidth, ref totalHeight);
+        AccumulateContent(slots, available, direction, ref totalWidth, ref totalHeight);
 
-        return new GuiMeasuredSize(totalWidth, totalHeight);
+        return new GuiLayoutSize(totalWidth, totalHeight);
     }
 
     /// <summary>
     /// Resolves the allocated component size for a layout-participating slot.
     /// The returned size includes padding and excludes margin.
     /// </summary>
-    public static GuiMeasuredSize ResolveAllocatedSize(
+    public static GuiLayoutSize ResolveAllocatedSize(
         IGuiComponent component,
-        double availableWidth,
-        double availableHeight)
+        GuiLayoutSize available)
     {
         var layoutParameters = component.LayoutParameters;
 
-        GuiMeasuredSize? measuredContent = null;
-        GuiMeasuredSize GetMeasuredContent() =>
+        GuiLayoutSize? measuredContent = null;
+        GuiLayoutSize GetMeasuredContent() =>
             measuredContent ??= component.Measure(
-                ClampNonNegative(availableWidth - layoutParameters.Padding.Horizontal),
-                ClampNonNegative(availableHeight - layoutParameters.Padding.Vertical));
+                new GuiLayoutSize(
+                    ClampNonNegative(available.Width - layoutParameters.Padding.Horizontal),
+                    ClampNonNegative(available.Height - layoutParameters.Padding.Vertical)));
 
-        double width = layoutParameters.Width.CanResolve(availableWidth)
-            ? layoutParameters.Width.Resolve(availableWidth)
-            : layoutParameters.WidthMode == GuiSizeMode.FitContent || double.IsPositiveInfinity(availableWidth)
+        double width = layoutParameters.Width.CanResolve(available.Width)
+            ? layoutParameters.Width.Resolve(available.Width)
+            : layoutParameters.WidthMode == GuiSizeMode.FitContent || double.IsPositiveInfinity(available.Width)
                 ? ClampNonNegative(GetMeasuredContent().Width) + layoutParameters.Padding.Horizontal
-                : ClampNonNegative(availableWidth);
+                : ClampNonNegative(available.Width);
 
-        double height = layoutParameters.Height.CanResolve(availableHeight)
-            ? layoutParameters.Height.Resolve(availableHeight)
-            : layoutParameters.HeightMode == GuiSizeMode.FitContent || double.IsPositiveInfinity(availableHeight)
+        double height = layoutParameters.Height.CanResolve(available.Height)
+            ? layoutParameters.Height.Resolve(available.Height)
+            : layoutParameters.HeightMode == GuiSizeMode.FitContent || double.IsPositiveInfinity(available.Height)
                 ? ClampNonNegative(GetMeasuredContent().Height) + layoutParameters.Padding.Vertical
-                : ClampNonNegative(availableHeight);
+                : ClampNonNegative(available.Height);
 
-        return new GuiMeasuredSize(width, height);
+        return new GuiLayoutSize(width, height);
     }
 
     private static void AccumulateContent(
         IReadOnlyList<IGuiComponentSlot> slots,
-        double availableWidth,
-        double availableHeight,
+        GuiLayoutSize available,
         GuiDirection direction,
         ref double totalWidth,
         ref double totalHeight)
@@ -72,7 +70,7 @@ public static class GuiComponentLayout
 
             if (slot.Node is not IGuiComponent component)
             {
-                AccumulateContent(slot.Children, availableWidth, availableHeight, direction, ref totalWidth, ref totalHeight);
+                AccumulateContent(slot.Children, available, direction, ref totalWidth, ref totalHeight);
                 continue;
             }
 
@@ -82,10 +80,10 @@ public static class GuiComponentLayout
                 continue;
             }
 
-            double childAvailableWidth = ClampNonNegative(availableWidth - layoutParameters.Margin.Horizontal);
-            double childAvailableHeight = ClampNonNegative(availableHeight - layoutParameters.Margin.Vertical);
+            double childAvailableWidth = ClampNonNegative(available.Width - layoutParameters.Margin.Horizontal);
+            double childAvailableHeight = ClampNonNegative(available.Height - layoutParameters.Margin.Vertical);
 
-            var childSize = ResolveAllocatedSize(component, childAvailableWidth, childAvailableHeight);
+            var childSize = ResolveAllocatedSize(component, new GuiLayoutSize(childAvailableWidth, childAvailableHeight));
 
             if (direction == GuiDirection.Vertical)
             {

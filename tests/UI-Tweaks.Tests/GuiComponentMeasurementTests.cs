@@ -11,9 +11,9 @@ public class GuiComponentMeasurementTests
         var component = new TestContainer();
         Mount(component);
 
-        var measured = component.Measure(100, 100);
+        var measured = component.Measure(new GuiLayoutSize(100, 100));
 
-        Assert.Equal(new GuiMeasuredSize(0, 0), measured);
+        Assert.Equal(new GuiLayoutSize(0, 0), measured);
     }
 
     [Fact]
@@ -29,9 +29,9 @@ public class GuiComponentMeasurementTests
             Slot(first),
             Slot(second));
 
-        var measured = root.Measure(100, 100);
+        var measured = root.Measure(new GuiLayoutSize(100, 100));
 
-        Assert.Equal(new GuiMeasuredSize(16, 22), measured);
+        Assert.Equal(new GuiLayoutSize(16, 22), measured);
     }
 
     [Fact]
@@ -44,9 +44,9 @@ public class GuiComponentMeasurementTests
             Slot(new FixedMeasureComponent(10, 5)),
             Slot(new FixedMeasureComponent(7, 11)));
 
-        var measured = root.Measure(100, 100);
+        var measured = root.Measure(new GuiLayoutSize(100, 100));
 
-        Assert.Equal(new GuiMeasuredSize(17, 11), measured);
+        Assert.Equal(new GuiLayoutSize(17, 11), measured);
     }
 
     [Fact]
@@ -58,9 +58,9 @@ public class GuiComponentMeasurementTests
             Slot(new TransparentNode(),
                 Slot(new FixedMeasureComponent(10, 5))));
 
-        var measured = root.Measure(100, 100);
+        var measured = root.Measure(new GuiLayoutSize(100, 100));
 
-        Assert.Equal(new GuiMeasuredSize(10, 5), measured);
+        Assert.Equal(new GuiLayoutSize(10, 5), measured);
     }
 
     [Fact]
@@ -72,9 +72,9 @@ public class GuiComponentMeasurementTests
 
         Mount(root, Slot(absolute));
 
-        var measured = root.Measure(100, 100);
+        var measured = root.Measure(new GuiLayoutSize(100, 100));
 
-        Assert.Equal(new GuiMeasuredSize(0, 0), measured);
+        Assert.Equal(new GuiLayoutSize(0, 0), measured);
     }
 
     [Fact]
@@ -87,9 +87,9 @@ public class GuiComponentMeasurementTests
 
         Mount(root, Slot(child));
 
-        var measured = root.Measure(100, 50);
+        var measured = root.Measure(new GuiLayoutSize(100, 50));
 
-        Assert.Equal(new GuiMeasuredSize(100, 50), measured);
+        Assert.Equal(new GuiLayoutSize(100, 50), measured);
     }
 
     [Fact]
@@ -104,9 +104,9 @@ public class GuiComponentMeasurementTests
             Slot(child,
                 Slot(new FixedMeasureComponent(12, 6))));
 
-        var measured = root.Measure(double.PositiveInfinity, double.PositiveInfinity);
+        var measured = root.Measure(new GuiLayoutSize(double.PositiveInfinity, double.PositiveInfinity));
 
-        Assert.Equal(new GuiMeasuredSize(12, 6), measured);
+        Assert.Equal(new GuiLayoutSize(12, 6), measured);
     }
 
     [Fact]
@@ -116,9 +116,9 @@ public class GuiComponentMeasurementTests
         Mount(component,
             Slot(new FixedMeasureComponent(25, 6)));
 
-        var measured = component.Measure(100, 100);
+        var measured = component.Measure(new GuiLayoutSize(100, 100));
 
-        Assert.Equal(new GuiMeasuredSize(25, 6), measured);
+        Assert.Equal(new GuiLayoutSize(25, 6), measured);
     }
 
     [Fact]
@@ -142,11 +142,10 @@ public class GuiComponentMeasurementTests
 
         var measured = GuiComponentLayout.MeasureContent(
             root.RenderSlot.Children,
-            100,
-            100,
+            new GuiLayoutSize(100, 100),
             root.LayoutParameters.Direction);
 
-        Assert.Equal(root.Measure(100, 100), measured);
+        Assert.Equal(root.Measure(new GuiLayoutSize(100, 100)), measured);
     }
 
     [Fact]
@@ -158,9 +157,9 @@ public class GuiComponentMeasurementTests
             Slot(new FixedMeasureComponent(12, 6)),
             Slot(new FixedMeasureComponent(8, 4)));
 
-        var measured = root.Measure(100, 100);
+        var measured = root.Measure(new GuiLayoutSize(100, 100));
 
-        Assert.Equal(new GuiMeasuredSize(12, 10), measured);
+        Assert.Equal(new GuiLayoutSize(12, 10), measured);
     }
 
     private static TestSlot Slot(IGuiNode node, params TestSlot[] children)
@@ -190,32 +189,31 @@ public class GuiComponentMeasurementTests
         public void Attach(IGuiRenderHandle renderHandle, ICoreClientAPI clientApi)
             => _renderHandle = renderHandle;
 
-        public GuiMeasuredSize Measure(double availableWidth, double availableHeight)
+        public GuiLayoutSize Measure(GuiLayoutSize available)
             => GuiComponentLayout.MeasureContent(
                 _renderHandle!.Slot.Children,
-                availableWidth,
-                availableHeight,
+                available,
                 LayoutParameters.Direction);
     }
 
     private sealed class FixedMeasureComponent(double width, double height) : GuiComponent
     {
-        public override GuiMeasuredSize Measure(double availableWidth, double availableHeight)
+        public override GuiLayoutSize Measure(GuiLayoutSize available)
             => new(width, height);
     }
 
     private sealed class ThrowingMeasureComponent : GuiComponent
     {
-        public override GuiMeasuredSize Measure(double availableWidth, double availableHeight)
+        public override GuiLayoutSize Measure(GuiLayoutSize available)
             => throw new InvalidOperationException("Measure should not be called for bounded fill sizing.");
     }
 
     private sealed class IntrinsicAndChildrenComponent(double width, double height) : GuiComponent
     {
-        public override GuiMeasuredSize Measure(double availableWidth, double availableHeight)
+        public override GuiLayoutSize Measure(GuiLayoutSize available)
         {
-            var children = base.Measure(availableWidth, availableHeight);
-            return new GuiMeasuredSize(
+            var children = base.Measure(available);
+            return new GuiLayoutSize(
                 Math.Max(width, children.Width),
                 Math.Max(height, children.Height));
         }

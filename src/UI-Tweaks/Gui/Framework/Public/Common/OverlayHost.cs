@@ -59,7 +59,7 @@ public sealed class OverlayHost
         var placement = new FloatingLayerPlacement
         {
             Anchor = _anchor,
-            FixedLogicalSize = new GuiMeasuredSize(dialogLocalBounds.Width, dialogLocalBounds.Height),
+            FixedLogicalSize = new GuiLayoutSize(dialogLocalBounds.Width, dialogLocalBounds.Height),
             InputHost = _renderer,
             InputRegionOffsetX = dialogLocalBounds.X,
             InputRegionOffsetY = dialogLocalBounds.Y,

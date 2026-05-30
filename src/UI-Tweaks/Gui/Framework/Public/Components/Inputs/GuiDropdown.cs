@@ -343,14 +343,14 @@ public class GuiDropdown<T> : GuiInputBase
     // ── Framework wiring ─────────────────────────────────────────────────────
 
     /// <inheritdoc/>
-    public override GuiMeasuredSize Measure(double availableWidth, double availableHeight)
+    public override GuiLayoutSize Measure(GuiLayoutSize available)
     {
         // No intrinsic minimum width — fill the row. Height is controlled via
         // LayoutParameters.Height (set by own-slot defaults).
         // Include base child measurement so custom header templates can still participate
         // when a dropdown is measured as FitContent or inside an unbounded scroll axis.
-        var content = base.Measure(availableWidth, availableHeight);
-        return new GuiMeasuredSize(
+        var content = base.Measure(available);
+        return new GuiLayoutSize(
             Math.Max(content.Width, 120),
             Math.Max(content.Height, LayoutParameters.Height.FixedOrDefault(30)));
     }

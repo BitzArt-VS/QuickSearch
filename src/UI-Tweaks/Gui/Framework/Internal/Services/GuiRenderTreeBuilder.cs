@@ -304,7 +304,7 @@ internal sealed class GuiRenderTreeBuilder : IGuiRenderTreeBuilder, IDisposable
                 ? Math.Max(0, contentBounds.Height - consumedFlow - lp.Margin.Vertical)
                 : Math.Max(0, contentBounds.Height - lp.Margin.Vertical);
 
-            var (slotW, slotH) = GuiComponentLayout.ResolveAllocatedSize(layoutComponent, availW, availH);
+            var (slotW, slotH) = GuiComponentLayout.ResolveAllocatedSize(layoutComponent, new GuiLayoutSize(availW, availH));
 
             // Determine origin. Absolute components are always pinned to the content-area origin;
             // relative components are placed at the current cursor and advance it.
@@ -466,7 +466,7 @@ internal sealed class GuiRenderTreeBuilder : IGuiRenderTreeBuilder, IDisposable
         // in ResolveAllocatedSize for any Fill-mode component on an unbounded axis.
         double measureAvailW = (eff & GuiScrollDirection.Horizontal) != 0 ? double.PositiveInfinity : childContent.Width;
         double measureAvailH = (eff & GuiScrollDirection.Vertical) != 0 ? double.PositiveInfinity : childContent.Height;
-        var measured = container.Measure(measureAvailW, measureAvailH);
+        var measured = container.Measure(new GuiLayoutSize(measureAvailW, measureAvailH));
 
         // Determine scrollbar visibility. An axis-scrollbar shows when:
         //   (axis ∈ Scrollbar) AND (axis ∈ effective Scroll) AND

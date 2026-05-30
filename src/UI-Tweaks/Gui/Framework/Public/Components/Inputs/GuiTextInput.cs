@@ -134,11 +134,11 @@ public sealed class GuiTextInput : GuiInputBase
     }
 
     /// <inheritdoc/>
-    public override GuiMeasuredSize Measure(double availableWidth, double availableHeight)
+    public override GuiLayoutSize Measure(GuiLayoutSize available)
     {
         // The input doesn't shrink to its text — it's an interactive box. Returning a
         // small minimum just keeps fit-content parents from collapsing to zero.
-        return new GuiMeasuredSize(80, LayoutParameters.Height.FixedOrDefault(30));
+        return new GuiLayoutSize(80, LayoutParameters.Height.FixedOrDefault(30));
     }
 
     /// <inheritdoc/>

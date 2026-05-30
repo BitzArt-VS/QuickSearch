@@ -18,7 +18,7 @@ public abstract class GuiComponent : GuiNode, IGuiComponent
     }
 
     /// <inheritdoc/>
-    public virtual GuiMeasuredSize Measure(double availableWidth, double availableHeight)
+    public virtual GuiLayoutSize Measure(GuiLayoutSize available)
     {
         if (RenderHandle is null)
         {
@@ -27,8 +27,7 @@ public abstract class GuiComponent : GuiNode, IGuiComponent
 
         return GuiComponentLayout.MeasureContent(
             Slot.Children,
-            availableWidth,
-            availableHeight,
+            available,
             LayoutParameters.Direction);
     }
 

@@ -4,7 +4,7 @@ internal readonly record struct FloatingLayerPlacement
 {
     public FloatingLayerAnchor Anchor { get; init; }
 
-    public GuiMeasuredSize? FixedLogicalSize { get; init; }
+    public GuiLayoutSize? FixedLogicalSize { get; init; }
 
     public double MaxLogicalWidth { get; init; }
 

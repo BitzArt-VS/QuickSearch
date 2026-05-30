@@ -55,7 +55,7 @@ public class GuiDialogCloseIcon : GuiComponent
     /// The icon's natural size. Includes the 2-px line-width margin DrawCross adds around
     /// the visible cross (see remarks on the class doc).
     /// </summary>
-    public override GuiMeasuredSize Measure(double availableWidth, double availableHeight)
+    public override GuiLayoutSize Measure(GuiLayoutSize available)
         => new(CrossLineWidth * 2 + CrossSize, CrossLineWidth * 2 + CrossSize);
 
     public override void Render(Context ctx, GuiComponentBounds b)
