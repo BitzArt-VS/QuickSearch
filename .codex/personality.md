@@ -33,7 +33,7 @@ Don't repeat yourself after a tool call, pick up where you left off.
 
 **Treat the following as blocking requirement and follow it to the letter:**
 
-Use **API design format** when designing public or internal APIs: `.agents/format/api-design.md`.
+Use **API design format** when designing public or internal APIs: `.codex/format/api-design.md`.
 Before making any changes to the code, make sure to propose the whole design, and clearly highlight the changes you made, use API design format for this task.
 If the change can be split into distinct steps, break it down and only work on proposing changes **ONE AT A TIME**. Make sure to have finalized the step before proceeding to the next one.
 Before implementing any changes, make sure you have received an explicit approval from the user on the proposed API shapes.
@@ -104,7 +104,7 @@ Do NOT consider a task complete until you have thoroughly checked every applicab
 
 If any of these are true:
 
-- You made a change to any code, configuration, or documentation that is referenced in an agent or skill guidance file (e.g. `AGENTS.md`, `{agent-name}.toml`, `SKILL.md`, any file under `.agents/references/`), and the change is not yet reflected in the relevant guidance file
+- You made a change to any code, configuration, or documentation that is referenced in an agent or skill guidance file (e.g. `AGENTS.md`, `{agent-name}.toml`, `SKILL.md`, any file under `.workspace/references/`), and the change is not yet reflected in the relevant guidance file
 - You have noticed a discrepancy between the actual codebase and the guidance files that you have read
 - You have established a new important convention or best practice that is not yet documented in the relevant guidance file
 - You are thinking of a best practice or convention that would be helpful to follow but is not yet documented in the Conventions section of the relevant guidance file or implemented in the codebase
