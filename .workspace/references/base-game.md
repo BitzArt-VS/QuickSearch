@@ -8,7 +8,4 @@ While working with any files related to the `../BaseGame` reference, validate re
 
 Maintain and update the reference proactively as new information is discovered. There is no separate dedicated maintainer role for this task.
 
-## Checked Facts
-
-- Vanilla `Vintagestory.API.Client.GuiDialog.DrawOrder` defaults to `0.1` in `../BaseGame/vsapi/Client/UI/Dialog/GuiDialog.cs`. `GuiManager.RequestFocus` only reorders dialogs within the same `DrawOrder` rank, so cross-rank stacking remains controlled by each dialog's `DrawOrder`.
-- `ClientEventManager.TriggerRenderStage` iterates each render-stage renderer list directly by index in `../BaseGame/vintagestorylib/Vintagestory.Client.NoObf/ClientEventManager.cs`. Avoid unregistering a renderer from the same stage during its own `OnRenderFrame`; removing the current list item can shift later entries and skip a later renderer for that frame.
+Do not ever modify this file in any way.
